@@ -1,0 +1,42 @@
+<div class="results-page">
+  <h1>Mis Resultados</h1>
+
+  @if (loading()) {
+    <div>Cargando resultados...</div>
+  }
+  @if (!loading() && results.length === 0) {
+    <div>No hay resultados disponibles.</div>
+  }
+
+  @if (results.length > 0) {
+    <div class="results-table-container">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Test</th>
+            <th>Descripción</th>
+            <th>Respuestas Correctas</th>
+            <th>Respuestas Incorrectas</th>
+            <th>Total</th>
+            <th>Tiempo (s)</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (result of results; track result.id) {
+            <tr class="result-row">
+              <td>{{ result.test.title }}</td>
+              <td>{{ result.test.description }}</td>
+              <td>{{ result.correct_answers }}</td>
+              <td>{{ result.wrong_answers }}</td>
+              <td>{{ result.total }}</td>
+              <td>{{ result.time_taken }}</td>
+              <td>{{ result.created_at | date: 'short' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+

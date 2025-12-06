@@ -1,0 +1,32 @@
+<div class="container" style="padding: 20px;">
+  
+  <h2>Usuarios Registrados</h2>
+
+  <div *ngIf="loading()">Cargando usuarios...</div>
+
+  <table *ngIf="!loading()" border="1" cellpadding="10" style="width: 100%; border-collapse: collapse;">
+    <thead style="background: #f0f0f0;">
+      <tr>
+        <th>ID</th>
+        <th>Usuario</th>
+        <th>Email</th>
+        <th>Rol</th>
+        <th>Registrado</th>
+        <th>Tests Completados</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let u of users()">
+        <td>{{ u.id }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.role }}</td>
+        <td>{{ u.created_at | date:'short' }}</td>
+        <td><strong>{{ u.tests_finished }}</strong></td>
+        <td><a href="/test/{{ u.id }}" class="btn btn-primary">Hacer Test</a></td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>

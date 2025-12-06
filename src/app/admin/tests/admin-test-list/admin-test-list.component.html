@@ -1,0 +1,46 @@
+<div class="tests-page">
+
+<h1>Listado de Tests</h1>
+
+@if (loading()) {
+  <div>
+    Cargando tests...
+  </div>
+}
+
+@if (!loading() && tests.length === 0) {
+  <div>
+    No hay tests disponibles.
+  </div>
+}
+
+@if (tests.length > 0) {
+
+  <div class="tests-table-container">
+    <table class="tests-table">
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Descripción</th>
+          <th>Categoría</th>
+          <th>Nivel</th>
+          <th>Fecha</th>
+          <th>Preguntas</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (test of tests; track test.id) {
+          <tr class="test-row">
+            <td>{{ test.title }}</td>
+            <td>{{ test.description }}</td>
+            <td>{{ test.category }}</td>
+            <td>{{ test.level }}</td>
+            <td>{{ test.test_date }}</td>
+            <td>{{ test.questions.length }}</td>
+            <td><a href="/test/{{ test.id }}" class="btn btn-primary">Hacer Test</a></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

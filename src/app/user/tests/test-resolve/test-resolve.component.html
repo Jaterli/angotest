@@ -1,0 +1,34 @@
+@if (loading()) {
+  <div class="loading">Cargando test...</div>
+} @else if (test) {
+  <div class="test-container">
+    <h2>{{ test.title }}</h2>
+    <p>Category: {{ test.category }} | Level: {{ test.level }}</p>
+
+    @for (question of test.questions; track question.id) {
+      <div class="question">
+        <h3>{{ question.question_text }}</h3>
+
+        <div class="answers">
+          @for (answer of question.answers; track answer.id) {
+            <label>
+              <input
+                type="radio"
+                name="q{{ question.id }}"
+                [value]="answer.id"
+                (change)="selectAnswer(question.id!, answer.id!)"
+              />
+              {{ answer.answer_text }}
+            </label>
+          }
+        </div>
+      </div>
+    }
+
+    <button (click)="submitTest()" class="btn-submit">
+      Enviar Test
+    </button>
+  </div>
+} @else {
+  <div class="loading">Error: test no encontrado</div>
+}

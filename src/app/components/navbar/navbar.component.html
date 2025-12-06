@@ -1,0 +1,15 @@
+<nav class="navbar">
+  <div class="logo" routerLink="/">AnGoTest</div>
+
+  <ul class="nav-links">
+    @if (!isLoggedIn) {
+      <li><a routerLink="/login">Login</a></li>
+    } @else {
+      <li><span>Hola, {{ userEmail }}</span></li>
+      @if (isAdmin()) {
+        <li><a routerLink="/admin/tests">Panel Admin</a></li>
+      }
+      <li><a (click)="logout()">Logout</a></li>
+    }
+  </ul>
+</nav>

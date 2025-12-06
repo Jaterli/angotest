@@ -1,0 +1,24 @@
+<div class="latest-test-container">
+  
+  <div *ngIf="loading(); else showTest">
+    <p>Cargando el último test...</p>
+  </div>
+
+  <ng-template #showTest>
+
+    <div *ngIf="test(); else noTestFound" class="test-card">
+      <h2>{{ test()!.title }}</h2>
+      <p>{{ test()!.description }}</p>
+
+      <button class="btn" (click)="goToTest()">
+        Resolver ahora
+      </button>
+    </div>
+
+  </ng-template>
+
+  <ng-template #noTestFound>
+    <p>No se ha encontrado ningún test.</p>
+  </ng-template>
+
+</div>

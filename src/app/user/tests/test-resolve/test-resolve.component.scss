@@ -1,0 +1,37 @@
+.test-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
+}
+
+.question {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f8f8f8;
+  border-radius: 6px;
+}
+
+.answers label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.btn-submit {
+  background: #007acc;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-submit:hover {
+  background: #005c99;
+}
+
+.loading,
+.error {
+  text-align: center;
+  font-size: 18px;
+  margin-top: 30px;
+}

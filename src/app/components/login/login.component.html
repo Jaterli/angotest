@@ -1,0 +1,66 @@
+<div class="login-container">
+  <h2>Login</h2>
+
+  <form [formGroup]="loginForm" (submit)="submit(); $event.preventDefault()">
+    <!-- Email -->
+    <div class="form-group">
+      <input
+        type="email"
+        formControlName="email"
+        placeholder="Email"
+        required
+        [class.error]="email?.invalid && email?.touched"
+      />
+      @if (email?.invalid && email?.touched) {
+        <div class="error-message">
+          @if (email?.errors?.['required']) {
+            <span>Email es requerido</span>
+          }
+          @if (email?.errors?.['email']) {
+            <span>Email inválido</span>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Password -->
+    <div class="form-group">
+      <input
+        type="password"
+        formControlName="password"
+        placeholder="Contraseña"
+        required
+        [class.error]="password?.invalid && password?.touched"
+      />
+      @if (password?.invalid && password?.touched) {
+        <div class="error-message">
+          @if (password?.errors?.['required']) {
+            <span>Contraseña es requerida</span>
+          }
+          @if (password?.errors?.['minlength']) {
+            <span>Mínimo 6 caracteres</span>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Error del servidor -->
+    @if (error()) {
+      <div class="server-error">
+        {{ error() }}
+      </div>
+    }
+
+    <!-- Botón de submit -->
+    <button 
+      type="submit" 
+      [disabled]="loginForm.invalid || loading()"
+    >
+      @if (loading()) {
+        <span class="spinner"></span> Entrando...
+      } @else {
+        Entrar
+      }
+    </button>
+  </form>
+</div>

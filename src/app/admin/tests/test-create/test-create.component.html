@@ -1,0 +1,23 @@
+<form [formGroup]="testForm" (ngSubmit)="submit()">
+  <input formControlName="title" placeholder="Título">
+  <input formControlName="description" placeholder="Descripción">
+  <input formControlName="category" placeholder="Categoría">
+  <input formControlName="level" placeholder="Nivel">
+  <input type="date" formControlName="test_date">
+
+  <div formArrayName="questions">
+    <div *ngFor="let q of questions.controls; let i = index" [formGroupName]="i">
+      <input formControlName="question_text" placeholder="Pregunta">
+      <div formArrayName="answers">
+        <div *ngFor="let a of getAnswers(i).controls; let j = index" [formGroupName]="j">
+          <input formControlName="answer_text" placeholder="Respuesta">
+          <input type="checkbox" formControlName="is_correct"> Correcta
+        </div>
+        <button type="button" (click)="addAnswer(i)">Agregar respuesta</button>
+      </div>
+    </div>
+    <button type="button" (click)="addQuestion()">Agregar pregunta</button>
+  </div>
+
+  <button type="submit">Crear Test</button>
+</form>
