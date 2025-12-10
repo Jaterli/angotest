@@ -1,66 +1,134 @@
-<div class="login-container">
-  <h2>Login</h2>
-
-  <form [formGroup]="loginForm" (submit)="submit(); $event.preventDefault()">
-    <!-- Email -->
-    <div class="form-group">
-      <input
-        type="email"
-        formControlName="email"
-        placeholder="Email"
-        required
-        [class.error]="email?.invalid && email?.touched"
-      />
-      @if (email?.invalid && email?.touched) {
-        <div class="error-message">
-          @if (email?.errors?.['required']) {
-            <span>Email es requerido</span>
-          }
-          @if (email?.errors?.['email']) {
-            <span>Email inválido</span>
-          }
-        </div>
-      }
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 px-4">
+  <div class="w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-8 space-y-8 border border-gray-200 dark:border-gray-700">
+    <!-- Título -->
+    <div class="text-center">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight mb-2">Login</h2>
+      <p class="text-gray-600 dark:text-gray-400 text-sm">Ingresa tus credenciales para continuar</p>
     </div>
 
-    <!-- Password -->
-    <div class="form-group">
-      <input
-        type="password"
-        formControlName="password"
-        placeholder="Contraseña"
-        required
-        [class.error]="password?.invalid && password?.touched"
-      />
-      @if (password?.invalid && password?.touched) {
-        <div class="error-message">
-          @if (password?.errors?.['required']) {
-            <span>Contraseña es requerida</span>
-          }
-          @if (password?.errors?.['minlength']) {
-            <span>Mínimo 6 caracteres</span>
-          }
-        </div>
-      }
-    </div>
-
-    <!-- Error del servidor -->
-    @if (error()) {
-      <div class="server-error">
-        {{ error() }}
+    <!-- Formulario -->
+    <form [formGroup]="loginForm" (submit)="submit(); $event.preventDefault()" class="space-y-6">
+      <!-- Email -->
+      <div class="space-y-2">
+        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Email
+        </label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="tu@email.com"
+          required
+          [class]="email?.invalid && email?.touched 
+            ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+            : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+        />
+        
+        @if (email?.invalid && email?.touched) {
+          <div class="space-y-1">
+            @if (email?.errors?.['required']) {
+              <p class="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                Email es requerido
+              </p>
+            }
+            @if (email?.errors?.['email']) {
+              <p class="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                Email inválido
+              </p>
+            }
+          </div>
+        }
       </div>
-    }
 
-    <!-- Botón de submit -->
-    <button 
-      type="submit" 
-      [disabled]="loginForm.invalid || loading()"
-    >
-      @if (loading()) {
-        <span class="spinner"></span> Entrando...
-      } @else {
-        Entrar
+      <!-- Password -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Contraseña
+          </label>
+          <!-- <a href="#" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-medium">
+            ¿Olvidaste tu contraseña?
+          </a> -->
+        </div>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          placeholder="••••••••"
+          required
+          [class]="password?.invalid && password?.touched 
+            ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+            : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+        />
+        
+        @if (password?.invalid && password?.touched) {
+          <div class="space-y-1">
+            @if (password?.errors?.['required']) {
+              <p class="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                Contraseña es requerida
+              </p>
+            }
+            @if (password?.errors?.['minlength']) {
+              <p class="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                Mínimo 6 caracteres
+              </p>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Error del servidor -->
+      @if (error()) {
+        <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
+          <div class="flex items-start">
+            <svg class="w-5 h-5 text-red-500 dark:text-red-400 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+            <div>
+              <p class="text-sm font-medium text-red-800 dark:text-red-300">{{ error() }}</p>
+            </div>
+          </div>
+        </div>
       }
-    </button>
-  </form>
+
+      <!-- Botón de submit -->
+      <button 
+        type="submit" 
+        [disabled]="loginForm.invalid || loading()"
+        class="w-full py-3 px-4 bg-blue-600 dark:bg-blue-700 text-white font-semibold rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+      >
+        @if (loading()) {
+          <svg class="w-5 h-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Entrando...</span>
+        } @else {
+          Entrar
+        }
+      </button>
+
+      <!-- Enlace adicional (opcional) -->
+      <!-- <div class="text-center pt-4 border-t border-gray-200 dark:border-gray-700">
+        <p class="text-gray-600 dark:text-gray-400 text-sm">
+          ¿No tienes cuenta?
+          <a href="/register" class="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
+            Regístrate aquí
+          </a>
+        </p>
+      </div> -->
+    </form>
+  </div>
 </div>

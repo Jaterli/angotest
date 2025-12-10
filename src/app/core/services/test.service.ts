@@ -14,7 +14,15 @@ export class TestService {
 
   // ====== Admin ======
   createTest(test: Test): Observable<any> {
-    return this.http.post(`${this.apiUrl}/admin/test/create`, test);
+    return this.http.post(`${this.apiUrl}/admin/tests/create`, test);
+  }
+
+  updateTest(id: number, test: Test): Observable<any> {
+    return this.http.put(`${this.apiUrl}/admin/tests/edit/${id}`, test);
+  }
+
+  deleteTest(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/admin/tests/delete/${id}`);
   }
 
   getAllTests(): Observable<Test[]> {
@@ -24,17 +32,17 @@ export class TestService {
   // ====== Usuario ======
   getTodayTest(): Observable<Test> {
     console.log('TestService: obteniendo el test de hoy...');
-    return this.http.get<Test>(`${this.apiUrl}/test/today`);
+    return this.http.get<Test>(`${this.apiUrl}/tests/today`);
   }
 
   getTestById(id: number): Observable<Test> {
     console.log(`TestService: obteniendo el test con ID: ${id}...`);
-    return this.http.get<Test>(`${this.apiUrl}/test/${id}`);
+    return this.http.get<Test>(`${this.apiUrl}/tests/${id}`);
   }
 
   getLatestTest() {
     console.log('TestService: obteniendo el último test disponible...');
-    return this.http.get<Test>(`${this.apiUrl}/test/latest`);
+    return this.http.get<Test>(`${this.apiUrl}/tests/latest`);
   }
 
   // getTestsForUser(): Observable<TestsResponse> {
@@ -42,9 +50,9 @@ export class TestService {
   //   return this.http.get<TestsResponse>(`${this.apiUrl}/tests/user`);
   // }
 
-    getUserTestResults(): Observable<ResultResponse> {
-      console.log('TestService: obteniendo todos los resultados para el usuario...');
-      return this.http.get<ResultResponse>(`${this.apiUrl}/tests/results`);
-    }
+  getUserTestResults(): Observable<ResultResponse> {
+    console.log('TestService: obteniendo todos los resultados para el usuario...');
+    return this.http.get<ResultResponse>(`${this.apiUrl}/tests/results`);
+  }
 
 }

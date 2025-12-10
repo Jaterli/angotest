@@ -14,6 +14,6 @@ export class ForbiddenComponent {
   }
 
   goLogin() {
-    this.router.navigate(['/login']);
+    this.router.navigate(['/login#forbidden']);
   }
 }

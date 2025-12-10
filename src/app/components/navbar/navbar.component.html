@@ -1,15 +1,200 @@
-<nav class="navbar">
-  <div class="logo" routerLink="/">AnGoTest</div>
+<nav class="sticky top-0 z-50 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      
+      <!-- Logo -->
+      <div class="flex items-center">
+        <a [routerLink]="getHomeRoute()" 
+           class="text-xl font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+          AnGoTest
+        </a>
+      </div>
 
-  <ul class="nav-links">
-    @if (!isLoggedIn) {
-      <li><a routerLink="/login">Login</a></li>
-    } @else {
-      <li><span>Hola, {{ userEmail }}</span></li>
-      @if (isAdmin()) {
-        <li><a routerLink="/admin/tests">Panel Admin</a></li>
-      }
-      <li><a (click)="logout()">Logout</a></li>
+      <!-- Menú de navegación -->
+      <div class="flex items-center space-x-4 sm:space-x-6">
+        
+        <!-- Usuario no autenticado -->
+        @if (!isLoggedIn) {
+          <a routerLink="/login" 
+             class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors hidden sm:block">
+            Login
+          </a>
+        }
+        
+        <!-- Usuario autenticado -->
+        @else {
+          <!-- Bienvenida -->
+          <div class="hidden md:flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+              <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="flex flex-col">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ userEmail }}</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">{{ userRole | titlecase }}</span>
+            </div>
+          </div>
+
+          <!-- Menú para Administradores -->
+          @if (shouldShowAdminMenu()) {
+            <div class="hidden md:flex items-center space-x-4 border-l border-gray-200 dark:border-gray-700 pl-4">
+              <a routerLink="/admin/dashboard" 
+                 class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Dashboard
+              </a>
+              <a routerLink="/admin/tests" 
+                 class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Tests
+              </a>
+              <a routerLink="/admin/users/stats" 
+                 class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Usuarios
+              </a>
+              <a routerLink="/admin/stats" 
+                 class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Estadísticas
+              </a>
+            </div>
+          }
+
+          <!-- Menú para Usuarios normales -->
+          @if (shouldShowUserMenu()) {
+            <div class="hidden md:flex items-center space-x-4 border-l border-gray-200 dark:border-gray-700 pl-4">
+              <a routerLink="/user/tests" 
+                 class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Mis Tests
+              </a>
+              <a routerLink="/user/results" 
+                 class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Mis Resultados
+              </a>
+              <a routerLink="/user/profile" 
+                 class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Mi Perfil
+              </a>
+            </div>
+          }
+
+          <!-- Botón Logout -->
+          <button (click)="logout()"
+                  class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors hidden sm:block">
+            Logout
+          </button>
+        }
+
+        <!-- Toggle de tema -->
+        <div class="border-l border-gray-200 dark:border-gray-700 pl-4">
+          <app-theme-toggle></app-theme-toggle>
+        </div>
+
+        <!-- Menú hamburguesa para móvil -->
+        <div class="md:hidden">
+          <button (click)="toggleMobileMenu()"
+                  class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-blue-500">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menú móvil desplegable -->
+    @if (showMobileMenu()) {
+      <div class="md:hidden border-t border-gray-200 dark:border-gray-700">
+        <div class="px-2 pt-2 pb-3 space-y-1">
+          
+          @if (!isLoggedIn) {
+            <!-- Login en móvil -->
+            <a routerLink="/login" 
+               (click)="closeMobileMenu()"
+               class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              Login
+            </a>
+          }
+          
+          @else {
+            <!-- Información del usuario en móvil -->
+            <div class="px-3 py-2">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                  <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-base font-medium text-gray-700 dark:text-gray-300">{{ userEmail }}</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400">{{ userRole | titlecase }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Menú Admin en móvil -->
+            @if (shouldShowAdminMenu()) {
+              <a routerLink="/admin/dashboard" 
+                 (click)="closeMobileMenu()"
+                 class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Dashboard
+              </a>
+              <a routerLink="/admin/tests" 
+                 (click)="closeMobileMenu()"
+                 class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Tests
+              </a>
+              <a routerLink="/admin/users" 
+                 (click)="closeMobileMenu()"
+                 class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Usuarios
+              </a>
+              <a routerLink="/admin/stats" 
+                 (click)="closeMobileMenu()"
+                 class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Estadísticas
+              </a>
+            }
+
+            <!-- Menú User en móvil -->
+            @if (shouldShowUserMenu()) {
+              <a routerLink="/user/tests" 
+                 (click)="closeMobileMenu()"
+                 class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Mis Tests
+              </a>
+              <a routerLink="/user/results" 
+                 (click)="closeMobileMenu()"
+                 class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Mis Resultados
+              </a>
+              <a routerLink="/user/profile" 
+                 (click)="closeMobileMenu()"
+                 class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Mi Perfil
+              </a>
+            }
+
+            <!-- Logout en móvil -->
+            <button (click)="logout(); closeMobileMenu()"
+                    class="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+              Logout
+            </button>
+          }
+        </div>
+      </div>
     }
-  </ul>
+  </div>
 </nav>

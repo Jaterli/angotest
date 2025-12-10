@@ -110,7 +110,7 @@ private writeToStorage(key: string, value: any): void {
     this.userSignal.set(null);
     
     if (redirect) {
-      this.router.navigate(['/login']);
+      this.router.navigate(['/login#logout']);
     }
   }
 
@@ -128,6 +128,7 @@ private writeToStorage(key: string, value: any): void {
   }
 
   isAdmin(): boolean {
+    console.log('User role:', this.getUserRole());
     return this.getUserRole() === 'admin';
   }
 

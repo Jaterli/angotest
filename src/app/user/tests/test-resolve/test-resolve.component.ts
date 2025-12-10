@@ -9,13 +9,12 @@ import { Test } from '../../../models/test.model';
   selector: 'app-test-resolve',
   standalone: true,
   templateUrl: './test-resolve.component.html',
-  styleUrls: ['./test-resolve.component.scss'],
   imports: [CommonModule]
 })
 export class TestResolveComponent implements OnInit {
 
   test?: Test;
-  selectedAnswers: Record<number, number> = {};
+  selectedAnswers: Record<number, number> = {}; // Para almacenar respuestas seleccionadas
   loading = signal(true);
   startTime = 0;
 
@@ -42,6 +41,14 @@ export class TestResolveComponent implements OnInit {
         }
       });
     });
+  }
+
+  isQuestionAnswered(questionId: number): boolean {
+    return this.selectedAnswers[questionId] !== undefined;
+  }
+
+  getAnsweredCount(): number {
+    return Object.keys(this.selectedAnswers).length;
   }
 
   submitTest() {

@@ -1,34 +1,79 @@
 // src/app/components/navbar/navbar.component.ts
-import { Component, signal } from '@angular/core';
+import { Component, signal, computed } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { ThemeToggleComponent } from '../theme-toggle.component';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ThemeToggleComponent],
   templateUrl: './navbar.component.html',
-  styleUrls: ['./navbar.component.scss']
 })
 export class NavbarComponent {
+  showMobileMenu = signal(false);
 
-  constructor(private authService: AuthService) {
-    // nothing else required
+  constructor(private authService: AuthService) {}
+
+  toggleMobileMenu(): void {
+    this.showMobileMenu.update(value => !value);
   }
 
-  // Exponer señales para template
+  closeMobileMenu(): void {
+    this.showMobileMenu.set(false);
+  }
+
+  // Exponer señales y propiedades para template
   get isLoggedIn() {
     return this.authService.isLoggedIn();
   }
 
-  // helper para template (signals-compatible)
-  isAdmin() {
-    return this.authService.isAdmin();
+  get currentUser() {
+    return this.authService.getUser();
   }
 
   get userEmail() {
-    return this.authService.getUser()?.email;
+    return this.currentUser?.email;
+  }
+
+  get userRole() {
+    return this.currentUser?.role;
+  }
+
+
+  getHomeRoute(): string {
+    if (!this.isLoggedIn) {
+      return '/';
+    }
+    
+    switch (this.userRole) {
+      case 'admin':
+        return '/admin/dashboard';
+      case 'user':
+      case 'usuario':
+        return '/user/tests';
+      default:
+        return '/';
+    }
+  }
+
+  // Métodos para verificar roles específicos
+  isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
+  isUser(): boolean {
+    return this.userRole === 'user' || this.userRole === 'usuario';
+  }
+
+  // Helper para menús específicos
+  shouldShowAdminMenu(): boolean {
+    return this.isLoggedIn && this.isAdmin();
+  }
+
+  shouldShowUserMenu(): boolean {
+    return this.isLoggedIn && this.isUser();
   }
 
   logout() {

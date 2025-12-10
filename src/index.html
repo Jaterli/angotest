@@ -1,15 +1,73 @@
 <!doctype html>
-<html lang="en">
+<html lang="es" class="h-full">
 <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta charset="utf-8">
-  <title>Frontend</title>
+  <title>AnGoTest - Plataforma de Evaluación</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  
+  <!-- Meta tags para SEO -->
+  <meta name="description" content="Plataforma de evaluación y tests online con estadísticas detalladas de usuarios">
+  <meta name="keywords" content="tests, evaluación, aprendizaje, estadísticas, administración">
+  <meta name="author" content="AnGoTest">
+  
+  <!-- Open Graph -->
+  <meta property="og:title" content="AnGoTest - Plataforma de Evaluación">
+  <meta property="og:description" content="Plataforma de evaluación y tests online con estadísticas detalladas de usuarios">
+  <meta property="og:type" content="website">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Material Icons (si aún los necesitas) -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  
+  <!-- Preload de estilos críticos -->
 </head>
-<body>
-  <app-root></app-root>
+<body class="h-full antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+  <!-- Contenedor principal -->
+  <div class="min-h-screen flex flex-col">
+    <!-- Barra de navegación -->
+    <app-navbar></app-navbar>
+    
+    <!-- Contenido principal -->
+    <main class="flex-1">
+      <app-root></app-root>
+    </main>
+    
+    <!-- Footer (opcional) -->
+    <!-- <app-footer></app-footer> -->
+  </div>
+  
+  <!-- Scripts de Google Fonts cargados sin bloquear -->
+  <script>
+    // Cargar fuentes de forma asíncrona
+    if (document.fonts) {
+      document.fonts.load('1em Inter');
+    }
+    
+    // Detectar tema preferido del sistema
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    // Aplicar clase dark si el sistema lo prefiere
+    if (prefersDarkScheme.matches && !document.documentElement.classList.contains('dark')) {
+      document.documentElement.classList.add('dark');
+    }
+    
+    // Escuchar cambios en la preferencia de tema
+    prefersDarkScheme.addEventListener('change', (e) => {
+      if (e.matches) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    });
+  </script>
 </body>
 </html>
