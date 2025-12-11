@@ -1,67 +1,42 @@
 import { Component, signal, effect, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from '../../services/user.service';
 import { CommonModule } from '@angular/common';
-
 import { DatePipe } from '@angular/common';
-import { Result } from '../../models/test.model';
+import { ModalComponent } from '../../components/modal.component';
+
 @Component({
   standalone: true,
   selector: 'app-user-details',
   imports: [
     CommonModule,
-    DatePipe
-   ],
+    DatePipe,
+    ModalComponent
+  ],
   templateUrl: './user-details.component.html',
 })
 export class UserDetailsComponent {
-
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private userService = inject(UserService);
 
   loading = signal(true);
   user = signal<any | null>(null);
   
-  // Columnas para la tabla de Material
-  displayedColumns: string[] = ['test', 'correct_answers', 'time_taken', 'created_at', 'actions'];
+  // Estados para los modales
+  showDeleteModal = signal(false);
+  showSuccessModal = signal(false);
+  showErrorModal = signal(false);
+  errorMessage = signal('');
+  isDeleting = signal(false);
 
-  // Método opcional para ver detalles
-  viewResultDetails(result: any) {
-    console.log('Ver detalles del resultado:', result);
-    // Implementar un diálogo o navegación aquí
-  }
+  displayedColumns: string[] = ['test', 'correct_answers', 'time_taken', 'created_at', 'actions'];
 
   constructor() {
     effect(() => {
       const id = Number(this.route.snapshot.paramMap.get('id'));
       this.fetchUser(id);
     });
-  }
-
-
-  getAverageScore(): number {
-    if (!this.user() || !this.user().results || this.user().results.length === 0) {
-      return 0;
-    }
-    
-    const totalScore = this.user().results.reduce((sum: number, result: Result) => {
-      return sum + (result.correct_answers / result.total * 100);
-    }, 0);
-    
-    return totalScore / this.user().results.length;
-  }
-
-  getTotalTime(): number {
-    if (!this.user() || !this.user().results || this.user().results.length === 0) {
-      return 0;
-    }
-    
-    const totalSeconds = this.user().results.reduce((sum: number, result: Result) => {
-      return sum + result.time_taken;
-    }, 0);
-    
-    // Convertir a minutos
-    return totalSeconds / 60;
   }
 
   fetchUser(id: number) {
@@ -74,4 +49,95 @@ export class UserDetailsComponent {
       error: () => this.loading.set(false)
     });
   }
+
+  getAverageScore(): number {
+    if (!this.user() || !this.user().results || this.user().results.length === 0) {
+      return 0;
+    }
+    
+    const totalScore = this.user().results.reduce((sum: number, result: any) => {
+      return sum + (result.correct_answers / result.total * 100);
+    }, 0);
+    
+    return totalScore / this.user().results.length;
+  }
+
+  getTotalTime(): number {
+    if (!this.user() || !this.user().results || this.user().results.length === 0) {
+      return 0;
+    }
+    
+    const totalSeconds = this.user().results.reduce((sum: number, result: any) => {
+      return sum + result.time_taken;
+    }, 0);
+    
+    return totalSeconds / 60;
+  }
+
+  // Método para iniciar el proceso de eliminación
+  initiateDelete() {
+    this.showDeleteModal.set(true);
+  }
+
+  // Método para confirmar eliminación
+  confirmDelete() {
+    this.isDeleting.set(true);
+    const userId = this.user()?.id;
+    
+    this.userService.deleteUser(userId).subscribe({
+      next: (response) => {
+        this.isDeleting.set(false);
+        this.showDeleteModal.set(false);
+        this.showSuccessModal.set(true);
+        
+        // Redirigir después de 2 segundos
+        setTimeout(() => {
+          this.router.navigate(['/admin/users/stats']);
+        }, 2000);
+      },
+      error: (error) => {
+        this.isDeleting.set(false);
+        this.showDeleteModal.set(false);
+        this.errorMessage.set(
+          error.error?.message || 'Error al eliminar el usuario. Por favor, inténtelo de nuevo.'
+        );
+        this.showErrorModal.set(true);
+      }
+    });
+  }
+
+  // Método para cancelar eliminación
+  cancelDelete() {
+    this.showDeleteModal.set(false);
+  }
+
+  // Métodos para cerrar modales
+  closeSuccessModal() {
+    this.showSuccessModal.set(false);
+    this.router.navigate(['/admin/users']);
+  }
+
+  closeErrorModal() {
+    this.showErrorModal.set(false);
+  }
+
+  viewResultDetails(result: any) {
+    console.log('Ver detalles del resultado:', result);
+    // Implementar lógica según necesites
+  }
+
+
+getDeleteMessage(): string {
+  const user = this.user();
+  if (!user) return '';
+  
+  const testsCount = user.tests?.length || 0;
+  const resultsCount = user.results?.length || 0;
+  
+  return `¿Estás seguro de que quieres eliminar al usuario "${user.username}"? ` +
+         `Esta acción eliminará ${testsCount} test${testsCount !== 1 ? 's' : ''} creados ` +
+         `y ${resultsCount} resultado${resultsCount !== 1 ? 's' : ''} de tests. ` +
+         `Esta acción no se puede deshacer.`;
+}
+
 }

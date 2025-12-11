@@ -1,5 +1,29 @@
 <div class="container mx-auto p-4 md:p-6 lg:p-8 max-w-6xl">
   
+  <!-- Header con título y botón de eliminar -->
+  @if (user()) {
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div>
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          Usuario: {{ user().username }}
+        </h2>
+        <p class="text-gray-600 dark:text-gray-400 mt-2">Detalles completos del usuario y sus resultados</p>
+      </div>
+      
+      <!-- Botón para eliminar usuario -->
+      <div class="flex gap-2">
+        <!-- Botón de eliminar -->
+        <button (click)="initiateDelete()"
+                class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+          Eliminar Usuario
+        </button>
+      </div>
+    </div>
+  }
+
   <!-- Estado de carga -->
   @if (loading()) {
     <div class="flex flex-col items-center justify-center min-h-[400px] space-y-4">
@@ -70,37 +94,36 @@
           </div>
           
           <!-- Estadísticas adicionales -->
-          @if (user().tests_finished !== undefined) {
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5 border border-blue-100 dark:border-blue-800/30">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5 border border-blue-100 dark:border-blue-800/30">
+              <div class="text-center">
+                <div class="text-3xl font-bold text-blue-700 dark:text-blue-400">
+                  {{ user().tests?.length || 0 }}
+                </div>
+                <p class="text-sm font-medium text-blue-600 dark:text-blue-300 mt-1">Tests Creados</p>
+              </div>
+            </div>
+            
+            <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-5 border border-emerald-100 dark:border-emerald-800/30">
+              <div class="text-center">
+                <div class="text-3xl font-bold text-emerald-700 dark:text-emerald-400">
+                  {{ user().results?.length || 0 }}
+                </div>
+                <p class="text-sm font-medium text-emerald-600 dark:text-emerald-300 mt-1">Tests Realizados</p>
+              </div>
+            </div>
+            
+            @if (user().results && user().results.length > 0) {
+              <div class="bg-violet-50 dark:bg-violet-900/20 rounded-xl p-5 border border-violet-100 dark:border-violet-800/30">
                 <div class="text-center">
-                  <div class="text-3xl font-bold text-blue-700 dark:text-blue-400">{{ user().tests_finished }}</div>
-                  <p class="text-sm font-medium text-blue-600 dark:text-blue-300 mt-1">Tests Completados</p>
+                  <div class="text-3xl font-bold text-violet-700 dark:text-violet-400">
+                    {{ getAverageScore() | number:'1.0-0' }}%
+                  </div>
+                  <p class="text-sm font-medium text-violet-600 dark:text-violet-300 mt-1">Promedio</p>
                 </div>
               </div>
-              
-              @if (user().results && user().results.length > 0) {
-                <!-- Estadísticas de resultados -->
-                <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-5 border border-emerald-100 dark:border-emerald-800/30">
-                  <div class="text-center">
-                    <div class="text-3xl font-bold text-emerald-700 dark:text-emerald-400">
-                      {{ getAverageScore() | number:'1.0-0' }}%
-                    </div>
-                    <p class="text-sm font-medium text-emerald-600 dark:text-emerald-300 mt-1">Promedio de Aciertos</p>
-                  </div>
-                </div>
-                
-                <div class="bg-violet-50 dark:bg-violet-900/20 rounded-xl p-5 border border-violet-100 dark:border-violet-800/30">
-                  <div class="text-center">
-                    <div class="text-3xl font-bold text-violet-700 dark:text-violet-400">
-                      {{ getTotalTime() | number:'1.0-0' }}
-                    </div>
-                    <p class="text-sm font-medium text-violet-600 dark:text-violet-300 mt-1">Minutos Totales</p>
-                  </div>
-                </div>
-              }
-            </div>
-          }
+            }
+          </div>
         </div>
       </div>
 
@@ -108,12 +131,19 @@
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 overflow-hidden border border-gray-200 dark:border-gray-700">
         <!-- Header de resultados -->
         <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Resultados del usuario</h3>
-          <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Historial de tests realizados</p>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100">Resultados del usuario</h3>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">Historial de tests realizados</p>
+            </div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">
+              {{ user().results?.length || 0 }} resultado{{ (user().results?.length || 0) !== 1 ? 's' : '' }}
+            </div>
+          </div>
         </div>
         
         <!-- Tabla de resultados -->
-        @if (user().results.length > 0) {
+        @if (user().results && user().results.length > 0) {
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
               <thead class="bg-gray-50 dark:bg-gray-900/50">
@@ -138,13 +168,11 @@
               <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                 @for (result of user().results; track result.id) {
                   <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                    <!-- Test -->
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ result.test.title }}</div>
                       <div class="text-xs text-gray-500 dark:text-gray-400">{{ result.test.category }}</div>
                     </td>
                     
-                    <!-- Aciertos -->
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="flex items-center">
                         <div class="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-3">
@@ -163,7 +191,6 @@
                       </div>
                     </td>
                     
-                    <!-- Tiempo -->
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="flex items-center">
                         <svg class="w-4 h-4 text-gray-400 dark:text-gray-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -173,12 +200,10 @@
                       </div>
                     </td>
                     
-                    <!-- Fecha -->
                     <td class="px-6 py-4 whitespace-nowrap">
                       <div class="text-sm text-gray-900 dark:text-gray-100">{{ result.created_at | date:'short' }}</div>
                     </td>
                     
-                    <!-- Acciones -->
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button (click)="viewResultDetails(result)"
                               class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
@@ -194,47 +219,8 @@
               </tbody>
             </table>
           </div>
-          
-          <!-- Paginación -->
-          <div class="flex items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between flex-1 sm:hidden">
-              <button class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700">
-                Anterior
-              </button>
-              <button class="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700">
-                Siguiente
-              </button>
-            </div>
-            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p class="text-sm text-gray-700 dark:text-gray-300">
-                  Mostrando <span class="font-medium">1</span> a 
-                  <span class="font-medium">{{ user().results.length }}</span> de 
-                  <span class="font-medium">{{ user().results.length }}</span> resultados
-                </p>
-              </div>
-              <div>
-                <nav class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm">
-                  <button class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-l-md hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                    </svg>
-                  </button>
-                  <button class="relative inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 border border-blue-500 dark:border-blue-600">
-                    1
-                  </button>
-                  <button class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-r-md hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                    </svg>
-                  </button>
-                </nav>
-              </div>
-            </div>
-          </div>
         } 
         @else {
-          <!-- Sin resultados -->
           <div class="text-center py-16 px-4">
             <div class="mx-auto w-20 h-20 text-gray-300 dark:text-gray-600 mb-4">
               <svg fill="currentColor" viewBox="0 0 20 20">
@@ -243,7 +229,7 @@
             </div>
             <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Sin resultados</h3>
             <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-              Este usuario aún no ha completado ningún test. Los resultados aparecerán aquí una vez que realice pruebas.
+              Este usuario aún no ha completado ningún test.
             </p>
           </div>
         }
@@ -251,3 +237,62 @@
     </div>
   }
 </div>
+
+<!-- Modal de confirmación para eliminar -->
+<app-modal 
+  [isOpen]="showDeleteModal()"
+  title="¿Eliminar Usuario?"
+  [message]="getDeleteMessage()"
+  icon="warning"
+  confirmText="Eliminar"
+  cancelText="Cancelar"
+  (confirm)="confirmDelete()"
+  (cancel)="cancelDelete()">
+  
+  <!-- Información adicional sobre lo que se eliminará -->
+  <div class="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-100 dark:border-red-800/30">
+    <h4 class="text-sm font-semibold text-red-800 dark:text-red-300 mb-2">Esta acción eliminará:</h4>
+    <ul class="text-xs text-red-700 dark:text-red-400 space-y-1">
+      <li class="flex items-start">
+        <svg class="w-3 h-3 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        El usuario y su cuenta
+      </li>
+      <li class="flex items-start">
+        <svg class="w-3 h-3 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        Todos los tests creados por el usuario ({{ user()?.tests?.length || 0 }})
+      </li>
+      <li class="flex items-start">
+        <svg class="w-3 h-3 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        Todos los resultados de tests ({{ user()?.results?.length || 0 }})
+      </li>
+    </ul>
+  </div>
+</app-modal>
+
+<!-- Modal de éxito -->
+<app-modal 
+  [isOpen]="showSuccessModal()"
+  title="¡Usuario Eliminado!"
+  message="El usuario y todos sus datos han sido eliminados correctamente. Redirigiendo a la lista de usuarios..."
+  icon="success"
+  confirmText="Entendido"
+  (confirm)="closeSuccessModal()"
+  [showCancelButton]="false">
+</app-modal>
+
+<!-- Modal de error -->
+<app-modal 
+  [isOpen]="showErrorModal()"
+  title="Error al Eliminar"
+  [message]="errorMessage()"
+  icon="error"
+  confirmText="Entendido"
+  (confirm)="closeErrorModal()"
+  [showCancelButton]="false">
+</app-modal>

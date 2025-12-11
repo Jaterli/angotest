@@ -11,9 +11,10 @@ export const APP_ROUTES: Routes = [
   { path: 'admin/tests/create', loadComponent: () => import('./admin/tests/test-create/test-create.component').then(m => m.TestCreateComponent), canActivate: [authGuard, adminGuard] },
   { path: 'admin/tests/edit/:id', loadComponent: () => import('./admin/tests/test-edit/test-edit.component').then(m => m.TestEditComponent), canActivate: [authGuard, adminGuard] },
   { path: 'admin/tests/delete/:id', loadComponent: () => import('./admin/tests/test-edit/test-edit.component').then(m => m.TestEditComponent), canActivate: [authGuard, adminGuard] },  
-  { path: 'admin/users/stats', loadComponent: () => import('./admin/tests/users-stats/users-stats.component').then(m => m.UsersStatsComponent), canActivate: [authGuard] },
-  { path: 'admin/user/:id', loadComponent: () => import('./admin/user-details/user-details.component').then(m => m.UserDetailsComponent), canActivate: [authGuard, adminGuard] },
-
+  { path: 'admin/users/stats', loadComponent: () => import('./admin/tests/users-stats/users-stats.component').then(m => m.UsersStatsComponent), canActivate: [authGuard, adminGuard] },
+  { path: 'admin/users/delete/:id', loadComponent: () => import('./admin/user-details/user-details.component').then(m => m.UserDetailsComponent), canActivate: [authGuard, adminGuard] },
+  { path: 'admin/users/details/:id', loadComponent: () => import('./admin/user-details/user-details.component').then(m => m.UserDetailsComponent), canActivate: [authGuard, adminGuard] },
+  
   // Rutas de usuario
   { path: 'test/:id', loadComponent: () => import('./user/tests/test-resolve/test-resolve.component').then(m => m.TestResolveComponent), canActivate: [authGuard] },
   { path: 'test/latest', loadComponent: () => import('./user/tests/latest-test/latest-test.component').then(m => m.LatestTestComponent) },

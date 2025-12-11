@@ -1,16 +1,15 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UserStatsService } from '../../../services/user-stats.service';
 import { UserStats } from '../../../models/user-stats.model';
 import { RouterModule } from '@angular/router';
+import { UserService } from '../../../services/user.service';
 import { 
   FaIconLibrary, 
-  FontAwesomeModule // ← AÑADIR ESTO
+  FontAwesomeModule
 } from '@fortawesome/angular-fontawesome';
 import { 
   faEye, 
   faClipboardCheck 
-  // Remover faFileAlt y faUserCircle si no se usan
 } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
@@ -25,7 +24,7 @@ import {
 })
 export class UsersStatsComponent implements OnInit {
   
-  private service = inject(UserStatsService);
+  private service = inject(UserService);
 
   users = signal<UserStats[]>([]);
   loading = signal(true);
