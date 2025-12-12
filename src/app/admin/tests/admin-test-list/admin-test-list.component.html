@@ -7,16 +7,25 @@
       <p class="text-gray-600 dark:text-gray-400 mt-2">Gestiona y visualiza todos los tests disponibles</p>
     </div>
     
-    <!-- Botón para crear nuevo test -->
-    <div>
+    <!-- Botones de acción -->
+    <div class="flex items-center space-x-3">
       <a routerLink="/admin/tests/create"
-         class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
+        class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
         </svg>
-        Crear Nuevo Test
+        Crear Test (Formulario)
+      </a>
+      
+      <a routerLink="/admin/tests/json-create"
+        class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800/50 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"/>
+        </svg>
+        Crear desde JSON
       </a>
     </div>
+
   </div>
 
   <!-- Estado de carga -->
@@ -94,9 +103,7 @@
                 
                 <!-- Columna Categoría -->
                 <td class="px-6 py-4">
-                  <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
-                    {{ test.category }}
-                  </span>
+                  <div class="text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">{{ test.category }}</div>
                 </td>
                 
                 <!-- Columna Nivel -->
@@ -140,7 +147,7 @@
                   <div class="flex flex-col sm:flex-row sm:items-center gap-2">
                     <!-- Botón para hacer test -->
                     <a [routerLink]="['/test', test.id]"
-                       class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                       class="inline-flex items-center text-nowrap px-3 py-1.5 text-xs font-medium rounded-md text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
                       <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
                       </svg>

@@ -87,7 +87,12 @@ private writeToStorage(key: string, value: any): void {
   }
 
   register(username: string, email: string, password: string): Observable<any> {
-    return this.http.post(`${this.API_URL}/register`, { username, email, password });
+    return this.http.post(`${this.API_URL}/register`, { 
+      username, 
+      email, 
+      password,
+      role: 'user' // Siempre registrar como usuario normal
+    });
   }
 
   private setAuthState(data: AuthResponse): void {

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Result, ResultResponse, Test, TestsResponse } from '../../models/test.model';
+import { CompletedTestsResponse, NotCompletedTestsResponse, Result, ResultResponse, Test, TestsResponse, TestsWithStatusResponse } from '../../models/test.model';
 
 
 @Injectable({
@@ -37,22 +37,37 @@ export class TestService {
 
   getTestById(id: number): Observable<Test> {
     console.log(`TestService: obteniendo el test con ID: ${id}...`);
-    return this.http.get<Test>(`${this.apiUrl}/tests/${id}`);
+    return this.http.get<Test>(`${this.apiUrl}/tests/${id}/start`);
   }
 
-  getLatestTest() {
+  getLatestTest(): Observable<Test> {
     console.log('TestService: obteniendo el último test disponible...');
     return this.http.get<Test>(`${this.apiUrl}/tests/latest`);
   }
 
-  // getTestsForUser(): Observable<TestsResponse> {
-  //   console.log('TestService: obteniendo todos los tests para el usuario...');
-  //   return this.http.get<TestsResponse>(`${this.apiUrl}/tests/user`);
-  // }
+  // Nuevos métodos
+  getNotCompletedTests(): Observable<NotCompletedTestsResponse> {
+    console.log('TestService: obteniendo tests no completados...');
+    return this.http.get<NotCompletedTestsResponse>(`${this.apiUrl}/tests/not-completed`);
+  }
+
+  getCompletedTests(): Observable<CompletedTestsResponse> {
+    console.log('TestService: obteniendo tests completados...');
+    return this.http.get<CompletedTestsResponse>(`${this.apiUrl}/tests/completed`);
+  }
+
+  getAllTestsWithStatus(): Observable<TestsWithStatusResponse> {
+    console.log('TestService: obteniendo todos los tests con estado...');
+    return this.http.get<TestsWithStatusResponse>(`${this.apiUrl}/tests/with-status`);
+  }
 
   getUserTestResults(): Observable<ResultResponse> {
     console.log('TestService: obteniendo todos los resultados para el usuario...');
     return this.http.get<ResultResponse>(`${this.apiUrl}/tests/results`);
   }
 
+  submitTestResult(testId: number, result: any): Observable<any> {
+    console.log(`TestService: enviando resultados del test ${testId}...`);
+    return this.http.post(`${this.apiUrl}/tests/${testId}/submit`, result);
+  }
 }

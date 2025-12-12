@@ -16,10 +16,10 @@ export class ResultService {
   constructor(private http: HttpClient) {}
 
   submitResult(testId: number, answers: AnswerSubmit[], timeSpent: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/results`, { test_id: testId, answers, time_spent: timeSpent });
+    return this.http.post(`${this.apiUrl}/tests/submit-result`, { test_id: testId, answers, time_spent: timeSpent });
   }
 
   getMyResults(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/results/me`);
+    return this.http.get(`${this.apiUrl}/tests/results/me`);
   }
 }

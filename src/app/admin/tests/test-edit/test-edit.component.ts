@@ -13,7 +13,7 @@ import { ModalComponent } from '../../../components/modal.component';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    ModalComponent 
+    ModalComponent,
   ]
 })
 export class TestEditComponent implements OnInit {

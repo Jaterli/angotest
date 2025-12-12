@@ -1,0 +1,334 @@
+<div class="container mx-auto p-4 md:p-6 lg:p-8">
+  
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Crear Test desde JSON</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-2">
+          Pega un JSON válido para crear un test completo con preguntas y respuestas
+        </p>
+      </div>
+      <button (click)="goToList()"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+        </svg>
+        Volver a Tests
+      </button>
+    </div>
+
+    <!-- Información de ayuda -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/30 rounded-xl p-4 mb-6">
+      <div class="flex items-start">
+        <svg class="w-5 h-5 text-blue-500 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+        </svg>
+        <div class="text-sm text-blue-800 dark:text-blue-300">
+          <p class="font-medium mb-1">Formato JSON requerido:</p>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>Incluye <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">title</code>, <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">description</code>, <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">category</code>, <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">level</code>, <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">test_date</code> (YYYY-MM-DD)</li>
+            <li>Cada pregunta debe tener <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">question_text</code> y un array de <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">answers</code></li>
+            <li>Cada respuesta debe tener <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">answer_text</code> y <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">is_correct</code> (boolean)</li>
+            <li>Al menos una respuesta por pregunta debe ser correcta (<code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">is_correct: true</code>)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Errores de validación -->
+  @if (validationErrors().length > 0) {
+    <div class="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-xl">
+      <div class="flex items-start">
+        <svg class="w-5 h-5 text-amber-500 dark:text-amber-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <div class="flex-1">
+          <p class="font-medium text-amber-800 dark:text-amber-300 mb-2">Errores de validación encontrados:</p>
+          <ul class="text-sm text-amber-700 dark:text-amber-400 space-y-1">
+            @for (validationError of validationErrors(); track $index) {
+              <li class="flex items-start">
+                <span class="inline-block w-2 h-2 bg-amber-500 dark:bg-amber-400 rounded-full mt-1.5 mr-2 flex-shrink-0"></span>
+                {{ validationError }}
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Área principal -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Panel izquierdo: Editor JSON -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Editor JSON</h2>
+        <div class="flex items-center space-x-2">
+          <button (click)="formatJson()"
+                  class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800 transition-colors">
+            <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+            </svg>
+            Formatear
+          </button>
+          <button (click)="pasteExample()"
+                  class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800/50 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800 transition-colors">
+            <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+              <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+            </svg>
+            Ejemplo
+          </button>
+          <button (click)="confirmClearForm()"
+                  class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/50 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800 transition-colors">
+            <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <textarea
+        [(ngModel)]="jsonInput"
+        placeholder='{
+  "title": "Título del test",
+  "description": "Descripción del test",
+  "category": "Categoría",
+  "level": "Nivel",
+  "test_date": "2024-12-10",
+  "questions": [
+    {
+      "question_text": "Texto de la pregunta",
+      "answers": [
+        {
+          "answer_text": "Respuesta 1",
+          "is_correct": true
+        },
+        {
+          "answer_text": "Respuesta 2",
+          "is_correct": false
+        }
+      ]
+    }
+  ]
+}'
+        rows="20"
+        class="w-full font-mono text-sm px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 resize-none transition-all"
+      ></textarea>
+
+      <div class="mt-6">
+        <button (click)="processJson()"
+                class="w-full inline-flex items-center justify-center px-4 py-3 text-base font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"/>
+          </svg>
+          Validar y Previsualizar JSON
+        </button>
+      </div>
+    </div>
+
+    <!-- Panel derecho: Previsualización -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Previsualización</h2>
+        @if (previewTest()) {
+          <button (click)="togglePreview()"
+                  class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800 transition-colors">
+            @if (showPreview()) {
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd"/>
+              </svg>
+              Ocultar
+            } @else {
+              <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+              </svg>
+              Mostrar
+            }
+          </button>
+        }
+      </div>
+
+      @if (!previewTest()) {
+        <div class="text-center py-12">
+          <div class="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Sin datos</h3>
+          <p class="text-gray-500 dark:text-gray-400">Pega un JSON válido para ver la previsualización aquí.</p>
+        </div>
+      } @else if (showPreview()) {
+        <div class="space-y-6">
+          <!-- Información del test -->
+          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">{{ previewTest().title }}</h3>
+            <p class="text-gray-600 dark:text-gray-400 mb-3">{{ previewTest().description }}</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                {{ previewTest().category }}
+              </span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                @if (previewTest().level === 'Principiante') {
+                  bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300
+                } @else if (previewTest().level === 'Intermedio') {
+                  bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300
+                } @else if (previewTest().level === 'Avanzado') {
+                  bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300
+                } @else {
+                  bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300
+                }">
+                {{ previewTest().level }}
+              </span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">
+                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                </svg>
+                {{ previewTest().test_date }}
+              </span>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">
+                {{ previewTest().questions.length }} preguntas
+              </span>
+            </div>
+          </div>
+
+          <!-- Lista de preguntas -->
+          <div>
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 uppercase tracking-wider">Preguntas</h4>
+            <div class="space-y-4">
+              @for (question of previewTest().questions; track $index; let i = $index) {
+                <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                  <div class="flex items-start mb-3">
+                    <div class="flex-shrink-0 w-6 h-6 rounded-md bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3">
+                      <span class="text-xs font-semibold text-blue-700 dark:text-blue-300">{{ i + 1 }}</span>
+                    </div>
+                    <div class="flex-1">
+                      <p class="text-gray-900 dark:text-gray-100">{{ question.question_text }}</p>
+                    </div>
+                  </div>
+                  
+                  <div class="ml-9 space-y-2">
+                    @for (answer of question.answers; track $index; let j = $index) {
+                      <div class="flex items-center p-2 rounded border 
+                        @if (answer.is_correct) {
+                          border-emerald-200 dark:border-emerald-800/30 bg-emerald-50 dark:bg-emerald-900/10
+                        } @else {
+                          border-gray-200 dark:border-gray-700
+                        }">
+                        <div class="flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center mr-3
+                          @if (answer.is_correct) {
+                            border-emerald-500 dark:border-emerald-400 bg-emerald-500 dark:bg-emerald-400
+                          } @else {
+                            border-gray-300 dark:border-gray-500
+                          }">
+                          @if (answer.is_correct) {
+                            <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                          }
+                        </div>
+                        <span class="text-sm 
+                          @if (answer.is_correct) {
+                            text-emerald-800 dark:text-emerald-300 font-medium
+                          } @else {
+                            text-gray-700 dark:text-gray-300
+                          }">
+                          {{ answer.answer_text }}
+                        </span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Botón crear -->
+            <button (click)="confirmCreate()"
+                    [disabled]="loading()"
+                    [ngClass]="{
+                      'bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-600': !loading(),
+                      'bg-gray-400 dark:bg-gray-600 cursor-not-allowed': loading()
+                    }"
+                    class="w-full inline-flex items-center justify-center px-4 py-3 text-base font-medium rounded-lg text-white focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+              @if (loading()) {
+                <svg class="w-5 h-5 animate-spin text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Creando Test...</span>
+              } @else {
+                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                <span>Crear Test</span>
+              }
+            </button>
+            <p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-2">
+              Se creará el test con tu usuario como creador
+            </p>
+        </div>
+      } @else {
+        <div class="text-center py-8">
+          <div class="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4">
+            <svg fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+              <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <p class="text-gray-500 dark:text-gray-400">Haz clic en "Mostrar" para ver la previsualización del test.</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Modal de éxito -->
+<app-modal 
+  [isOpen]="showSuccessModal()"
+  title="¡Test Creado!"
+  [message]="successMessage()"
+  icon="success"
+  confirmText="Ver Tests"
+  (confirm)="onSuccessModalConfirm()"
+  [showCancelButton]="false">
+</app-modal>
+
+<!-- Modal de error -->
+<app-modal 
+  [isOpen]="showErrorModal()"
+  title="Error"
+  [message]="errorMessage()"
+  icon="error"
+  confirmText="Entendido"
+  (confirm)="onErrorModalConfirm()"
+  [showCancelButton]="false">
+</app-modal>
+
+<!-- Modal de confirmación para crear -->
+<app-modal 
+  [isOpen]="showConfirmCreateModal()"
+  title="Confirmar Creación"
+  message="¿Estás seguro de que quieres crear este test? Esta acción no se puede deshacer."
+  icon="info"
+  confirmText="Sí, Crear Test"
+  cancelText="Cancelar"
+  (confirm)="createTest()"
+  (cancel)="onCancelCreate()">
+</app-modal>
+
+<!-- Modal de confirmación para limpiar -->
+<app-modal 
+  [isOpen]="showConfirmClearModal()"
+  title="Confirmar Limpieza"
+  message="¿Estás seguro de que quieres limpiar el formulario? Se perderán todos los datos no guardados."
+  icon="warning"
+  confirmText="Sí, Limpiar"
+  cancelText="Cancelar"
+  (confirm)="clearForm()"
+  (cancel)="onCancelClear()">
+</app-modal>

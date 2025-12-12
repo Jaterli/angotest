@@ -1,0 +1,184 @@
+<div class="container mx-auto p-4 md:p-6 lg:p-8">
+  
+  <!-- Header con título -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Mis Resultados</h1>
+      <p class="text-gray-600 dark:text-gray-400 mt-2">Historial de todos los tests que has completado</p>
+    </div>
+    
+    <!-- Botones de acción (opcional) -->
+    <div class="flex items-center space-x-3">
+      <a routerLink="/tests"
+        class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+        </svg>
+        Realizar Nuevo Test
+      </a>
+    </div>
+  </div>
+
+  <!-- Estado de carga -->
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-gray-600 dark:text-gray-400 text-lg">Cargando resultados...</p>
+    </div>
+  }
+
+  <!-- Sin resultados -->
+  @if (!loading() && results.length === 0) {
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
+      <div class="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4">
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No hay resultados disponibles</h3>
+      <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
+        Aún no has completado ningún test. ¡Realiza tu primer test para ver tus resultados aquí!
+      </p>
+      <a routerLink="/tests"
+         class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+        </svg>
+        Realizar Primer Test
+      </a>
+    </div>
+  }
+
+  <!-- Tabla de resultados -->
+  @if (!loading() && results.length > 0) {
+    <div class="overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead class="bg-gray-50 dark:bg-gray-900/50">
+            <tr>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Test
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Descripción
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Correctas
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Incorrectas
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Total
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Tiempo (s)
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Fecha
+              </th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Puntuación
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            @for (result of results; track result.id) {
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <!-- Columna Test -->
+                <td class="px-6 py-4">
+                  <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ result.test.title || 'Sin título' }}</div>
+                </td>
+                
+                <!-- Columna Descripción -->
+                <td class="px-6 py-4">
+                  <div class="text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">{{ result.test.description || 'Sin descripción' }}</div>
+                </td>
+                
+                <!-- Columna Correctas -->
+                <td class="px-6 py-4">
+                  <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300">
+                    {{ result.correct_answers }}
+                  </span>
+                </td>
+                
+                <!-- Columna Incorrectas -->
+                <td class="px-6 py-4">
+                  <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300">
+                    {{ result.wrong_answers }}
+                  </span>
+                </td>
+                
+                <!-- Columna Total -->
+                <td class="px-6 py-4">
+                  <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ result.total }}</div>
+                </td>
+                
+                <!-- Columna Tiempo -->
+                <td class="px-6 py-4">
+                  <div class="text-sm text-gray-600 dark:text-gray-400">
+                    {{ result.time_taken }}
+                    <span class="text-xs text-gray-500 dark:text-gray-400">s</span>
+                  </div>
+                </td>
+                
+                <!-- Columna Fecha -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">{{ result.created_at | date:'dd/MM/yyyy HH:mm' }}</div>
+                </td>
+                
+                <!-- Columna Puntuación -->
+                <td class="px-6 py-4">
+                  @if (result.total > 0) {
+                    @let percentage = (result.correct_answers / result.total) * 100;
+                    @if (percentage >= 80) {
+                      <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300">
+                        {{ percentage.toFixed(0) }}%
+                      </span>
+                    } @else if (percentage >= 60) {
+                      <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
+                        {{ percentage.toFixed(0) }}%
+                      </span>
+                    } @else {
+                      <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300">
+                        {{ percentage.toFixed(0) }}%
+                      </span>
+                    }
+                  } @else {
+                    <span class="text-sm text-gray-400">-</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Información -->
+      <div class="flex items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
+        <div class="text-sm text-gray-700 dark:text-gray-300">
+          Mostrando <span class="font-medium">{{ results.length }}</span> resultado{{ results.length !== 1 ? 's' : '' }}
+        </div>
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          @if (results.length > 0) {
+            <!-- Usamos propiedades del componente TypeScript en lugar de cálculos en la plantilla -->
+            Promedio: {{ averageScore() }}%
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Modal para ver detalles (opcional - puedes implementar más adelante) -->
+<!--
+<app-modal 
+  [isOpen]="showDetailsModal()"
+  title="Detalles del Resultado"
+  [message]="selectedResultDetails"
+  icon="info"
+  confirmText="Cerrar"
+  (confirm)="closeDetailsModal()"
+  [showCancelButton]="false">
+</app-modal>
+-->
