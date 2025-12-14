@@ -133,7 +133,6 @@ private writeToStorage(key: string, value: any): void {
   }
 
   isAdmin(): boolean {
-    console.log('User role:', this.getUserRole());
     return this.getUserRole() === 'admin';
   }
 

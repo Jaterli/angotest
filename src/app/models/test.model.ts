@@ -31,7 +31,8 @@ export interface Result {
   id: number;
   correct_answers: number;
   wrong_answers: number;
-  total: number;
+  total_questions: number;
+  score_percent: number;
   created_at: string;
   user_id: number;
   test_id: number;
@@ -44,21 +45,6 @@ export interface ResultResponse {
   results: Result[];
 }
 
-export interface TestsWithStatusResponse {
-  tests: TestWithStatus[];
-  total_tests: number;
-  completed_count: number;
-  not_completed_count: number;
-  message: string;
-}
-
-export interface TestWithStatus extends Test {
-  is_completed: boolean;
-  completed_at?: string;
-  last_score?: number;
-  question_count: number;
-}
-
 export interface NotCompletedTestsResponse {
   tests: Test[];
   not_completed_count: number;
@@ -69,4 +55,57 @@ export interface CompletedTestsResponse {
   tests: Test[];
   completed_count: number;
   message: string;
+}
+
+
+export interface AnswerSubmit {
+  question_id: number;
+  answer_id: number;
+}
+
+export interface SaveResultInput {
+  test_id: number;
+  answers: AnswerSubmit[];
+  time_taken: number;
+  status: 'in_progress' | 'completed' | 'abandoned';
+}
+
+export interface ResumeTestResponse {
+  test: Test;
+  answers: AnswerSubmit[];
+  time_elapsed: number;
+  progress: number;
+  is_resuming: boolean;
+  result_id?: number;
+}
+
+export interface InProgressTestsResponse {
+  in_progress_tests: any[];
+  count: number;
+}
+
+export interface CompletedTestsResponse {
+  completed_tests: any[];
+  count: number;
+}
+
+export interface TestsWithStatusResponse {
+  tests: TestWithStatus[];
+  total_tests: number;
+  completed_count: number;
+  in_progress_count: number;
+  not_started_count: number;
+  message: string;
+}
+
+export interface TestWithStatus extends Test {
+  status: 'not_started' | 'in_progress' | 'completed';
+  completed_at?: string; 
+  last_score?: number;
+  correct_answers: number;
+  wrong_answers: number;
+  total_questions: number;
+  time_taken: number;
+  progress?: number;
+  question_count?: number; 
 }
