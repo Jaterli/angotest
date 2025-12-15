@@ -35,17 +35,17 @@ export class TestService {
     return this.http.get<Test[]>(`${this.apiUrl}/admin/tests`);
   }
 
-  getTodayTest(): Observable<Test> {
-    return this.http.get<Test>(`${this.apiUrl}/tests/today`);
-  }
+  // getTodayTest(): Observable<Test> {
+  //   return this.http.get<Test>(`${this.apiUrl}/tests/today`);
+  // }
 
   getTestById(id: number): Observable<Test> {
     return this.http.get<Test>(`${this.apiUrl}/tests/${id}/start`);
   }
 
-  getLatestTest(): Observable<Test> {
-    return this.http.get<Test>(`${this.apiUrl}/tests/latest`);
-  }
+  // getLatestTest(): Observable<Test> {
+  //   return this.http.get<Test>(`${this.apiUrl}/tests/latest`);
+  // }
 
   // ====== Nuevos métodos optimizados ======
   

@@ -69,19 +69,7 @@ export class UserTestResultsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadCurrentUser();
     this.loadResults();
-  }
-
-  loadCurrentUser(): void {
-    const currentUser = this.authService.getUser();
-    if (currentUser) {
-      this.currentUser = currentUser;
-    } else {
-      console.error('No se pudo cargar el usuario actual.');
-      // Redirigir a login si no hay usuario
-      // this.router.navigate(['/login']);
-    }
   }
 
   loadResults(): void {
@@ -103,12 +91,9 @@ export class UserTestResultsComponent implements OnInit {
         
         this.calculateStatistics();
         this.loading.set(false);
-        console.log('Resultados cargados:', this.results);
       },
       error: err => {
         console.error('Error al cargar resultados:', err);
-        // Intentar con el endpoint anterior para compatibilidad
-        //this.loadResultsFallback();
       }
     });
   }

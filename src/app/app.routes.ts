@@ -20,8 +20,8 @@ export const APP_ROUTES: Routes = [
   // Rutas de usuario
   { path: 'tests/:id/start', loadComponent: () => import('./user/tests/test-resolve/test-resolve.component').then(m => m.TestResolveComponent), canActivate: [authGuard] },
   { path: 'tests/:id/resume', loadComponent: () => import('./user/tests/test-resolve/test-resolve.component').then(m => m.TestResolveComponent), canActivate: [authGuard] },
-  { path: 'tests/latest', loadComponent: () => import('./user/tests/latest-test/latest-test.component').then(m => m.LatestTestComponent) },
   { path: 'tests/list', loadComponent: () => import('./user/tests/tests-list/tests-list.component').then(m => m.TestsListComponent), canActivate: [authGuard] },
   { path: 'tests/results', loadComponent: () => import('./user/tests/user-test-results/user-test-results.component').then(m => m.UserTestResultsComponent), canActivate: [authGuard] },
+  { path: 'user/profile', loadComponent: () => import('./components/profile/profile.component').then(m => m.ProfileComponent), canActivate: [authGuard] },
   { path: '**', redirectTo: 'login' }
 ];

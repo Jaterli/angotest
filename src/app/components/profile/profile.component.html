@@ -1,0 +1,374 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
+  <div class="max-w-4xl mx-auto">
+    
+    <!-- Título -->
+    <div class="mb-8 text-center">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight mb-2">Mi Perfil</h1>
+      <p class="text-gray-600 dark:text-gray-400">Gestiona tu información personal y preferencias</p>
+    </div>
+
+    <!-- Mensajes de éxito/error general -->
+    @if (success()) {
+      <div class="mb-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/30 rounded-lg">
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-emerald-500 dark:text-emerald-400 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-emerald-800 dark:text-emerald-300">{{ success() }}</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (error()) {
+      <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-red-500 dark:text-red-400 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-red-800 dark:text-red-300">{{ error() }}</p>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Información de la cuenta (solo lectura) -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-6 mb-8 border border-gray-200 dark:border-gray-700">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Información de la Cuenta</h2>
+      <div class="space-y-4">
+        @if (user()) {
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Nombre de usuario</p>
+              <p class="text-gray-900 dark:text-gray-100 font-medium">{{ user().username }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Email</p>
+              <p class="text-gray-900 dark:text-gray-100 font-medium">{{ user().email }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Rol</p>
+              <p class="text-gray-900 dark:text-gray-100 font-medium capitalize">{{ user().role }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Fecha de registro</p>
+              <p class="text-gray-900 dark:text-gray-100 font-medium">{{ user().created_at | date:'dd/MM/yyyy' }}</p>
+            </div>
+          </div>
+        } @else if (loading()) {
+          <div class="flex items-center justify-center py-8">
+            <svg class="w-8 h-8 animate-spin text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Formulario de perfil -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-6 border border-gray-200 dark:border-gray-700">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Información Personal</h2>
+        
+        <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="space-y-4">
+          <!-- Nombre y Apellido -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label for="firstName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Nombre *
+              </label>
+              <input
+                id="firstName"
+                type="text"
+                formControlName="firstName"
+                placeholder="Juan"
+                [class]="firstName?.invalid && firstName?.touched 
+                  ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+                  : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+              />
+              @if (firstName?.invalid && firstName?.touched) {
+                <p class="text-sm text-red-600 dark:text-red-400">
+                  El nombre es requerido
+                </p>
+              }
+            </div>
+
+            <div class="space-y-2">
+              <label for="lastName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Apellido *
+              </label>
+              <input
+                id="lastName"
+                type="text"
+                formControlName="lastName"
+                placeholder="Pérez"
+                [class]="lastName?.invalid && lastName?.touched 
+                  ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+                  : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+              />
+              @if (lastName?.invalid && lastName?.touched) {
+                <p class="text-sm text-red-600 dark:text-red-400">
+                  El apellido es requerido
+                </p>
+              }
+            </div>
+          </div>
+
+          <!-- Teléfono y Dirección -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Teléfono
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                formControlName="phone"
+                placeholder="+34 123 456 789"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
+              />
+              @if (phone?.invalid && phone?.touched) {
+                <p class="text-sm text-red-600 dark:text-red-400">
+                  Formato de teléfono inválido
+                </p>
+              }
+            </div>
+
+            <div class="space-y-2">
+              <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Dirección
+              </label>
+              <input
+                id="address"
+                type="text"
+                formControlName="address"
+                placeholder="Calle Principal, 123"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
+              />
+            </div>
+          </div>
+
+          <!-- País -->
+          <div class="space-y-2">
+            <label for="country" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              País de Residencia *
+            </label>
+            <select
+              id="country"
+              formControlName="country"
+              [class]="country?.invalid && country?.touched 
+                ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+                : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+            >
+              <option value="" disabled>Selecciona tu país</option>
+              @for (country of countries; track country) {
+                <option [value]="country" [selected]="country === profileForm.get('country')?.value">{{ country }}</option>
+              }
+            </select>
+            @if (country?.invalid && country?.touched) {
+              <p class="text-sm text-red-600 dark:text-red-400">
+                El país es requerido
+              </p>
+            }
+          </div>
+
+          <!-- Fecha de nacimiento -->
+          <div class="space-y-2">
+            <label for="birthDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Fecha de Nacimiento *
+            </label>
+            <input
+              id="birthDate"
+              type="date"
+              formControlName="birthDate"
+              [min]="getMaxBirthDate()"
+              [max]="getMinBirthDate()"
+              [class]="birthDate?.invalid && birthDate?.touched 
+                ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+                : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+            />
+            @if (birthDate?.invalid && birthDate?.touched) {
+              <p class="text-sm text-red-600 dark:text-red-400">
+                Debes ser mayor de 18 años
+              </p>
+            }
+          </div>
+
+          <!-- Botón de guardar -->
+          <button 
+            type="submit" 
+            [disabled]="profileForm.invalid || loading()"
+            class="w-full py-3 px-4 bg-blue-600 dark:bg-blue-700 text-white font-semibold rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+          >
+            @if (loading()) {
+              <svg class="w-5 h-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Guardando...</span>
+            } @else {
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+              Guardar Cambios
+            }
+          </button>
+        </form>
+      </div>
+
+      <!-- Formulario de cambio de contraseña -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-6 border border-gray-200 dark:border-gray-700">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Cambiar Contraseña</h2>
+        
+        <!-- Mensajes de éxito/error contraseña -->
+        @if (passwordSuccess()) {
+          <div class="mb-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/30 rounded-lg">
+            <div class="flex items-start">
+              <svg class="w-5 h-5 text-emerald-500 dark:text-emerald-400 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+              <div>
+                <p class="text-sm font-medium text-emerald-800 dark:text-emerald-300">{{ passwordSuccess() }}</p>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (passwordError()) {
+          <div class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
+            <div class="flex items-start">
+              <svg class="w-5 h-5 text-red-500 dark:text-red-400 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+              <div>
+                <p class="text-sm font-medium text-red-800 dark:text-red-300">{{ passwordError() }}</p>
+              </div>
+            </div>
+          </div>
+        }
+
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="space-y-4">
+          <!-- Contraseña actual -->
+          <div class="space-y-2">
+            <label for="currentPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Contraseña Actual *
+            </label>
+            <input
+              id="currentPassword"
+              type="password"
+              formControlName="currentPassword"
+              placeholder="••••••••"
+              [class]="currentPassword?.invalid && currentPassword?.touched 
+                ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+                : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+            />
+            @if (currentPassword?.invalid && currentPassword?.touched) {
+              <p class="text-sm text-red-600 dark:text-red-400">
+                La contraseña actual es requerida
+              </p>
+            }
+          </div>
+
+          <!-- Nueva contraseña -->
+          <div class="space-y-2">
+            <label for="newPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Nueva Contraseña *
+            </label>
+            <input
+              id="newPassword"
+              type="password"
+              formControlName="newPassword"
+              placeholder="••••••••"
+              [class]="newPassword?.invalid && newPassword?.touched 
+                ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+                : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+            />
+            @if (newPassword?.invalid && newPassword?.touched) {
+              <div class="space-y-1">
+                @if (newPassword?.errors?.['required']) {
+                  <p class="text-sm text-red-600 dark:text-red-400">
+                    La nueva contraseña es requerida
+                  </p>
+                }
+                @if (newPassword?.errors?.['minlength']) {
+                  <p class="text-sm text-red-600 dark:text-red-400">
+                    Mínimo 6 caracteres
+                  </p>
+                }
+              </div>
+            }
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              La contraseña debe tener al menos 6 caracteres
+            </p>
+          </div>
+
+          <!-- Confirmar nueva contraseña -->
+          <div class="space-y-2">
+            <label for="confirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Confirmar Nueva Contraseña *
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              formControlName="confirmPassword"
+              placeholder="••••••••"
+              [class]="confirmPassword?.invalid && confirmPassword?.touched 
+                ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+                : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+            />
+            @if (confirmPassword?.invalid && confirmPassword?.touched) {
+              <div class="space-y-1">
+                @if (confirmPassword?.errors?.['required']) {
+                  <p class="text-sm text-red-600 dark:text-red-400">
+                    Confirma tu nueva contraseña
+                  </p>
+                }
+                @if (confirmPassword?.errors?.['passwordMismatch']) {
+                  <p class="text-sm text-red-600 dark:text-red-400">
+                    Las contraseñas no coinciden
+                  </p>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Botón de cambiar contraseña -->
+          <button 
+            type="submit" 
+            [disabled]="passwordForm.invalid || loadingPassword()"
+            class="w-full py-3 px-4 bg-purple-600 dark:bg-purple-700 text-white font-semibold rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-6"
+          >
+            @if (loadingPassword()) {
+              <svg class="w-5 h-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Cambiando...</span>
+            } @else {
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+              </svg>
+              Cambiar Contraseña
+            }
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Enlace para volver -->
+    <div class="mt-8 text-center">
+      <a 
+        routerLink="/dashboard" 
+        class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium transition-colors"
+      >
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+        </svg>
+        Volver al Dashboard
+      </a>
+    </div>
+  </div>
+</div>

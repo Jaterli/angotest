@@ -77,6 +77,31 @@
         </div>
       </div>
 
+
+    <!-- Teléfono y Fecha de Nacimiento -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Teléfono -->
+      <div class="space-y-2">
+        <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Teléfono
+        </label>
+        <input
+          id="phone"
+          type="tel"
+          formControlName="phone"
+          placeholder="+34 123 456 789"
+          class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
+        />
+        @if (phone?.invalid && phone?.touched) {
+          <p class="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            Formato de teléfono inválido
+          </p>
+        }
+      </div>
+
       <!-- Fecha de nacimiento -->
       <div class="space-y-2">
         <label for="birthDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -104,45 +129,51 @@
           Debes ser mayor de 18 años para registrarte
         </p>
       </div>
+    </div>
 
-      <!-- Contacto -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Teléfono -->
-        <div class="space-y-2">
-          <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Teléfono
-          </label>
-          <input
-            id="phone"
-            type="tel"
-            formControlName="phone"
-            placeholder="+34 123 456 789"
-            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
-          />
-          @if (phone?.invalid && phone?.touched) {
-            <p class="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-              </svg>
-              Formato de teléfono inválido
-            </p>
-          }
-        </div>
-
-        <!-- Dirección -->
-        <div class="space-y-2">
-          <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Dirección
-          </label>
-          <input
-            id="address"
-            type="text"
-            formControlName="address"
-            placeholder="Calle Principal, 123"
-            class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
-          />
-        </div>
+    <!-- Dirección y País de Residencia -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Dirección -->
+      <div class="space-y-2">
+        <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Dirección
+        </label>
+        <input
+          id="address"
+          type="text"
+          formControlName="address"
+          placeholder="Calle Principal, 123"
+          class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
+        />
       </div>
+
+      <!-- País de Residencia -->
+      <div class="space-y-2">
+        <label for="country" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          País de Residencia *
+        </label>
+        <select
+          id="country"
+          formControlName="country"
+          [class]="country?.invalid && country?.touched 
+            ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+            : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+        >
+          <option value="" disabled selected>Selecciona tu país</option>
+          @for (country of countries; track country) {
+            <option [value]="country">{{ country }}</option>
+          }
+        </select>
+        @if (country?.invalid && country?.touched) {
+          <p class="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            El país es requerido
+          </p>
+        }
+      </div>
+    </div>
 
       <!-- Credenciales -->
       <div class="space-y-6 pt-4 border-t border-gray-200 dark:border-gray-700">

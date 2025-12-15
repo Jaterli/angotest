@@ -41,7 +41,7 @@ export class LoginComponent {
         console.log('Login exitoso:', response);
         this.loading.set(false);
         if (response.user.role === 'user') {
-          this.router.navigate(['/tests/results']);
+          this.router.navigate(['/tests/list']);
           return;
         }
         this.router.navigate(['/admin/tests']);

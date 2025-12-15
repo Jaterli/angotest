@@ -21,6 +21,15 @@ export class RegisterComponent {
   error = signal<string | null>(null);
   success = signal(false);
 
+  // Lista de países para el dropdown
+  countries = [
+    'España', 'México', 'Argentina', 'Colombia', 'Chile', 'Perú', 'Venezuela',
+    'Estados Unidos', 'Canadá', 'Reino Unido', 'Francia', 'Alemania', 'Italia',
+    'Portugal', 'Brasil', 'Uruguay', 'Paraguay', 'Bolivia', 'Ecuador', 'Costa Rica',
+    'Panamá', 'República Dominicana', 'Puerto Rico', 'Cuba', 'Guatemala',
+    'Honduras', 'El Salvador', 'Nicaragua', 'Otro'
+  ];
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -57,6 +66,9 @@ export class RegisterComponent {
       address: ['', [
         Validators.maxLength(200)
       ]],
+      country: ['', [ // ← NUEVO CAMPO
+        Validators.required
+      ]],
       birthDate: ['', [
         Validators.required
       ]]
@@ -64,6 +76,7 @@ export class RegisterComponent {
       validators: this.passwordMatchValidator
     });
   }
+
 
   // Validador personalizado para confirmar contraseña
   passwordMatchValidator(form: FormGroup) {
@@ -86,6 +99,7 @@ export class RegisterComponent {
   get lastName() { return this.registerForm.get('lastName'); }
   get phone() { return this.registerForm.get('phone'); }
   get address() { return this.registerForm.get('address'); }
+  get country() { return this.registerForm.get('country'); }  
   get birthDate() { return this.registerForm.get('birthDate'); }
 
   // Calcular edad mínima (18 años)
@@ -115,6 +129,10 @@ export class RegisterComponent {
     this.loading.set(true);
     this.error.set(null);
 
+  // Asegurar que la fecha esté en formato YYYY-MM-DD
+    const birthDate = new Date(this.registerForm.value.birthDate);
+    const formattedDate = birthDate.toISOString().split('T')[0];
+
     // Preparar datos para el backend
     const formData = {
       username: this.registerForm.value.username,
@@ -124,14 +142,12 @@ export class RegisterComponent {
       last_name: this.registerForm.value.lastName,
       phone: this.registerForm.value.phone || '',
       address: this.registerForm.value.address || '',
-      birth_date: this.registerForm.value.birthDate
+      country: this.registerForm.value.country,      
+      birth_date: formattedDate
     };
 
-    this.authService.register(
-      formData.username,
-      formData.email,
-      formData.password
-    ).subscribe({
+    this.authService.register(formData).
+    subscribe({
       next: () => {
         this.loading.set(false);
         this.success.set(true);

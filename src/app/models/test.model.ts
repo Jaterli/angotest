@@ -1,5 +1,3 @@
-import { User } from "./user.model";
-
 export interface Answer {
   id?: number;
   answer_text: string;
@@ -36,9 +34,11 @@ export interface Result {
   created_at: string;
   user_id: number;
   test_id: number;
+  test_title: string;
+  test_category: string;
+  test_description: string;
+  test_level: string;
   time_taken: number;
-  user: User;
-  test: Test;
 }
 
 export interface ResultResponse {
