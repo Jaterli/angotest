@@ -191,7 +191,7 @@ export class TestsListComponent implements OnInit {
   // Confirmar retomar test
   confirmRetakeTest(): void {
     if (this.testToRetake.id) {
-      this.router.navigate([`/tests/${this.testToRetake.id}/start`]);
+      this.router.navigate([`/tests/${this.testToRetake.id}/start-single`]);
     }
     this.showRetakeModal.set(false);
   }

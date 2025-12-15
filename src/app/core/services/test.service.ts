@@ -35,17 +35,9 @@ export class TestService {
     return this.http.get<Test[]>(`${this.apiUrl}/admin/tests`);
   }
 
-  // getTodayTest(): Observable<Test> {
-  //   return this.http.get<Test>(`${this.apiUrl}/tests/today`);
-  // }
-
   getTestById(id: number): Observable<Test> {
-    return this.http.get<Test>(`${this.apiUrl}/tests/${id}/start`);
+    return this.http.get<Test>(`${this.apiUrl}/tests/${id}/start-single`);
   }
-
-  // getLatestTest(): Observable<Test> {
-  //   return this.http.get<Test>(`${this.apiUrl}/tests/latest`);
-  // }
 
   // ====== Nuevos métodos optimizados ======
   
@@ -85,22 +77,4 @@ export class TestService {
     return this.http.get<TestsWithStatusResponse>(`${this.apiUrl}/tests/with-status`);
   }
 
-  // // Mantener compatibilidad (para componentes existentes)
-  // getUserTestResults(): Observable<any> {
-  //   console.log('TestService: obteniendo resultados del usuario...');
-  //   return this.http.get<any>(`${this.apiUrl}/tests/results`);
-  // }
-
-  // // Método de compatibilidad (para código existente)
-  // submitTestResult(testId: number, result: any): Observable<any> {
-  //   console.log(`TestService: enviando resultado del test ${testId}...`);
-  //   // Convertir al nuevo formato
-  //   const saveData: SaveResultInput = {
-  //     test_id: testId,
-  //     answers: result.answers || [],
-  //     time_taken: result.time_taken || 0,
-  //     status: 'completed'
-  //   };
-  //   return this.saveOrUpdateResult(saveData);
-  // }
 }

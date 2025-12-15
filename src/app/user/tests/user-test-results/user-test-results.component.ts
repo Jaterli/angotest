@@ -3,14 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TestService } from '../../../core/services/test.service';
 import { Result } from '../../../models/test.model';
-import { ModalComponent } from '../../../components/modal.component';
 import { User } from '../../../models/user.model';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-user-test-results',
   standalone: true,
-  imports: [CommonModule, RouterModule, ModalComponent],
+  imports: [CommonModule, RouterModule],
   templateUrl: './user-test-results.component.html'
 })
 export class UserTestResultsComponent implements OnInit {

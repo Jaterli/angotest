@@ -1,0 +1,298 @@
+@if (loading()) {
+  <div class="flex flex-col items-center justify-center min-h-screen space-y-4">
+    <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    <p class="text-gray-600 dark:text-gray-400 text-lg">Cargando test...</p>
+  </div>
+} @else if (test) {
+  <div class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
+       (contextmenu)="preventContextMenu($event)"
+       (copy)="preventCopy($event)"
+       (cut)="preventCopy($event)"
+       (selectstart)="preventSelection($event)">
+    
+    <!-- Header fijo con información de progreso -->
+    <header class="sticky top-0 z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="flex-1 min-w-0">
+            <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">{{ test.title }}</h1>
+            <div class="flex items-center gap-3 mt-2">
+              <span class="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                {{ test.category }}
+              </span>
+              <span class="text-xs font-medium px-2 py-1 rounded-full 
+                @if (test.level === 'Principiante') {
+                  bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300
+                } @else if (test.level === 'Intermedio') {
+                  bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300
+                } @else if (test.level === 'Avanzado') {
+                  bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300
+                } else {
+                  bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300
+                }">
+                {{ test.level }}
+              </span>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center gap-4">
+            <!-- Progreso -->
+            <div class="w-full sm:w-48">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Pregunta {{ currentQuestionIndex + 1 }}/{{ test.questions.length }}
+                </span>
+                <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                  {{ getProgressPercentage().toFixed(0) }}%
+                </span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div class="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                     [style.width.%]="getProgressPercentage()">
+                </div>
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {{ getAnsweredCount() }} respondidas, {{ getUnansweredQuestionsCount() }} pendientes
+              </div>
+            </div>
+
+            <!-- Tiempo -->
+            <div class="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+              <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+              </svg>
+              <span class="font-mono font-semibold text-gray-900 dark:text-gray-100">
+                {{ getTimeElapsed() }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="container mx-auto px-4 py-8">
+      @if (getCurrentQuestion()) {
+        <div class="max-w-3xl mx-auto">
+          <!-- Tarjeta de pregunta actual -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 overflow-hidden">
+            
+            <!-- Indicador de pregunta -->
+            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <span class="text-xl font-bold text-blue-700 dark:text-blue-300">
+                      {{ currentQuestionIndex + 1 }}
+                    </span>
+                  </div>
+                  <div>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      Pregunta {{ currentQuestionIndex + 1 }}
+                    </h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      Selecciona una opción y presiona "Siguiente"
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Texto de la pregunta -->
+            <div class="px-6 py-8">
+              <div class="prose prose-lg dark:prose-invert max-w-none">
+                <p class="text-gray-900 dark:text-gray-100 text-lg font-medium leading-relaxed select-none"
+                   [class.select-none]="isContentProtected()">
+                  {{ getCurrentQuestion()!.question_text }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Opciones de respuesta -->
+            <div class="px-6 pb-8">
+              <div class="space-y-3">
+                <!-- En la sección de opciones de respuesta -->
+                @for (answer of getCurrentQuestion()!.answers; track answer.id; let i = $index) {
+                <label class="flex items-start p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
+                    @if (selectedAnswers[getCurrentQuestion()!.id!] === answer.id) {
+                    border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20
+                    } @else {
+                    border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500
+                    }">
+                    
+                    <div class="flex items-center h-6 mr-4">
+                    <input
+                        type="radio"
+                        name="currentQuestion"
+                        [value]="answer.id"
+                        (change)="selectAnswer(answer.id!)"
+                        [checked]="selectedAnswers[getCurrentQuestion()!.id!] === answer.id"
+                        class="w-5 h-5 text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-0 cursor-pointer"
+                    />
+                    </div>
+                    
+                    <div class="flex-1 min-w-0">
+                    <div class="flex items-center">
+                        <span class="inline-flex items-center justify-center w-6 h-6 mr-3 text-xs font-semibold rounded-full 
+                        @if (selectedAnswers[getCurrentQuestion()!.id!] === answer.id) {
+                            bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300
+                        } @else {
+                            bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300
+                        }">
+                        {{ getAnswerLetter(i) }} <!-- CAMBIADO AQUÍ -->
+                        </span>
+                        <span class="text-gray-900 dark:text-gray-100 text-base font-medium leading-relaxed select-none">
+                        {{ answer.answer_text }}
+                        </span>
+                    </div>
+                    </div>
+                </label>
+                }
+              </div>
+            </div>
+
+            <!-- Botones de navegación -->
+            <div class="px-6 py-5 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+              <div class="flex items-center justify-between">
+                  <!-- Botón Cancelar    -->
+                  <button 
+                    (click)="goToTests()"
+                    class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+                    </svg>
+                    Cancelar
+                  </button>
+
+                  
+                  <!-- Botón Siguiente o Finalizar -->
+                  @if (!isLastQuestion()) {
+                    <button 
+                      (click)="nextQuestion()"
+                      [disabled]="!isQuestionAnswered(getCurrentQuestion()!.id!)"
+                      [class]="isQuestionAnswered(getCurrentQuestion()!.id!) 
+                        ? 'bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white' 
+                        : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'"
+                      class="inline-flex items-center px-6 py-2.5 text-base font-medium rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                      Siguiente
+                      <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                      </svg>
+                    </button>
+                  } @else {
+                    <button 
+                      (click)="showSubmitConfirmation()"
+                      [disabled]="!isQuestionAnswered(getCurrentQuestion()!.id!) || getUnansweredQuestionsCount() > 0"
+                      [class]="isQuestionAnswered(getCurrentQuestion()!.id!) && getUnansweredQuestionsCount() === 0
+                        ? 'bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-600 text-white' 
+                        : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'"
+                      class="inline-flex items-center px-6 py-2.5 text-base font-medium rounded-lg focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                      Finalizar Test
+                      <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                      </svg>
+                    </button>
+                  }
+              </div>
+              
+              <!-- Indicador de estado -->
+              <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-center">
+                  @if (!isQuestionAnswered(getCurrentQuestion()!.id!)) {
+                    <div class="flex items-center text-amber-600 dark:text-amber-400">
+                      <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                      </svg>
+                      <span class="text-sm font-medium">Selecciona una respuesta para continuar</span>
+                    </div>
+                  } @else {
+                    <div class="flex items-center text-emerald-600 dark:text-emerald-400">
+                      <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                      </svg>
+                      <span class="text-sm font-medium">Pregunta respondida. Puedes cambiar tu selección si lo deseas.</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Información de progreso -->
+          <div class="mt-6 p-4 bg-white dark:bg-gray-800 rounded-xl shadow dark:shadow-gray-900/20 border border-gray-200 dark:border-gray-700">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ currentQuestionIndex + 1 }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Pregunta actual</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ getAnsweredCount() }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Respondidas</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-amber-600 dark:text-amber-400">{{ getUnansweredQuestionsCount() }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Pendientes</div>
+              </div>
+              <div class="text-center">
+                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ test.questions.length }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Total</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </main>
+  </div>
+} @else {
+  <div class="flex flex-col items-center justify-center min-h-screen text-center px-4">
+    <div class="w-20 h-20 text-gray-300 dark:text-gray-600 mb-4">
+      <svg fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+      </svg>
+    </div>
+    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Error: Test no encontrado</h3>
+    <p class="text-gray-500 dark:text-gray-400 max-w-md">El test que estás buscando no existe o no está disponible en este momento.</p>
+    <button (click)="goToTests()"
+            class="mt-4 inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+      <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+      </svg>
+      Volver a Tests
+    </button>
+  </div>
+}
+
+<!-- Modal de confirmación de envío -->
+<app-modal 
+  [isOpen]="showConfirmSubmitModal()"
+  title="¿Finalizar Test?"
+  message="Una vez enviado no podrás modificar tus respuestas. ¿Estás seguro de que quieres finalizar el test?"
+  icon="info"
+  confirmText="Sí, Enviar Test"
+  cancelText="Seguir Respondiendo"
+  (confirm)="onConfirmSubmit()"
+  (cancel)="onCancelSubmit()">
+</app-modal>
+
+<!-- Modal de éxito -->
+<app-modal 
+  [isOpen]="showSuccessModal()"
+  title="¡Test Completado!"
+  [message]="'Has completado el test con un puntaje del ' + score() + '%. Tiempo empleado: ' + timeTaken() + ' segundos.'"
+  icon="success"
+  confirmText="Ver Resultados"
+  cancelText="Volver a Tests"
+  (confirm)="onSuccessModalConfirm()"
+  (cancel)="goToTests()">
+</app-modal>
+
+<!-- Modal de error -->
+<app-modal 
+  [isOpen]="showErrorModal()"
+  title="Error"
+  [message]="errorMessage()"
+  icon="error"
+  confirmText="Entendido"
+  (confirm)="onErrorModalConfirm()"
+  [showCancelButton]="false">
+</app-modal>

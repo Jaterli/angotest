@@ -62,7 +62,7 @@ import { CommonModule } from '@angular/common';
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ title }}</h3>
                   }
                   <div class="mt-2">
-                    @if (message) {
+                    @if (message && !customContent) {
                       <p class="text-sm text-gray-600 dark:text-gray-300">{{ message }}</p>
                     }
                     <ng-content></ng-content>
@@ -98,12 +98,13 @@ export class ModalComponent {
   @Input() isOpen = false;
   @Input() title = '';
   @Input() message = '';
-  @Input() icon: 'success' | 'error' | 'warning' | 'info' | null = null;
+  @Input() icon: 'success' | 'error' | 'warning' | 'info' | 'navigation' | null = null; 
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
   @Input() confirmText = 'Aceptar';
   @Input() cancelText = 'Cancelar';
   @Input() showCancelButton = true;
-  
+  @Input() customContent: boolean = false;
+
   @Output() confirm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
   @Output() closed = new EventEmitter<void>();
@@ -120,6 +121,8 @@ export class ModalComponent {
         return `${base} bg-yellow-100 dark:bg-yellow-900/30`;
       case 'info':
         return `${base} bg-blue-100 dark:bg-blue-900/30`;
+      case 'navigation':
+        return `${base} bg-purple-100 dark:bg-purple-900/30`;         
       default:
         return `${base} bg-gray-100 dark:bg-gray-700`;
     }
@@ -135,6 +138,8 @@ export class ModalComponent {
         return 'bg-yellow-600 dark:bg-yellow-700 hover:bg-yellow-700 dark:hover:bg-yellow-600 text-white focus:ring-yellow-500';
       case 'info':
         return 'bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white focus:ring-blue-500';
+      case 'navigation':
+        return 'bg-purple-600 dark:bg-purple-700 hover:bg-purple-700 dark:hover:bg-purple-600 text-white focus:ring-purple-500';         
       default:
         return 'bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 text-white focus:ring-blue-500';
     }
