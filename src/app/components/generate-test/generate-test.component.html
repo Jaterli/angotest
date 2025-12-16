@@ -1,0 +1,299 @@
+<!-- generate-test.component.html -->
+<div class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
+  <div class="max-w-4xl mx-auto">
+    
+    <!-- Título y descripción -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Generar Test con IA</h1>
+      <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+        Crea tests personalizados automáticamente utilizando inteligencia artificial.
+        Selecciona las opciones y genera un test educativo en segundos.
+      </p>
+    </div>
+
+    <!-- Panel de quota -->
+    @if (quota()) {
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-4 mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Límite Mensual</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Mes actual: {{ quota()!.month_year }}
+            </p>
+          </div>
+          <div class="flex items-center gap-6">
+            <div class="text-center">
+              <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                {{ quota()!.remaining_requests }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Disponibles</div>
+            </div>
+            <div class="text-center">
+              <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {{ quota()!.used_requests }}/{{ quota()!.max_requests }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Utilizados</div>
+            </div>
+            <div class="hidden sm:block">
+              <div class="w-48">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Progreso</span>
+                  <span class="text-sm font-semibold">
+                    {{ (quota()!.used_requests / quota()!.max_requests * 100).toFixed(0) }}%
+                  </span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div class="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300"
+                       [style.width.%]="quota()!.used_requests / quota()!.max_requests * 100">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Formulario de generación -->
+    @if (!generating()) {
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6">
+        <form [formGroup]="generateForm" (ngSubmit)="onSubmit()" class="space-y-6">
+          
+          <!-- Temática -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Temática *
+            </label>
+            <select
+              formControlName="topic"
+              [class]="generateForm.get('topic')?.invalid && generateForm.get('topic')?.touched 
+                ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+                : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+            >
+              <option value="" disabled selected>Selecciona una temática</option>
+              @for (topic of topics; track topic) {
+                <option [value]="topic">{{ topic }}</option>
+              }
+            </select>
+            @if (generateForm.get('topic')?.invalid && generateForm.get('topic')?.touched) {
+              <p class="text-sm text-red-600 dark:text-red-400">
+                La temática es requerida
+              </p>
+            }
+          </div>
+
+          <!-- Categoría y Nivel -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Categoría
+              </label>
+              <select
+                formControlName="category"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
+              >
+                @for (category of categories; track category) {
+                  <option [value]="category">{{ category }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Nivel de Dificultad
+              </label>
+              <select
+                formControlName="level"
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
+              >
+                @for (level of levels; track level) {
+                  <option [value]="level">{{ level }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Preguntas y Respuestas -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Número de Preguntas
+              </label>
+              <div class="grid grid-cols-5 gap-2">
+                @for (num of questionOptions; track num) {
+                  <button
+                    type="button"
+                    (click)="generateForm.get('num_questions')?.setValue(num)"
+                    [class]="generateForm.get('num_questions')?.value === num 
+                      ? 'bg-blue-600 dark:bg-blue-700 text-white' 
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'"
+                    class="py-3 rounded-lg font-medium transition-colors"
+                  >
+                    {{ num }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Opciones por Pregunta
+              </label>
+              <div class="grid grid-cols-2 gap-2">
+                @for (num of answerOptions; track num) {
+                  <button
+                    type="button"
+                    (click)="generateForm.get('num_answers')?.setValue(num)"
+                    [class]="generateForm.get('num_answers')?.value === num 
+                      ? 'bg-blue-600 dark:bg-blue-700 text-white' 
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'"
+                    class="py-3 rounded-lg font-medium transition-colors"
+                  >
+                    {{ num }} opciones
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Idioma -->
+          <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Idioma del Test
+            </label>
+            <select
+              formControlName="language"
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
+            >
+              @for (lang of languages; track lang.code) {
+                <option [value]="lang.code">{{ lang.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Resumen -->
+          <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+            <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-2">Resumen del Test</h4>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div>
+                <div class="text-gray-500 dark:text-gray-400">Temática</div>
+                <div class="font-medium text-gray-900 dark:text-gray-100">
+                  {{ generateForm.get('topic')?.value || 'No seleccionada' }}
+                </div>
+              </div>
+              <div>
+                <div class="text-gray-500 dark:text-gray-400">Preguntas</div>
+                <div class="font-medium text-gray-900 dark:text-gray-100">
+                  {{ generateForm.get('num_questions')?.value }}
+                </div>
+              </div>
+              <div>
+                <div class="text-gray-500 dark:text-gray-400">Nivel</div>
+                <div class="font-medium text-gray-900 dark:text-gray-100">
+                  {{ generateForm.get('level')?.value }}
+                </div>
+              </div>
+              <div>
+                <div class="text-gray-500 dark:text-gray-400">Tiempo estimado</div>
+                <div class="font-medium text-gray-900 dark:text-gray-100">
+                  {{ (generateForm.get('num_questions')?.value * 0.5) | number:'1.0-0' }} min
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error -->
+          @if (error()) {
+            <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-red-500 dark:text-red-400 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <p class="text-sm font-medium text-red-800 dark:text-red-300">{{ error() }}</p>
+              </div>
+            </div>
+          }
+
+          <!-- Botón de generar -->
+          <button 
+            type="submit" 
+            [disabled]="generateForm.invalid || loading() || (quota() && quota()!.remaining_requests <= 0)"
+            class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-600 dark:hover:to-purple-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            @if (loading()) {
+              <svg class="w-5 h-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Procesando...</span>
+            } @else {
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd"/>
+              </svg>
+              Generar Test con IA
+            }
+          </button>
+
+          <!-- Nota de quota -->
+          @if (quota() && quota()!.remaining_requests <= 0) {
+            <div class="text-center">
+              <p class="text-sm text-amber-600 dark:text-amber-400">
+                Has alcanzado el límite de tests generados para este mes. 
+                <a routerLink="/premium" class="font-semibold hover:underline">Actualiza tu plan</a> para más tests.
+              </p>
+            </div>
+          } @else if (quota()) {
+            <div class="text-center">
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Te quedan {{ quota()!.remaining_requests }} tests disponibles este mes.
+              </p>
+            </div>
+          }
+        </form>
+      </div>
+    }
+
+    <!-- Estado de generación -->
+    @if (generating() && requestId()) {
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
+        <div class="max-w-md mx-auto">
+          <!-- Animación de carga -->
+          <div class="relative w-24 h-24 mx-auto mb-6">
+            <div class="absolute inset-0 border-4 border-blue-200 dark:border-blue-800 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-blue-500 dark:border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <svg class="w-10 h-10 text-blue-500 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M9.504 1.132a1 1 0 01.992 0l1.75 1a1 1 0 11-.992 1.736L10 3.152l-1.254.716a1 1 0 11-.992-1.736l1.75-1zM5.618 4.504a1 1 0 01-.372 1.364L5.016 6l.23.132a1 1 0 11-.992 1.736L4 7.723V8a1 1 0 01-2 0V6a.996.996 0 01.52-.878l1.734-.99a1 1 0 011.364.372zm8.764 0a1 1 0 011.364-.372l1.733.99A1.002 1.002 0 0118 6v2a1 1 0 11-2 0v-.277l-.254.145a1 1 0 11-.992-1.736l.23-.132-.23-.132a1 1 0 01-.372-1.364zm-7 4a1 1 0 011.364-.372L10 8.848l1.254-.716a1 1 0 11.992 1.736L11 10.58V12a1 1 0 11-2 0v-1.42l-1.246-.712a1 1 0 01-.372-1.364zM3 11a1 1 0 011 1v1.42l1.246.712a1 1 0 11-.992 1.736l-1.75-1A1 1 0 012 14v-2a1 1 0 011-1zm14 0a1 1 0 011 1v2a1 1 0 01-.504.868l-1.75 1a1 1 0 11-.992-1.736L16 13.42V12a1 1 0 011-1zm-9.618 5.504a1 1 0 011.364-.372l.254.145V16a1 1 0 112 0v.277l.254-.145a1 1 0 11.992 1.736l-1.735.992a.995.995 0 01-1.022 0l-1.735-.992a1 1 0 01-.372-1.364z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+          </div>
+
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Generando Test con IA</h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-6">
+            Estamos creando tu test personalizado. Esto puede tomar unos segundos...
+          </p>
+          
+          <div class="space-y-4">
+            <div class="text-left">
+              <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">ID de solicitud</div>
+              <div class="font-mono text-gray-900 dark:text-gray-100">{{ requestId() }}</div>
+            </div>
+            
+            <div class="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400">
+              <svg class="w-5 h-5 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+              </svg>
+              <span class="text-sm">Procesando con inteligencia artificial</span>
+            </div>
+          </div>
+
+          <button 
+            (click)="cancelGeneration()"
+            class="mt-8 inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

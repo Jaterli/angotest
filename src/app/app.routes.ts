@@ -24,5 +24,11 @@ export const APP_ROUTES: Routes = [
   { path: 'tests/list', loadComponent: () => import('./user/tests/tests-list/tests-list.component').then(m => m.TestsListComponent), canActivate: [authGuard] },
   { path: 'tests/results', loadComponent: () => import('./user/tests/user-test-results/user-test-results.component').then(m => m.UserTestResultsComponent), canActivate: [authGuard] },
   { path: 'user/profile', loadComponent: () => import('./components/profile/profile.component').then(m => m.ProfileComponent), canActivate: [authGuard] },
+
+
+  // Ruta para generación de tests con IA
+  { path: 'generate-test', loadComponent: () => import('./components/generate-test/generate-test.component').then(m => m.GenerateTestComponent), canActivate: [authGuard] },
+  
+
   { path: '**', redirectTo: 'login' }
 ];

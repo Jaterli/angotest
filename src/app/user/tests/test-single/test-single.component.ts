@@ -282,6 +282,7 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     });
     
     this.showConfirmSubmitModal.set(false);
+    this.isResuming = false;
   }
 
   getTimeElapsed(): string {
@@ -344,7 +345,7 @@ export class TestSingleComponent implements OnInit, OnDestroy {
 
   onSuccessModalConfirm(): void {
     this.showSuccessModal.set(false);
-    this.router.navigate(['/user/results']);
+    this.router.navigate(['/tests/results']);
   }
 
   onErrorModalConfirm(): void {
