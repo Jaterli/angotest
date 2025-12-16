@@ -22,6 +22,9 @@ export const APP_ROUTES: Routes = [
   { path: 'tests/:id/start-single', loadComponent: () => import('./user/tests/test-single/test-single.component').then(m => m.TestSingleComponent), canActivate: [authGuard] },
   { path: 'tests/:id/resume', loadComponent: () => import('./user/tests/test-resolve/test-resolve.component').then(m => m.TestResolveComponent), canActivate: [authGuard] },
   { path: 'tests/list', loadComponent: () => import('./user/tests/tests-list/tests-list.component').then(m => m.TestsListComponent), canActivate: [authGuard] },
+  { path: 'tests/not-started', loadComponent: () => import('./user/tests/no-started/not-started-tests.component').then(m => m.NotStartedTestsComponent), canActivate: [authGuard] },
+  { path: 'tests/completed', loadComponent: () => import('./user/tests/completed/completed-tests.component').then(m => m.CompletedTestsComponent), canActivate: [authGuard] },
+  { path: 'tests/in-progress', loadComponent: () => import('./user/tests/in-progress/in-progress-tests.component').then(m => m.InProgressTestsComponent), canActivate: [authGuard] },
   { path: 'tests/results', loadComponent: () => import('./user/tests/user-test-results/user-test-results.component').then(m => m.UserTestResultsComponent), canActivate: [authGuard] },
   { path: 'user/profile', loadComponent: () => import('./components/profile/profile.component').then(m => m.ProfileComponent), canActivate: [authGuard] },
 

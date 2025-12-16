@@ -74,7 +74,7 @@ export class UserTestResultsComponent implements OnInit {
   loadResults(): void {
     this.loading.set(true);
     // Usamos el nuevo endpoint para resultados completados
-    this.testService.getCompletedTests().subscribe({
+    this.testService.getMyCompletedTests().subscribe({
       next: (res: any) => {
         // El nuevo endpoint devuelve un array de Results directamente
         // o dentro de una propiedad "completed_tests"
@@ -91,7 +91,7 @@ export class UserTestResultsComponent implements OnInit {
         this.calculateStatistics();
         this.loading.set(false);
       },
-      error: err => {
+      error: (err: any) => {
         console.error('Error al cargar resultados:', err);
       }
     });

@@ -11,12 +11,16 @@ export interface Question {
 }
 
 export interface Test {
-  id?: number;
+  id: number;
   title: string;
   description?: string;
-  category: string;   
-  level: string;     
-  test_date: string; 
+  main_topic: string;
+  sub_topic: string;
+  specific_topic: string;
+  level: string;
+  test_date: string;
+  created_by: number;
+  created_at: string; 
   questions: Question[];
   results?: Result[];
 }
@@ -51,11 +55,11 @@ export interface NotCompletedTestsResponse {
   message: string;
 }
 
-export interface CompletedTestsResponse {
-  tests: Test[];
-  completed_count: number;
-  message: string;
-}
+// export interface CompletedTestsResponse {
+//   tests: Test[];
+//   completed_count: number;
+//   message: string;
+// }
 
 
 export interface AnswerSubmit {
@@ -108,4 +112,187 @@ export interface TestWithStatus extends Test {
   time_taken: number;
   progress?: number;
   question_count?: number; 
+}
+
+
+export interface NotStartedTestsFilter {
+  page?: number;
+  page_size?: number;
+  main_topic?: string;
+  level?: string;
+}
+
+export interface NotStartedTestsResponse {
+  tests: TestWithStatus[];
+  total_tests: number;
+  total_pages: number;
+  current_page: number;
+  page_size: number;
+  has_more: boolean;
+  main_topics: string[];
+  levels: string[];
+}
+
+
+// Detalles de un test completado
+export interface CompletedTestResponse {
+  id: number;
+  user_id: number;
+  test_id: number;
+  correct_answers: number;
+  wrong_answers: number;
+  time_taken: number;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  
+  // Datos del test
+  test_title: string;
+  test_description?: string;
+  test_main_topic: string;
+  test_sub_topic: string;
+  test_specific_topic: string;
+  test_level: string;
+  test_date: string;
+  test_created_at: string;
+  
+  // Estadísticas
+  total_questions: number;
+  score_percent: number;
+  score_rounded: number;
+  accuracy: number;
+  completion_time?: string;
+}
+
+export interface CompletedTestsFilter {
+  page?: number;
+  page_size?: number;
+  main_topic?: string;
+  level?: string;
+  sort_by?: 'score' | 'date' | 'time';
+  sort_order?: 'asc' | 'desc';
+}
+
+export interface CompletedTestsResponse {
+  tests: CompletedTestResponse[];
+  total_tests: number;
+  total_pages: number;
+  current_page: number;
+  page_size: number;
+  has_more: boolean;
+  main_topics: string[];
+  levels: string[];
+}
+
+export interface CompletedTestsStats {
+  average_score: number;
+  total_time_spent: number;
+  total_tests: number;
+}
+
+export interface CompletedTestsFullResponse {
+  data: CompletedTestsResponse;
+  stats: CompletedTestsStats;
+}
+
+
+
+// Modelos para tests en progreso
+export interface InProgressTestResponse {
+  id: number;
+  user_id: number;
+  test_id: number;
+  time_taken: number;
+  status: string;
+  answers?: string;
+  created_at: string;
+  updated_at: string;
+  
+  // Datos del test
+  test_title: string;
+  test_description?: string;
+  test_main_topic: string;
+  test_sub_topic: string;
+  test_specific_topic: string;
+  test_level: string;
+  test_date: string;
+  test_created_at: string;
+  
+  // Estadísticas
+  total_questions: number;
+  progress: number;
+  answered_count: number;
+  remaining_count: number;
+  accuracy: number;
+  time_spent?: string;
+  last_activity?: string;
+}
+
+export interface InProgressTestsFilter {
+  page?: number;
+  page_size?: number;
+  main_topic?: string;
+  level?: string;
+  sort_by?: 'progress' | 'date' | 'updated';
+  sort_order?: 'asc' | 'desc';
+}
+
+export interface InProgressTestsResponse {
+  tests: InProgressTestResponse[];
+  total_tests: number;
+  total_pages: number;
+  current_page: number;
+  page_size: number;
+  has_more: boolean;
+  main_topics: string[];
+  levels: string[];
+}
+
+export interface InProgressTestsStats {
+  total_in_progress: number;
+  average_progress: number;
+  total_questions_answered: number;
+}
+
+export interface InProgressTestsFullResponse {
+  data: InProgressTestsResponse;
+  stats: InProgressTestsStats;
+}
+
+
+// Estructura para la jerarquía de temas
+export interface TopicHierarchy {
+  main_topic: string;
+  sub_topic: string;
+  specific_topic: string;
+}
+
+export interface TopicStructure {
+  [mainTopic: string]: {
+    [subTopic: string]: string[];
+  };
+}
+
+// Interfaz para el formulario de edición
+export interface TestEditFormData {
+  title: string;
+  description?: string;
+  main_topic: string;
+  sub_topic: string;
+  specific_topic: string;
+  level: string;
+  test_date: string;
+  questions: QuestionEditFormData[];
+}
+
+export interface QuestionEditFormData {
+  id?: number;
+  question_text: string;
+  answers: AnswerEditFormData[];
+}
+
+export interface AnswerEditFormData {
+  id?: number;
+  answer_text: string;
+  is_correct: boolean;
 }

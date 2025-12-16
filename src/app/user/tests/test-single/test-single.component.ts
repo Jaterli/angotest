@@ -296,7 +296,7 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   }
 
   goToTests(): void {
-    this.router.navigate(['/tests/list']);
+    this.router.navigate(['/tests/in-progress']);
   }
 
   getProgressPercentage(): number {

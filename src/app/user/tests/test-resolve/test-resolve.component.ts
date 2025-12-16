@@ -209,7 +209,7 @@ export class TestResolveComponent implements OnInit, OnDestroy {
   }
 
   goToTests(): void {
-    this.router.navigate(['/tests/list']);
+    this.router.navigate(['/tests/in-progress']);
   }
 
   restartTest(): void {
@@ -252,7 +252,7 @@ export class TestResolveComponent implements OnInit, OnDestroy {
 
   onSuccessModalConfirm(): void {
     this.showSuccessModal.set(false);
-    this.router.navigate(['/user/results']);
+    this.router.navigate(['/tests/results']);
   }
 
   onErrorModalConfirm(): void {

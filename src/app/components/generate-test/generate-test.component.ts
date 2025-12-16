@@ -5,8 +5,7 @@ import { Router } from '@angular/router';
 import { ModalComponent } from '../modal.component';
 import { GenerateTestRequest, TopicsResponse, UserQuota } from '../../models/generate-test.model';
 import { AITestService } from '../../services/generate-test.service';
-import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, switchMap, Subject, of } from 'rxjs';
 
 @Component({
   selector: 'app-generate-test',
@@ -20,18 +19,18 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
   quotaLoading = signal(false);
   topicsLoading = signal(false);
   generating = signal(false);
-  categoriesLoading = signal(false);
+  subTopicsLoading = signal(false);
+  specificTopicsLoading = signal(false);
   error = signal<string | null>(null);
   
   quota = signal<UserQuota | null>(null);
   requestId = signal<number | null>(null);
   checkInterval: any;
   
-  // Temas obtenidos dinámicamente del backend
-  topics = signal<string[]>([]);
-
-   // Categorías dinámicas
-  categories = signal<string[]>([]);
+  // Temas principales
+  mainTopics = signal<string[]>([]);
+  subTopics = signal<string[]>([]);
+  specificTopics = signal<string[]>([]);
   
   levels = ['Principiante', 'Intermedio', 'Avanzado'];
   questionOptions = [10, 20, 30, 40, 50];
@@ -45,8 +44,13 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
     { code: 'pt', name: 'Português' }
   ];
 
-  // Subject para debounce de cambios en el tema
-  private topicChangeSubject = new Subject<string>();
+  // Instrucciones adicionales para IA (solo visible para admin)
+  showAIPrompt = false;
+  userRole = 'admin'; // Esto debería venir del servicio de autenticación
+
+  // Subjects para debounce
+  private mainTopicChangeSubject = new Subject<string>();
+  private subTopicChangeSubject = new Subject<string>();
 
   constructor(
     private fb: FormBuilder,
@@ -54,117 +58,141 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
     private router: Router
   ) {
     this.generateForm = this.fb.group({
-      topic: ['', Validators.required],
-      category: ['', Validators.required],
+      main_topic: ['', Validators.required],
+      sub_topic: ['', Validators.required],
+      specific_topic: ['', Validators.required],
       level: ['Principiante', Validators.required],
       num_questions: [10, [Validators.required, Validators.min(10), Validators.max(50)]],
       num_answers: [4, [Validators.required, Validators.min(3), Validators.max(4)]],
-      language: ['es', Validators.required]
+      language: ['es', Validators.required],
+      ai_prompt: [''] // Campo opcional para admin
     });
   }
 
   ngOnInit() {
     this.loadUserQuota();
-    this.loadPredefinedTopics(); // Cargar temas del backend
-
-    // Suscribirse a cambios en el tema para cargar categorías dinámicas
-    this.generateForm.get('topic')?.valueChanges.subscribe(topic => {
-      if (topic) {
-        this.topicChangeSubject.next(topic);
+    this.loadMainTopics();
+    
+    // Obtener rol del usuario (simulado)
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      this.userRole = user.role || 'user';
+      this.showAIPrompt = this.userRole === 'admin';
+    }
+    
+    // Suscribirse a cambios en el tema principal
+    this.generateForm.get('main_topic')?.valueChanges.subscribe(mainTopic => {
+      if (mainTopic) {
+        this.mainTopicChangeSubject.next(mainTopic);
+      } else {
+        this.subTopics.set([]);
+        this.specificTopics.set([]);
+        this.generateForm.get('sub_topic')?.setValue('');
+        this.generateForm.get('specific_topic')?.setValue('');
       }
     });
     
-    // Configurar debounce para evitar muchas llamadas API
-    this.topicChangeSubject.pipe(
+    // Suscribirse a cambios en el subtema
+    this.generateForm.get('sub_topic')?.valueChanges.subscribe(subTopic => {
+      const mainTopic = this.generateForm.get('main_topic')?.value;
+      if (mainTopic && subTopic) {
+        this.subTopicChangeSubject.next(subTopic);
+      } else {
+        this.specificTopics.set([]);
+        this.generateForm.get('specific_topic')?.setValue('');
+      }
+    });
+    
+    // Configurar debounce para tema principal
+    this.mainTopicChangeSubject.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      switchMap(topic => {
-        this.categoriesLoading.set(true);
-        this.generateForm.get('category')?.setValue(''); // Resetear categoría
-        return this.aiTestService.getCategoriesForTopic(topic);
+      switchMap(mainTopic => {
+        this.subTopicsLoading.set(true);
+        this.generateForm.get('sub_topic')?.setValue('');
+        this.generateForm.get('specific_topic')?.setValue('');
+        return this.aiTestService.getSubTopics(mainTopic);
       })
     ).subscribe({
       next: (response) => {
-        this.categories.set(response.categories);
-        this.categoriesLoading.set(false);
+        this.subTopics.set(response.sub_topics);
+        this.subTopicsLoading.set(false);
         
-        // Seleccionar la primera categoría por defecto
-        if (response.categories.length > 0) {
+        if (response.sub_topics.length > 0) {
           setTimeout(() => {
-            this.generateForm.get('category')?.setValue(response.categories[0]);
+            this.generateForm.get('sub_topic')?.setValue(response.sub_topics[0]);
           });
         }
       },
       error: (err) => {
-        console.error('Error al cargar categorías:', err);
-        this.categories.set([]);
-        this.categoriesLoading.set(false);
+        console.error('Error al cargar subtemas:', err);
+        this.subTopics.set([]);
+        this.subTopicsLoading.set(false);
       }
     });
     
-    // También cargar categorías si ya hay un tema seleccionado
-    const initialTopic = this.generateForm.get('topic')?.value;
-    if (initialTopic) {
-      this.loadCategoriesForTopic(initialTopic);
-    }
+    // Configurar debounce para subtema
+    this.subTopicChangeSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(subTopic => {
+        const mainTopic = this.generateForm.get('main_topic')?.value;
+        this.specificTopicsLoading.set(true);
+        this.generateForm.get('specific_topic')?.setValue('');
+        return this.aiTestService.getSpecificTopics(mainTopic, subTopic);
+      })
+    ).subscribe({
+      next: (response) => {
+        this.specificTopics.set(response.specific_topics);
+        this.specificTopicsLoading.set(false);
+        
+        if (response.specific_topics.length > 0) {
+          setTimeout(() => {
+            this.generateForm.get('specific_topic')?.setValue(response.specific_topics[0]);
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error al cargar temas específicos:', err);
+        this.specificTopics.set([]);
+        this.specificTopicsLoading.set(false);
+      }
+    });
   }
 
   ngOnDestroy() {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
     }
-    this.topicChangeSubject.complete();
+    this.mainTopicChangeSubject.complete();
+    this.subTopicChangeSubject.complete();
   }
 
-
-  loadPredefinedTopics() {
+  loadMainTopics() {
     this.topicsLoading.set(true);
-    this.aiTestService.getPredefinedTopics().subscribe({
-      next: (response: TopicsResponse) => {
-        this.topics.set(response.topics);
+    this.aiTestService.getMainTopics().subscribe({
+      next: (response: any) => {
+        this.mainTopics.set(response.main_topics);
         this.topicsLoading.set(false);
         
-        // Seleccionar el primer tema por defecto si está disponible
-        if (response.topics.length > 0) {
+        if (response.main_topics.length > 0) {
           setTimeout(() => {
-            const firstTopic = response.topics[0];
-            this.generateForm.get('topic')?.setValue(firstTopic);
-            // Cargar categorías para el primer tema
-            this.loadCategoriesForTopic(firstTopic);
+            const firstTopic = response.main_topics[0];
+            this.generateForm.get('main_topic')?.setValue(firstTopic);
           });
         }
       },
-      error: (err) => {
-        console.error('Error al cargar temas:', err);
-        // Fallback a temas locales si la API falla
+      error: (err: any) => {
+        console.error('Error al cargar temas principales:', err);
+        // Fallback a temas predefinidos
         const fallbackTopics = [
-          'Programación', 'Matemáticas', 'Historia', 'Ciencia',
-          'Literatura', 'Geografía', 'Arte', 'Deportes',
-          'Tecnología', 'Negocios', 'Idiomas', 'Cultura General'
+          'Ciencias de la Computación', 'Matemáticas', 'Historia', 'Ciencias Naturales',
+          'Literatura', 'Idiomas', 'Derecho', 'Economía',
+          'Cultura General', 'Deportes'
         ];
-        this.topics.set(fallbackTopics);
+        this.mainTopics.set(fallbackTopics);
         this.topicsLoading.set(false);
-      }
-    });
-  }
-
-
-  loadCategoriesForTopic(topic: string) {
-    this.categoriesLoading.set(true);
-    this.aiTestService.getCategoriesForTopic(topic).subscribe({
-      next: (response) => {
-        this.categories.set(response.categories);
-        this.categoriesLoading.set(false);
-        
-        // Si no hay categoría seleccionada, seleccionar la primera
-        if (!this.generateForm.get('category')?.value && response.categories.length > 0) {
-          this.generateForm.get('category')?.setValue(response.categories[0]);
-        }
-      },
-      error: (err) => {
-        console.error('Error al cargar categorías:', err);
-        this.categories.set([]);
-        this.categoriesLoading.set(false);
       }
     });
   }
@@ -204,6 +232,11 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
 
     const request: GenerateTestRequest = this.generateForm.value;
 
+    // Si no es admin, eliminar el campo ai_prompt
+    if (this.userRole !== 'admin') {
+      delete request.ai_prompt;
+    }
+
     this.aiTestService.generateTest(request).subscribe({
       next: (response: any) => {
         this.loading.set(false);
@@ -224,11 +257,8 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
         this.loading.set(false);
         if (err.error?.code === 'QUOTA_EXCEEDED') {
           this.error.set('Has alcanzado el límite de tests generados para este mes.');
-        } else if (err.error?.valid_categories) {
-          // Error de categoría inválida
-          this.error.set(err.error.error);
-          // Recargar categorías válidas
-          this.loadCategoriesForTopic(this.generateForm.get('topic')?.value);
+        } else if (err.error?.valid_main_topics) {
+          this.error.set('La combinación de temas seleccionada no es válida.');
         } else {
           this.error.set(err.error?.error || 'Error al generar el test');
         }
@@ -269,5 +299,12 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
     }
     this.generating.set(false);
     this.requestId.set(null);
+  }
+
+  toggleAIPrompt() {
+    this.showAIPrompt = !this.showAIPrompt;
+    if (!this.showAIPrompt) {
+      this.generateForm.get('ai_prompt')?.setValue('');
+    }
   }
 }

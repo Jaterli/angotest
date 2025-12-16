@@ -65,20 +65,39 @@
           <!-- Menú para Usuarios normales -->
           @if (shouldShowUserMenu()) {
             <div class="hidden md:flex items-center space-x-4 border-l border-gray-200 dark:border-gray-700 pl-4">
-              <a routerLink="/tests/list" 
+              <!-- Tests nuevos/sin completar -->
+              <a routerLink="/tests/not-started" 
                  class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                  routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
-                Tests
+                Nuevos Tests
               </a>
+              
+              <!-- Tests en progreso -->
+              <a routerLink="/tests/in-progress" 
+                 class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                En Progreso
+              </a>
+              
+              <!-- Tests completados -->
+              <a routerLink="/tests/completed" 
+                 class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Completados
+              </a>
+
+              <!-- Mis resultados -->
               <a routerLink="/tests/results" 
                  class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                  routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
-                Mis Resultados
+                Resultados
               </a>
+              
+              <!-- Mi perfil -->
               <a routerLink="/user/profile" 
                  class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                  routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
-                Mi Perfil
+                Perfil
               </a>
             </div>
           }
@@ -167,18 +186,39 @@
 
             <!-- Menú User en móvil -->
             @if (shouldShowUserMenu()) {
-              <a routerLink="/tests/list" 
+              <!-- Tests nuevos/sin completar -->
+              <a routerLink="/tests/not-started" 
                  (click)="closeMobileMenu()"
                  class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                  routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
-                Tests
+                Nuevos Tests
               </a>
+              
+              <!-- Tests en progreso -->
+              <a routerLink="/tests/in-progress" 
+                 (click)="closeMobileMenu()"
+                 class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                En Progreso
+              </a>
+              
+              <!-- Tests completados -->
+              <a routerLink="/tests/completed" 
+                 (click)="closeMobileMenu()"
+                 class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Completados
+              </a>
+                           
+              <!-- Mis resultados -->
               <a routerLink="/tests/results" 
                  (click)="closeMobileMenu()"
                  class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                  routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
                 Mis Resultados
               </a>
+              
+              <!-- Mi perfil -->
               <a routerLink="/user/profile" 
                  (click)="closeMobileMenu()"
                  class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"

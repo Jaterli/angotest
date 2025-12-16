@@ -1,13 +1,16 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { 
   SaveResultInput, 
   ResumeTestResponse, 
-  InProgressTestsResponse, 
-  CompletedTestsResponse,
   TestsWithStatusResponse,
-  Test 
+  Test,
+  NotStartedTestsResponse,
+  CompletedTestsFullResponse,
+  CompletedTestsFilter,
+  InProgressTestsFullResponse,
+  InProgressTestsFilter
 } from '../../models/test.model';
 
 @Injectable({
@@ -36,10 +39,9 @@ export class TestService {
   }
 
   getTestById(id: number): Observable<Test> {
-    return this.http.get<Test>(`${this.apiUrl}/tests/${id}/start-single`);
+    return this.http.get<Test>(`${this.apiUrl}/tests/${id}`);
   }
 
-  // ====== Nuevos métodos optimizados ======
   
   // Guardar progreso o finalizar test
   saveOrUpdateResult(data: SaveResultInput): Observable<any> {
@@ -54,15 +56,114 @@ export class TestService {
   }
 
   // Obtener tests en progreso
-  getInProgressTests(): Observable<InProgressTestsResponse> {
-    console.log('TestService: obteniendo tests en progreso...');
-    return this.http.get<InProgressTestsResponse>(`${this.apiUrl}/tests/in-progress`);
-  }
+  // getInProgressTests(): Observable<InProgressTestsResponse> {
+  //   console.log('TestService: obteniendo tests en progreso...');
+  //   return this.http.get<InProgressTestsResponse>(`${this.apiUrl}/tests/in-progress`);
+  // }
 
   // Obtener tests completados
-  getCompletedTests(): Observable<CompletedTestsResponse> {
-    console.log('TestService: obteniendo tests completados...');
-    return this.http.get<CompletedTestsResponse>(`${this.apiUrl}/tests/completed`);
+  // getCompletedTests(): Observable<CompletedTestsResponse> {
+  //   console.log('TestService: obteniendo tests completados...');
+  //   return this.http.get<CompletedTestsResponse>(`${this.apiUrl}/tests/completed`);
+  // }
+
+  // ====== Método para tests completados con filtros ======
+  
+  getMyCompletedTests(
+    filter: CompletedTestsFilter = {}
+  ): Observable<CompletedTestsFullResponse> {
+    let params = new HttpParams();
+    
+    if (filter.page) {
+      params = params.set('page', filter.page.toString());
+    }
+    
+    if (filter.page_size) {
+      params = params.set('page_size', filter.page_size.toString());
+    }
+    
+    if (filter.main_topic && filter.main_topic !== 'all') {
+      params = params.set('main_topic', filter.main_topic);
+    }
+    
+    if (filter.level && filter.level !== 'all') {
+      params = params.set('level', filter.level);
+    }
+    
+    if (filter.sort_by) {
+      params = params.set('sort_by', filter.sort_by);
+    }
+    
+    if (filter.sort_order) {
+      params = params.set('sort_order', filter.sort_order);
+    }
+
+    return this.http.get<CompletedTestsFullResponse>(
+      `${this.apiUrl}/tests/completed`, 
+      { params }
+    );
+  }
+
+
+  // ====== Método para tests en progreso con filtros ======
+    getMyInProgressTests(
+    filter: InProgressTestsFilter = {}
+  ): Observable<InProgressTestsFullResponse> {
+    let params = new HttpParams();
+    
+    if (filter.page) {
+      params = params.set('page', filter.page.toString());
+    }
+    
+    if (filter.page_size) {
+      params = params.set('page_size', filter.page_size.toString());
+    }
+    
+    if (filter.main_topic && filter.main_topic !== 'all') {
+      params = params.set('main_topic', filter.main_topic);
+    }
+    
+    if (filter.level && filter.level !== 'all') {
+      params = params.set('level', filter.level);
+    }
+    
+    if (filter.sort_by) {
+      params = params.set('sort_by', filter.sort_by);
+    }
+    
+    if (filter.sort_order) {
+      params = params.set('sort_order', filter.sort_order);
+    }
+
+    return this.http.get<InProgressTestsFullResponse>(
+      `${this.apiUrl}/tests/in-progress`, 
+      { params }
+    );
+  }
+
+  // ======= Nuevo método para tests por hacer ======
+  getNotStartedTests(
+    page: number = 1, 
+    pageSize: number = 10, 
+    mainTopic?: string, 
+    level?: string
+  ): Observable<NotStartedTestsResponse> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('page_size', pageSize.toString());
+
+    if (mainTopic && mainTopic !== 'all') {
+      params = params.set('main_topic', mainTopic);
+    }
+    
+    if (level && level !== 'all') {
+      params = params.set('level', level);
+    }
+
+    return this.http.get<NotStartedTestsResponse>(
+      `${this.apiUrl}/tests/not-started`, 
+      { params }
+    );
   }
 
   // Eliminar progreso de un test
