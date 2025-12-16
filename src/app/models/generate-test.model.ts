@@ -24,3 +24,8 @@ export interface UserQuota {
   remaining_requests: number;
 }
 
+export interface TopicsResponse {
+  topics: string[];
+  count: number;
+  timestamp: string;
+}
