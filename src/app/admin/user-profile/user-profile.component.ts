@@ -1,9 +1,9 @@
 import { Component, signal, effect, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { UserService } from '../../services/user.service';
 import { CommonModule } from '@angular/common';
 import { DatePipe } from '@angular/common';
-import { ModalComponent } from '../../components/modal.component';
+import { ModalComponent } from '../../shared/components/modal.component';
+import { UsersManagementService } from '../services/users-management.service';
 
 @Component({
   standalone: true,
@@ -13,12 +13,12 @@ import { ModalComponent } from '../../components/modal.component';
     DatePipe,
     ModalComponent
   ],
-  templateUrl: './user-details.component.html',
+  templateUrl: './user-profile.component.html',
 })
 export class UserDetailsComponent {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private userService = inject(UserService);
+  private usersManagementService = inject(UsersManagementService);
 
   loading = signal(true);
   user = signal<any | null>(null);
@@ -41,8 +41,8 @@ export class UserDetailsComponent {
 
   fetchUser(id: number) {
     this.loading.set(true);
-    this.userService.getUserDetails(id).subscribe({
-      next: (res) => {
+    this.usersManagementService.getUserDetails(id).subscribe({
+      next: (res: any) => {
         this.user.set(res.user);
         this.loading.set(false);
       },
@@ -84,8 +84,8 @@ export class UserDetailsComponent {
     this.isDeleting.set(true);
     const userId = this.user()?.id;
     
-    this.userService.deleteUser(userId).subscribe({
-      next: (response) => {
+    this.usersManagementService.deleteUser(userId).subscribe({
+      next: () => {
         this.isDeleting.set(false);
         this.showDeleteModal.set(false);
         this.showSuccessModal.set(true);
@@ -93,9 +93,9 @@ export class UserDetailsComponent {
         // Redirigir después de 2 segundos
         setTimeout(() => {
           this.router.navigate(['/admin/users/stats']);
-        }, 2000);
+        }, 5000);
       },
-      error: (error) => {
+      error: (error: any) => {
         this.isDeleting.set(false);
         this.showDeleteModal.set(false);
         this.errorMessage.set(
@@ -127,17 +127,17 @@ export class UserDetailsComponent {
   }
 
 
-getDeleteMessage(): string {
-  const user = this.user();
-  if (!user) return '';
-  
-  const testsCount = user.tests?.length || 0;
-  const resultsCount = user.results?.length || 0;
-  
-  return `¿Estás seguro de que quieres eliminar al usuario "${user.username}"? ` +
-         `Esta acción eliminará ${testsCount} test${testsCount !== 1 ? 's' : ''} creados ` +
-         `y ${resultsCount} resultado${resultsCount !== 1 ? 's' : ''} de tests. ` +
-         `Esta acción no se puede deshacer.`;
-}
+  getDeleteMessage(): string {
+    const user = this.user();
+    if (!user) return '';
+    
+    const testsCount = user.tests?.length || 0;
+    const resultsCount = user.results?.length || 0;
+    
+    return `¿Estás seguro de que quieres eliminar al usuario "${user.username}"? ` +
+          `Esta acción eliminará ${testsCount} test${testsCount !== 1 ? 's' : ''} creados ` +
+          `y ${resultsCount} resultado${resultsCount !== 1 ? 's' : ''} de tests. ` +
+          `Esta acción no se puede deshacer.`;
+  }
 
 }

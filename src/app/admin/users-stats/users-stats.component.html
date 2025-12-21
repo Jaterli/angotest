@@ -1,0 +1,565 @@
+<div class="container mx-auto p-4 md:p-6 lg:p-8">
+  
+  <!-- Header con título y descripción -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div>
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Gestión de Usuarios</h2>
+      <p class="text-gray-600 dark:text-gray-400 mt-2">Administra y visualiza estadísticas de todos los usuarios del sistema</p>
+    </div>
+    
+    <!-- Estadísticas rápidas -->
+    <div class="flex items-center space-x-4 bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+      <div class="text-center">
+        <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+          {{ totalUsers() }}
+        </div>
+        <div class="text-xs text-gray-500 dark:text-gray-400">Usuarios</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros y búsqueda -->
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6 mb-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Filtros y Ordenación</h3>
+        <p class="text-gray-600 dark:text-gray-400 text-sm">Filtra y ordena los usuarios según tus necesidades</p>
+      </div>
+      
+      <button (click)="clearFilters()"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+        </svg>
+        Limpiar Filtros
+      </button>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Búsqueda -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Buscar
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="filters().search"
+          (ngModelChange)="applyFilters()"
+          placeholder="Buscar por nombre, email..."
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+        >
+      </div>
+           
+      <!-- Ordenación -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Ordenar por
+        </label>
+        <select
+          [(ngModel)]="filters().sort_by"
+          (ngModelChange)="applyFilters()"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+        >
+          @for (option of sortOptions(); track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    
+    <!-- Orden actual -->
+    @if (filters().sort_by) {
+      <div class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+        Ordenado por: 
+        <span class="font-medium text-gray-800 dark:text-gray-200">
+          {{ currentSortLabel() }}
+        </span>
+        <span class="mx-2">•</span>
+        Orden: 
+        <span class="font-medium text-gray-800 dark:text-gray-200">
+          {{ currentSortOrderLabel() }}
+        </span>
+      </div>
+    }
+  </div>
+
+  <!-- Estado de carga -->
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-gray-600 dark:text-gray-400 text-lg">Cargando usuarios...</p>
+    </div>
+  }
+
+  <!-- Sin resultados -->
+  @if (!loading() && users().length === 0) {
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
+      <div class="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4">
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No se encontraron usuarios</h3>
+      <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+        @if (filters().search || filters().role) {
+          No hay usuarios que coincidan con los filtros aplicados.
+        } @else {
+          No hay usuarios registrados en el sistema.
+        }
+      </p>
+      @if (filters().search || filters().role) {
+        <button (click)="clearFilters()"
+                class="mt-4 inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+          Limpiar filtros
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Tabla de usuarios -->
+  @if (!loading() && users().length > 0) {
+    <div class="overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <!-- ID con ordenación -->
+          <thead class="bg-gray-50 dark:bg-gray-900/50">
+            <tr>
+              <!-- ID con ordenación -->
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  (click)="onSortChange('id')">
+                <div class="flex items-center">
+                  ID
+                  @if (filters().sort_by === 'id') {
+                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                      @if (filters().sort_order === 'asc') {
+                        <path d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
+                      } @else {
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                      }
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  }
+                </div>
+              </th>
+              
+              <!-- Usuario con ordenación -->
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  (click)="onSortChange('username')">
+                <div class="flex items-center">
+                  Usuario
+                  @if (filters().sort_by === 'username') {
+                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                      @if (filters().sort_order === 'asc') {
+                        <path d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
+                      } @else {
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                      }
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  }
+                </div>
+              </th>
+              
+              <!-- Email con ordenación -->
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  (click)="onSortChange('email')">
+                <div class="flex items-center">
+                  Email
+                  @if (filters().sort_by === 'email') {
+                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                      @if (filters().sort_order === 'asc') {
+                        <path d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
+                      } @else {
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                      }
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  }
+                </div>
+              </th>            
+
+              <!-- Tests Completados con ordenación -->
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  (click)="onSortChange('tests_completed')">
+                <div class="flex items-center">
+                  Tests completados
+                  @if (filters().sort_by === 'tests_completed') {
+                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                      @if (filters().sort_order === 'asc') {
+                        <path d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
+                      } @else {
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                      }
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  }
+                </div>
+              </th>
+
+              
+              <!-- Puntuación Media con ordenación -->
+
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  (click)="onSortChange('average_score')">
+                <div class="flex items-center">
+                  Puntuación Media
+                  @if (filters().sort_by === 'average_score') {
+                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                      @if (filters().sort_order === 'asc') {
+                        <path d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
+                      } @else {
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                      }
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  }
+                </div>
+              </th>
+              
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                Acciones
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            @for (user of users(); track user.id) {
+              <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <!-- Columna ID -->
+                <td class="px-6 py-4 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                  {{ user.id }}
+                </td>
+                
+                <!-- Columna Usuario -->
+                <td class="px-6 py-4">
+                  <div class="flex items-center">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3">
+                      <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                        <span (click)="showProfile(user)" 
+                              class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors inline-flex items-center cursor-pointer">
+                          {{ user.username }}
+                          <svg class="w-3 h-3 ml-1 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                          </svg>
+                        </span>
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        @if (user.first_name && user.last_name) {
+                          {{ user.first_name }} {{ user.last_name }}
+                        } @else {
+                          Sin nombre completo
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                
+                <!-- Columna Email -->
+                <td class="px-6 py-4">
+                  <div class="text-sm text-gray-600 dark:text-gray-400 truncate max-w-xs">
+                    {{ user.email }}
+                  </div>
+                </td>
+                               
+                <!-- Columna Tests Completados -->
+                <td class="px-6 py-4">
+                  <div class="flex flex-col">
+                    <div class="flex items-center">
+                      <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400 mr-2">
+                        {{ user.tests_completed }}
+                      </span>
+                      <div class="flex-1">
+                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          @if (user.total_tests_taken > 0) {
+                            <div class="bg-emerald-500 dark:bg-emerald-500 h-2 rounded-full" 
+                                 [style.width.%]="(user.tests_completed / user.total_tests_taken) * 100">
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {{ user.tests_in_progress }} en progreso • {{ user.tests_not_started }} sin empezar
+                    </div>
+                  </div>
+                </td>
+                
+                <!-- Columna Puntuación Media -->
+                <td class="px-6 py-4">
+                  <div class="flex flex-col items-center">
+                    <span [class]="getScoreClasses(user.average_score)" class="text-xl font-bold">
+                      {{ user.average_score | number:'1.0-1' }}%
+                    </span>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                      @if (user.tests_completed > 0) {
+                        en {{ user.tests_completed }} test{{ user.tests_completed !== 1 ? 's' : '' }}
+                      } @else {
+                        Sin tests completados
+                      }
+                    </div>
+                  </div>
+                </td>
+                
+                <!-- Columna Acciones -->
+                <td class="px-6 py-4">
+                  <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <!-- Botón para ver resultados/estadísticas -->
+                    <a [routerLink]="['/admin/users/results/', user.id]"
+                       class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                      <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                      </svg>
+                      Resultados
+                    </a>
+                    
+                    <!-- Botón para eliminar usuario -->
+                    <button (click)="prepareDeleteUser(user)"
+                            class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                      <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      </svg>
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Información y paginación -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 gap-4">
+        <div class="text-sm text-gray-700 dark:text-gray-300">
+          Mostrando 
+          <span class="font-medium">{{ getStartIndex() }}</span> a 
+          <span class="font-medium">{{ getEndIndex() }}</span> de 
+          <span class="font-medium">{{ totalUsers() }}</span> usuario{{ totalUsers() !== 1 ? 's' : '' }}
+        </div>
+        
+        <!-- Paginación -->
+        <nav class="flex items-center justify-center sm:justify-end">
+          <div class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <!-- Botón Anterior -->
+            <button (click)="previousPage()"
+                    [disabled]="currentPage() === 1"
+                    class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-l-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+              <span class="sr-only">Anterior</span>
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+            
+            <!-- Números de página -->
+            @for (page of getPageNumbers(); track page) {
+              <button (click)="goToPage(page)"
+                      [class]="currentPage() === page 
+                        ? 'z-10 text-white bg-blue-600 dark:bg-blue-700 border border-blue-500 dark:border-blue-600 relative inline-flex items-center px-4 py-2 text-sm font-medium'
+                        : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 relative inline-flex items-center px-4 py-2 text-sm font-medium transition-colors'">
+                {{ page }}
+              </button>
+            }
+            
+            <!-- Botón Siguiente -->
+            <button (click)="nextPage()"
+                    [disabled]="!hasMore()"
+                    class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-r-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+              <span class="sr-only">Siguiente</span>
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+          </div>
+        </nav>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Modal de confirmación para eliminar -->
+<app-modal 
+  [isOpen]="showDeleteModal()"
+  title="¿Eliminar Usuario?"
+  [message]="`¿Estás seguro de que quieres eliminar al usuario '${userToDelete.username || ''}'? Esta acción eliminará permanentemente el usuario y todos sus datos asociados, incluyendo resultados de tests y estadísticas. Esta acción no se puede deshacer.`"
+  icon="warning"
+  [confirmText]="deleting() ? 'Eliminando...' : 'Eliminar'"
+  cancelText="Cancelar"
+  (confirm)="confirmDeleteUser()"
+  (cancel)="cancelDeleteUser()">
+</app-modal>
+
+<!-- Modal de éxito -->
+<app-modal 
+  [isOpen]="showSuccessModal()"
+  title="¡Usuario Eliminado!"
+  message="El usuario se ha eliminado correctamente."
+  icon="success"
+  confirmText="Continuar"
+  (confirm)="closeSuccessModal()"
+  [showCancelButton]="false">
+</app-modal>
+
+<!-- Modal de error -->
+<app-modal 
+  [isOpen]="showErrorModal()"
+  title="Error al Eliminar"
+  [message]="errorMessage()"
+  icon="error"
+  confirmText="Entendido"
+  (confirm)="closeErrorModal()"
+  [showCancelButton]="false">
+</app-modal>
+
+<!-- Modal de perfil de usuario -->
+<app-modal 
+  [isOpen]="showProfileModal()"
+  [title]="'Perfil de ' + (userProfile()?.username || 'Usuario')"
+  [showCancelButton]="false"
+  confirmText="Cerrar"
+  (confirm)="closeProfileModal()"
+  [customContent]="true">
+  
+
+  <!-- Contenido personalizado del modal para mostrar profile -->
+  <div class="space-y-6">
+    @if (loadingProfile()) {
+      <div class="flex flex-col items-center justify-center py-8">
+        <div class="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">Cargando perfil...</p>
+      </div>
+    }
+    
+    @if (profileError()) {
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-xl p-4">
+        <div class="flex items-center">
+          <svg class="w-5 h-5 text-red-500 dark:text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          <div class="text-sm text-red-700 dark:text-red-400">{{ profileError() }}</div>
+        </div>
+      </div>
+    }
+    
+    @if (userProfile() && !loadingProfile()) {
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Información personal -->
+        <div class="space-y-4">
+          <div>
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Información Personal</h4>
+            <div class="space-y-3">
+              <div>
+                <label class="text-xs text-gray-500 dark:text-gray-400">Nombre completo</label>
+                <div class="text-sm text-gray-900 dark:text-gray-100">
+                  {{ userProfile()?.first_name || 'No especificado' }} {{ userProfile()?.last_name || '' }}
+                </div>
+              </div>
+              
+              <div>
+                <label class="text-xs text-gray-500 dark:text-gray-400">Nombre de usuario</label>
+                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {{ userProfile()?.username }}
+                </div>
+              </div>
+              
+              <div>
+                <label class="text-xs text-gray-500 dark:text-gray-400">Email</label>
+                <div class="text-sm text-gray-900 dark:text-gray-100">
+                  {{ userProfile()?.email }}
+                </div>
+              </div>
+              
+              <div>
+                <label class="text-xs text-gray-500 dark:text-gray-400">Teléfono</label>
+                <div class="text-sm text-gray-900 dark:text-gray-100">
+                  {{ userProfile()?.phone || 'No especificado' }}
+                </div>
+              </div>
+              
+              <div>
+                <label class="text-xs text-gray-500 dark:text-gray-400">Fecha de nacimiento</label>
+                <div class="text-sm text-gray-900 dark:text-gray-100">
+                  {{ formatDate(userProfile()?.birth_date || 'No especificada') }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Información de cuenta y ubicación -->
+        <div class="space-y-4">
+          <div>
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Información de Cuenta</h4>
+            <div class="space-y-3">
+              <div>
+                <label class="text-xs text-gray-500 dark:text-gray-400">ID de usuario</label>
+                <div class="text-sm font-mono text-gray-900 dark:text-gray-100">
+                  {{ userProfile()?.id }}
+                </div>
+              </div>
+              
+              <div>
+                <label class="text-xs text-gray-500 dark:text-gray-400">Rol</label>
+                <div class="text-sm text-gray-900 dark:text-gray-100">
+                  {{ userProfile()?.role || 'No especificado' }}
+                </div>
+              </div>
+              
+              <div>
+                <label class="text-xs text-gray-500 dark:text-gray-400">Fecha de registro</label>
+                <div class="text-sm text-gray-900 dark:text-gray-100">
+                  {{ formatDate(userProfile()?.created_at || 'No especificada') }}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ubicación</h4>
+            <div class="space-y-3">
+              <div>
+                <label class="text-xs text-gray-500 dark:text-gray-400">País</label>
+                <div class="text-sm text-gray-900 dark:text-gray-100">
+                  {{ userProfile()?.country || 'No especificado' }}
+                </div>
+              </div>
+              
+              <div>
+                <label class="text-xs text-gray-500 dark:text-gray-400">Dirección</label>
+                <div class="text-sm text-gray-900 dark:text-gray-100">
+                  {{ userProfile()?.address || 'No especificada' }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Resumen -->
+      <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <div class="text-xs text-gray-500 dark:text-gray-400">
+          Última actualización: {{ formatDate(userProfile()?.created_at || '') }}
+        </div>
+      </div>
+    }
+  </div>
+</app-modal>
+

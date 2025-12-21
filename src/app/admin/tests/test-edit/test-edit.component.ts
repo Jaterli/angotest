@@ -2,9 +2,9 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TestService } from '../../../core/services/test.service';
 import { Test, TopicStructure } from '../../../models/test.model';
-import { ModalComponent } from '../../../components/modal.component';
+import { ModalComponent } from '../../../shared/components/modal.component';
+import { TestsManagementService } from '../../services/tests-management.service';
 
 @Component({
   selector: 'app-test-edit',
@@ -37,7 +37,7 @@ export class TestEditComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private testService: TestService,
+    private testsManagementService: TestsManagementService,
     private route: ActivatedRoute,
     private router: Router
   ) {
@@ -69,7 +69,7 @@ export class TestEditComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     
-    this.testService.getTestById(this.testId).subscribe({
+    this.testsManagementService.getTestById(this.testId).subscribe({
       next: (response: any) => {
         try {
           const testData = response.test || response;
@@ -259,7 +259,7 @@ export class TestEditComponent implements OnInit {
     // Preparar datos para enviar
     const formData = this.prepareFormData();
     
-    this.testService.updateTest(this.testId, formData).subscribe({
+    this.testsManagementService.updateTest(this.testId, formData).subscribe({
       next: (res: any) => {
         console.log('Test editado con éxito:', res);
         this.saving.set(false);

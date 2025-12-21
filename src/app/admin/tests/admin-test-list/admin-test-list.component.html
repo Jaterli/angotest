@@ -3,18 +3,18 @@
   <!-- Header con título y botón -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
     <div>
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Listado de Tests</h1>
-      <p class="text-gray-600 dark:text-gray-400 mt-2">Gestiona y visualiza todos los tests disponibles</p>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Gestión de Tests</h1>
+      <p class="text-gray-600 dark:text-gray-400 mt-2">Administra y visualiza todos los tests del sistema</p>
     </div>
     
     <!-- Botones de acción -->
-    <div class="flex items-center space-x-3">
+    <div class="flex flex-wrap items-center gap-3">
       <a routerLink="/admin/tests/create"
         class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
         </svg>
-        Crear Test (Formulario)
+        Crear Test
       </a>
       
       <a routerLink="/admin/tests/json-create"
@@ -22,10 +22,116 @@
         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"/>
         </svg>
-        Crear desde JSON
+        Desde JSON
+      </a>
+
+      <a routerLink="/generate-test"
+        class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-800/50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+        </svg>
+        Con IA
       </a>
     </div>
+  </div>
 
+  <!-- Filtros y búsqueda -->
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6 mb-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Filtros y Búsqueda</h3>
+        <p class="text-gray-600 dark:text-gray-400 text-sm">Filtra y ordena los tests según tus necesidades</p>
+      </div>
+      
+      <button (click)="clearFilters()"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+        </svg>
+        Limpiar Filtros
+      </button>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- Búsqueda -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Buscar
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="filters().search"
+          (ngModelChange)="applyFilters()"
+          placeholder="Buscar por título, descripción..."
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+        >
+      </div>
+      
+      <!-- Filtro por tema principal -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Tema Principal
+        </label>
+        <select
+          [(ngModel)]="filters().main_topic"
+          (ngModelChange)="applyFilters()"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+        >
+          <option value="">Todos los temas</option>
+          @for (topic of filterOptions().main_topics; track topic) {
+            <option [value]="topic">{{ topic }}</option>
+          }
+        </select>
+      </div>
+      
+      <!-- Filtro por nivel -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Nivel
+        </label>
+        <select
+          [(ngModel)]="filters().level"
+          (ngModelChange)="applyFilters()"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+        >
+          <option value="">Todos los niveles</option>
+          @for (level of filterOptions().levels; track level) {
+            <option [value]="level">{{ level }}</option>
+          }
+        </select>
+      </div>
+      
+      <!-- Ordenación -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Ordenar por
+        </label>
+        <select
+          [(ngModel)]="filters().sort_by"
+          (ngModelChange)="applyFilters()"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+        >
+          @for (option of sortOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    
+    <!-- Orden actual -->
+    @if (filters().sort_by) {
+      <div class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+        Ordenado por: 
+        <span class="font-medium text-gray-800 dark:text-gray-200">
+          {{ currentSortLabel() }}
+        </span>
+        <span class="mx-2">•</span>
+        Orden: 
+        <span class="font-medium text-gray-800 dark:text-gray-200">
+          {{ currentSortOrderLabel() }}
+        </span>
+      </div>
+    }
   </div>
 
   <!-- Estado de carga -->
@@ -37,108 +143,218 @@
   }
 
   <!-- Sin resultados -->
-  @if (!loading() && tests.length === 0) {
+  @if (!loading() && tests().length === 0) {
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
       <div class="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4">
         <svg fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
         </svg>
       </div>
-      <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No hay tests disponibles</h3>
+      <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No se encontraron tests</h3>
       <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
-        No se encontraron tests para mostrar en este momento. ¡Crea tu primer test!
+        @if (filters().search || filters().main_topic || filters().level) {
+          No hay tests que coincidan con los filtros aplicados.
+        } @else {
+          No hay tests disponibles en el sistema. ¡Crea tu primer test!
+        }
       </p>
-      <a routerLink="/admin/tests/create"
-         class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all">
-        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
-        </svg>
-        Crear Primer Test
-      </a>
+      @if (filters().search || filters().main_topic || filters().level) {
+        <button (click)="clearFilters()"
+                class="mt-4 inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+          Limpiar filtros
+        </button>
+      } @else {
+        <a routerLink="/admin/tests/create"
+           class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-all">
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+          </svg>
+          Crear Primer Test
+        </a>
+      }
     </div>
   }
 
   <!-- Tabla de tests -->
-  @if (!loading() && tests.length > 0) {
+  @if (!loading() && tests().length > 0) {
     <div class="overflow-hidden bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-900/50">
             <tr>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                Título
+              <!-- Título con ordenación -->
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  (click)="onSortChange('title')">
+                <div class="flex items-center">
+                  Título
+                  @if (filters().sort_by === 'title') {
+                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                      @if (filters().sort_order === 'asc') {
+                        <path d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
+                      } @else {
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                      }
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  }
+                </div>
               </th>
+              
+              <!-- Jerarquía de temas -->
               <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                Descripción
+                Temas
               </th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                Categoría
+              
+              <!-- Nivel con ordenación -->
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  (click)="onSortChange('level')">
+                <div class="flex items-center">
+                  Nivel
+                  @if (filters().sort_by === 'level') {
+                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                      @if (filters().sort_order === 'asc') {
+                        <path d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
+                      } @else {
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                      }
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  }
+                </div>
               </th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                Nivel
+              
+              <!-- Fecha con ordenación -->
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  (click)="onSortChange('test_date')">
+                <div class="flex items-center">
+                  Fecha
+                  @if (filters().sort_by === 'test_date') {
+                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                      @if (filters().sort_order === 'asc') {
+                        <path d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
+                      } @else {
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                      }
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  }
+                </div>
               </th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                Fecha
-              </th>
+              
+              <!-- Estadísticas -->
               <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                 Preguntas
               </th>
+              
+              <!-- Creación con ordenación -->
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  (click)="onSortChange('created_at')">
+                <div class="flex items-center">
+                  Creado
+                  @if (filters().sort_by === 'created_at') {
+                    <svg class="w-4 h-4 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                      @if (filters().sort_order === 'asc') {
+                        <path d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"/>
+                      } @else {
+                        <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
+                      }
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                  }
+                </div>
+              </th>
+              
               <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
                 Acciones
               </th>
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            @for (test of tests; track test.id) {
+            @for (test of tests(); track test.id) {
               <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                 <!-- Columna Título -->
                 <td class="px-6 py-4">
-                  <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ test.title }}</div>
+                  <div class="flex items-start">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3 mt-1">
+                      <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ test.title }}</div>
+                      @if (test.description) {
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2 max-w-xs">
+                          {{ test.description }}
+                        </div>
+                      }
+                    </div>
+                  </div>
                 </td>
                 
-                <!-- Columna Descripción -->
+                <!-- Columna Jerarquía de temas -->
                 <td class="px-6 py-4">
-                  <div class="text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">{{ test.description }}</div>
-                </td>
-                
-                <!-- Columna Subtema -->
-                <td class="px-6 py-4">
-                  <div class="text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">{{ test.sub_topic }}</div>
+                  <div class="space-y-1">
+                    <div class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                      {{ test.main_topic }}
+                    </div>
+                    @if (test.sub_topic && test.sub_topic !== 'General') {
+                      <div class="text-xs text-gray-600 dark:text-gray-400">
+                        › {{ test.sub_topic }}
+                      </div>
+                    }
+                    @if (test.specific_topic && test.specific_topic !== 'General') {
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        › {{ test.specific_topic }}
+                      </div>
+                    }
+                  </div>
                 </td>
                 
                 <!-- Columna Nivel -->
                 <td class="px-6 py-4">
-                  @if (test.level === 'Principiante') {
-                    <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300">
-                      {{ test.level }}
-                    </span>
-                  } @else if (test.level === 'Intermedio') {
-                    <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
-                      {{ test.level }}
-                    </span>
-                  } @else if (test.level === 'Avanzado') {
-                    <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300">
-                      {{ test.level }}
-                    </span>
-                  } @else {
-                    <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300">
-                      {{ test.level }}
-                    </span>
-                  }
+                  <span [class]="getLevelClasses(test.level)" class="inline-flex px-3 py-1 text-xs font-semibold rounded-full">
+                    {{ test.level }}
+                  </span>
                 </td>
                 
                 <!-- Columna Fecha -->
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-500 dark:text-gray-400">{{ test.test_date | date:'dd/MM/yyyy' }}</div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ test.test_date | date:'dd/MM/yyyy' }}
+                  </div>
                 </td>
                 
                 <!-- Columna Preguntas -->
                 <td class="px-6 py-4">
-                  <div class="flex items-center">
-                    <span class="text-sm font-medium text-gray-900 dark:text-gray-100 mr-2">
-                      {{ test.questions.length }}
+                  <div class="flex flex-col">
+                    <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {{ test.question_count || 0 }}
                     </span>
-                    <span class="text-xs text-gray-500 dark:text-gray-400">preguntas</span>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ test.question_count || 0 }} pregunta{{ (test.question_count || 0) !== 1 ? 's' : '' }}
+                    </div>
+                  </div>
+                </td>
+                
+                <!-- Columna Creación -->
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ test.created_at | date:'dd/MM/yyyy' }}
+                  </div>
+                  <div class="text-xs text-gray-400 dark:text-gray-500">
+                    {{ test.created_at | date:'HH:mm' }}
                   </div>
                 </td>
                 
@@ -146,17 +362,19 @@
                 <td class="px-6 py-4">
                   <div class="flex flex-col sm:flex-row sm:items-center gap-2">
                     <!-- Botón para hacer test -->
-                    <a [routerLink]="['/test', test.id]"
-                       class="inline-flex items-center text-nowrap px-3 py-1.5 text-xs font-medium rounded-md text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                    <a [routerLink]="['/tests', test.id, 'start-single']"
+                       class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-600 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+                       title="Realizar test">
                       <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"/>
                       </svg>
-                      Hacer Test
+                      Realizar
                     </a>
                     
                     <!-- Botón para editar test -->
                     <a [routerLink]="['/admin/tests/edit', test.id]"
-                       class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                       class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+                       title="Editar test">
                       <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
                       </svg>
@@ -165,7 +383,8 @@
                     
                     <!-- Botón para eliminar test -->
                     <button (click)="prepareDeleteTest(test)"
-                            class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                            class="inline-flex items-center justify-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+                            title="Eliminar test">
                       <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
                       </svg>
@@ -180,44 +399,97 @@
       </div>
 
       <!-- Información y paginación -->
-      <div class="flex items-center justify-between px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 gap-4">
         <div class="text-sm text-gray-700 dark:text-gray-300">
-          Mostrando <span class="font-medium">{{ tests.length }}</span> test{{ tests.length !== 1 ? 's' : '' }}
+          Mostrando 
+          <span class="font-medium">{{ getStartIndex() }}</span> a 
+          <span class="font-medium">{{ getEndIndex() }}</span> de 
+          <span class="font-medium">{{ totalTests() }}</span> test{{ totalTests() !== 1 ? 's' : '' }}
         </div>
+        
+        <!-- Paginación -->
+        <nav class="flex items-center justify-center sm:justify-end">
+          <div class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <!-- Botón Anterior -->
+            <button (click)="previousPage()"
+                    [disabled]="filters().page === 1"
+                    class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-l-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+              <span class="sr-only">Anterior</span>
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+            
+            <!-- Números de página -->
+            @for (page of getPageNumbers(); track page) {
+              <button (click)="goToPage(page)"
+                      [class]="filters().page === page 
+                        ? 'z-10 text-white bg-blue-600 dark:bg-blue-700 border border-blue-500 dark:border-blue-600 relative inline-flex items-center px-4 py-2 text-sm font-medium'
+                        : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 relative inline-flex items-center px-4 py-2 text-sm font-medium transition-colors'">
+                {{ page }}
+              </button>
+            }
+            
+            <!-- Botón Siguiente -->
+            <button (click)="nextPage()"
+                    [disabled]="!hasMore()"
+                    class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-r-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+              <span class="sr-only">Siguiente</span>
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </button>
+          </div>
+        </nav>
       </div>
     </div>
   }
+
+  <!-- Modal de confirmación para eliminar -->
+  <app-modal 
+    [isOpen]="showDeleteModal()"
+    title="¿Eliminar Test?"
+    [message]="'¿Estás seguro de que quieres eliminar el test \'' + (testToDelete.title || '') + '\'? Esta acción eliminará permanentemente el test, todas sus preguntas, respuestas y resultados asociados. Esta acción no se puede deshacer.'"
+    icon="warning"
+    [confirmText]="deleting() ? 'Eliminando...' : 'Eliminar'"
+    cancelText="Cancelar"
+    (confirm)="confirmDeleteTest()"
+    (cancel)="cancelDeleteTest()">
+    
+    <!-- Contenido adicional del modal -->
+    <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <div class="text-sm text-yellow-700 dark:text-yellow-300">
+          <p class="font-medium">¡Atención!</p>
+          <p class="mt-1">Esta acción eliminará también todos los resultados de los usuarios para este test.</p>
+        </div>
+      </div>
+    </div>
+  </app-modal>
+
+  <!-- Modal de éxito -->
+  <app-modal 
+    [isOpen]="showSuccessModal()"
+    title="¡Test Eliminado!"
+    message="El test se ha eliminado correctamente de la base de datos."
+    icon="success"
+    confirmText="Continuar"
+    (confirm)="closeSuccessModal()"
+    [showCancelButton]="false">
+  </app-modal>
+
+  <!-- Modal de error -->
+  <app-modal 
+    [isOpen]="showErrorModal()"
+    title="Error"
+    [message]="errorMessage()"
+    icon="error"
+    confirmText="Entendido"
+    (confirm)="closeErrorModal()"
+    [showCancelButton]="false">
+  </app-modal>
+
 </div>
-
-<!-- Modal de confirmación para eliminar -->
-<app-modal 
-  [isOpen]="showDeleteModal()"
-  title="¿Eliminar Test?"
-  [message]="`¿Estás seguro de que quieres eliminar el test '${testToDelete.title || ''}'? Esta acción eliminará permanentemente el test completo, todas sus preguntas y respuestas, y los resultados asociados.`"
-  icon="warning"
-  confirmText="Eliminar"
-  cancelText="Cancelar"
-  (confirm)="confirmDeleteTest()"
-  (cancel)="cancelDeleteTest()">
-</app-modal>
-
-<!-- Modal de éxito -->
-<app-modal 
-  [isOpen]="showSuccessModal()"
-  title="¡Test Eliminado!"
-  message="El test se ha eliminado correctamente."
-  icon="success"
-  (confirm)="closeSuccessModal()"
-  [showCancelButton]="false">
-</app-modal>
-
-<!-- Modal de error -->
-<app-modal 
-  [isOpen]="showErrorModal()"
-  title="Error al Eliminar"
-  [message]="errorMessage()"
-  icon="error"
-  confirmText="Entendido"
-  (confirm)="closeErrorModal()"
-  [showCancelButton]="false">
-</app-modal>

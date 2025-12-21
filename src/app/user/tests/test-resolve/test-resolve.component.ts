@@ -1,9 +1,9 @@
 import { Component, OnInit, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TestService } from '../../../core/services/test.service';
+import { TestService } from '../../../shared/services/test.service';
 import { Test, AnswerSubmit, ResumeTestResponse, SaveResultInput } from '../../../models/test.model';
-import { ModalComponent } from '../../../components/modal.component';
+import { ModalComponent } from '../../../shared/components/modal.component';
 import { Subscription, interval } from 'rxjs';
 
 @Component({
@@ -63,7 +63,6 @@ export class TestResolveComponent implements OnInit, OnDestroy {
     
     this.testService.getTestProgress(testId).subscribe({
       next: (res: ResumeTestResponse) => {
-        console.log('Test cargado:', res);
         this.test = res.test;
         this.isResuming = res.is_resuming;
         this.resultId = res.result_id;
@@ -82,7 +81,7 @@ export class TestResolveComponent implements OnInit, OnDestroy {
         
         this.loading.set(false);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error(err);
         this.errorMessage.set('Error al cargar el test. Por favor, intenta de nuevo.');
         this.showErrorModal.set(true);
@@ -106,16 +105,11 @@ export class TestResolveComponent implements OnInit, OnDestroy {
   saveProgress(status: 'in_progress' | 'completed' = 'in_progress'): void {
     if (!this.test) return;
 
-    const answers: AnswerSubmit[] = Object.entries(this.selectedAnswers).map(([qid, aid]) => ({
-      question_id: +qid,
-      answer_id: +aid
-    }));
-
     const timeSpent = Math.floor((Date.now() - this.startTime) / 1000);
     
     const saveData: SaveResultInput = {
       test_id: this.test.id!,
-      answers: answers,
+      answers: this.selectedAnswers, // Cambiar esto
       time_taken: timeSpent,
       status: status
     };
@@ -132,6 +126,7 @@ export class TestResolveComponent implements OnInit, OnDestroy {
       }
     });
   }
+
 
   // Métodos del template
   isQuestionAnswered(questionId: number): boolean {
@@ -171,7 +166,7 @@ export class TestResolveComponent implements OnInit, OnDestroy {
 
     const saveData: SaveResultInput = {
       test_id: this.test.id!,
-      answers: answers,
+      answers: this.selectedAnswers, // Cambiar esto
       time_taken: timeSpent,
       status: 'completed'
     };
@@ -188,7 +183,7 @@ export class TestResolveComponent implements OnInit, OnDestroy {
         
         this.showSuccessModal.set(true);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error al completar test:', err);
         this.errorMessage.set(err.error?.message || 'Error al completar el test. Por favor, intenta de nuevo.');
         this.showErrorModal.set(true);
@@ -225,7 +220,7 @@ export class TestResolveComponent implements OnInit, OnDestroy {
         this.startTime = Date.now();
         this.timeElapsed = 0;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error al reiniciar test:', err);
       }
     });

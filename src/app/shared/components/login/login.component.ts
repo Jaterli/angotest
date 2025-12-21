@@ -38,7 +38,7 @@ export class LoginComponent {
     
     this.auth.login(email || '', password || '').subscribe({
       next: (response) => {
-        console.log('Login exitoso:', response);
+        console.log('Login exitoso');
         this.loading.set(false);
         if (response.user.role === 'user') {
           this.router.navigate(['/tests/not-started']);

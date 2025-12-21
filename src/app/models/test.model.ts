@@ -29,6 +29,45 @@ export interface TestsResponse {
   tests: Test[];
 }
 
+export interface TestWithCount extends Test {
+  question_count: number;
+}
+
+export interface TestsListFilters {
+  page: number;
+  page_size: number;
+  sort_by: string;
+  sort_order: 'asc' | 'desc';
+  main_topic?: string;
+  sub_topic?: string;
+  level?: string;
+  search?: string;
+}
+
+export interface TestsListResponse {
+  tests: TestWithCount[];
+  total_tests: number;
+  total_pages: number;
+  current_page: number;
+  page_size: number;
+  has_more: boolean;
+  filters?: {
+    main_topic?: string;
+    sub_topic?: string;
+    level?: string;
+    search?: string;
+    sort_by?: string;
+    sort_order?: 'asc' | 'desc';
+  };
+}
+
+export interface TestsFilterOptions {
+  main_topics: string[];
+  sub_topics: string[];
+  levels: string[];
+}
+
+
 export interface Result {
   id: number;
   correct_answers: number;
@@ -55,13 +94,6 @@ export interface NotCompletedTestsResponse {
   message: string;
 }
 
-// export interface CompletedTestsResponse {
-//   tests: Test[];
-//   completed_count: number;
-//   message: string;
-// }
-
-
 export interface AnswerSubmit {
   question_id: number;
   answer_id: number;
@@ -69,7 +101,7 @@ export interface AnswerSubmit {
 
 export interface SaveResultInput {
   test_id: number;
-  answers: AnswerSubmit[];
+  answers: Record<string, number>;
   time_taken: number;
   status: 'in_progress' | 'completed' | 'abandoned';
 }
@@ -164,13 +196,31 @@ export interface CompletedTestResponse {
   completion_time?: string;
 }
 
+
+export interface TestsFilter {
+  page?: number;
+  page_size?: number;
+  main_topic?: string;
+  level?: string;
+  status?: string; // 'completed' | 'in_progress' | 'all'
+  sort_by?: 'date' | 'score' | 'time' | 'title' | 'level';
+  sort_order?: 'asc' | 'desc';
+  search?: string;
+  from_date?: string;
+  to_date?: string;
+}
+
 export interface CompletedTestsFilter {
   page?: number;
   page_size?: number;
   main_topic?: string;
   level?: string;
-  sort_by?: 'score' | 'date' | 'time';
+  status?: string; // 'completed' | 'in_progress' | 'all'
+  sort_by?: 'date' | 'score' | 'time' | 'title' | 'level';
   sort_order?: 'asc' | 'desc';
+  search?: string;
+  from_date?: string;
+  to_date?: string;
 }
 
 export interface CompletedTestsResponse {
@@ -233,7 +283,7 @@ export interface InProgressTestsFilter {
   page_size?: number;
   main_topic?: string;
   level?: string;
-  sort_by?: 'progress' | 'date' | 'updated';
+  sort_by?: 'progress' | 'date' | 'updated' | 'remaining_time';
   sort_order?: 'asc' | 'desc';
 }
 

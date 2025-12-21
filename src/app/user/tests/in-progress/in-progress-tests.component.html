@@ -3,7 +3,7 @@
   <!-- Header -->
   <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
     <div>
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Tests en Progreso</h1>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Mis Tests en Progreso</h1>
       <p class="text-gray-600 dark:text-gray-400 mt-2">
         @if (currentUser) {
           {{ currentUser.first_name || currentUser.username }}, continúa tus tests pendientes
@@ -12,12 +12,21 @@
         }
       </p>
     </div>
+
+    <!-- Botón para mostrar/ocultar filtros -->
+    <button (click)="showFilters.set(!showFilters())"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+      <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+      </svg>
+      {{ showFilters() ? 'Ocultar Filtros' : 'Mostrar Filtros' }}
+    </button>
   </div>
 
   <!-- Estadísticas generales -->
   @if (stats() && !loading()) {
-    <div class="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
         <div class="flex items-center">
           <div class="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg mr-4">
             <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
@@ -28,12 +37,12 @@
             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {{ stats()!.total_in_progress }}
             </div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">Tests en progreso</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Tests en progreso</div>
           </div>
         </div>
       </div>
       
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
         <div class="flex items-center">
           <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-4">
             <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
@@ -42,14 +51,14 @@
           </div>
           <div>
             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {{ stats()!.average_progress | number:'1.0-0' }}%
+              {{ getAverageProgress() }}%
             </div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">Progreso promedio</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Progreso promedio</div>
           </div>
         </div>
       </div>
       
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
         <div class="flex items-center">
           <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg mr-4">
             <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
@@ -60,142 +69,193 @@
             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {{ stats()!.total_questions_answered }}
             </div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">Preguntas respondidas</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Preguntas respondidas</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center">
+          <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-4">
+            <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {{ totalTests() }}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Total pendientes</div>
           </div>
         </div>
       </div>
     </div>
   }
 
-  <!-- Filtros -->
-  <div class="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-      <div>
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Filtrar y Ordenar</h3>
-        <p class="text-gray-600 dark:text-gray-400 text-sm">Encuentra rápidamente tus tests en progreso</p>
-      </div>
-      
-      <button 
-        (click)="resetFilters()"
-        class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-      >
-        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-        </svg>
-        Restablecer
-      </button>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <!-- Filtro por tema principal -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Tema Principal
-        </label>
-        <select 
-          [(ngModel)]="selectedMainTopic"
-          (ngModelChange)="onFilterChange()"
-          class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-        >
-          <option value="all">Todos los temas</option>
-          @for (topic of mainTopics(); track topic) {
-            <option [value]="topic">{{ topic }}</option>
-          }
-        </select>
-      </div>
-      
-      <!-- Filtro por nivel -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Nivel
-        </label>
-        <select 
-          [(ngModel)]="selectedLevel"
-          (ngModelChange)="onFilterChange()"
-          class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-        >
-          <option value="all">Todos los niveles</option>
-          @for (level of levels(); track level) {
-            <option [value]="level">{{ level }}</option>
-          }
-        </select>
-      </div>
-      
-      <!-- Ordenar por -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Ordenar por
-        </label>
-        <select 
-          [(ngModel)]="selectedSortBy"
-          (ngModelChange)="onFilterChange()"
-          class="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-        >
-          <option value="updated">Última actividad</option>
-          <option value="progress">Progreso</option>
-          <option value="date">Fecha de inicio</option>
-        </select>
-      </div>
-      
-      <!-- Orden ascendente/descendente -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Orden
-        </label>
-        <div class="flex">
-          <button 
-            (click)="toggleSortOrder()"
-            class="w-full flex items-center justify-center px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-          >
-            @if (selectedSortOrder() === 'desc') {
-              <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M14.707 12.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-              Descendente
-            } @else {
-              <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-              </svg>
-              Ascendente
-            }
+  <!-- Filtros (expandibles) -->
+  @if (showFilters()) {
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6 mb-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Filtros y Ordenación</h3>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">Personaliza la visualización de tests en progreso</p>
+        </div>
+        
+        <div class="flex gap-2">
+          <button (click)="onFilterChange()"
+                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+            </svg>
+            Aplicar Filtros
+          </button>
+          
+          <button (click)="resetFilters()"
+                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+            </svg>
+            Limpiar Todo
           </button>
         </div>
       </div>
-    </div>
-    
-    <!-- Info de filtros activos -->
-    <div class="mt-4 flex flex-wrap gap-2">
-      @if (selectedMainTopic() !== 'all') {
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300">
-          Tema: {{ selectedMainTopic() }}
-          <button 
-            (click)="selectedMainTopic.set('all'); onFilterChange()"
-            class="ml-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <!-- Tema Principal -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Tema Principal
+          </label>
+          <select 
+            [(ngModel)]="selectedMainTopic"
+            (ngModelChange)="onFilterChange()"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
-            ×
-          </button>
-        </span>
-      }
-      @if (selectedLevel() !== 'all') {
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300">
-          Nivel: {{ selectedLevel() }}
-          <button 
-            (click)="selectedLevel.set('all'); onFilterChange()"
-            class="ml-1.5 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
+            <option value="all">Todos los temas</option>
+            @for (topic of mainTopics(); track topic) {
+              <option [value]="topic">{{ topic }}</option>
+            }
+          </select>
+        </div>
+        
+        <!-- Nivel -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Nivel
+          </label>
+          <select 
+            [(ngModel)]="selectedLevel"
+            (ngModelChange)="onFilterChange()"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
-            ×
-          </button>
-        </span>
-      }
-      <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300">
-        Orden: {{ selectedSortBy() === 'updated' ? 'Última actividad' : selectedSortBy() === 'progress' ? 'Progreso' : 'Fecha' }}
-        {{ selectedSortOrder() === 'desc' ? '▼' : '▲' }}
-      </span>
-    </div>
-  </div>
+            <option value="all">Todos los niveles</option>
+            @for (level of levels(); track level) {
+              <option [value]="level">{{ level }}</option>
+            }
+          </select>
+        </div>
+        
+        <!-- Ordenar por -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Ordenar por
+          </label>
+          <select 
+            [(ngModel)]="selectedSortBy"
+            (ngModelChange)="onFilterChange()"
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+          >
+            <option value="updated">Última actualización</option>
+            <option value="progress">Progreso</option>
+            <option value="date">Fecha de inicio</option>
+            <option value="time_taken">Tiempo invertido</option>
+          </select>
+        </div>
 
-  <!-- Estado de carga inicial -->
-  @if (loading() && tests().length === 0) {
+        <!-- Orden ascendente/descendente -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Orden
+          </label>
+          <div class="flex">
+            <button 
+              (click)="toggleSortOrder()"
+              class="w-full flex items-center justify-center px-4 py-[6px] rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+            >
+              @if (selectedSortOrder() === 'desc') {
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M14.707 12.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                Descendente
+              } @else {
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                </svg>
+                Ascendente
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resultados por página -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Resultados por página
+        </label>
+        <div class="flex gap-2">
+          @for (size of [5, 10, 20, 50]; track size) {
+            <button 
+              (click)="setPageSize(size)"
+              [class]="selectedPageSize() === size 
+                ? 'bg-blue-600 text-white' 
+                : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'"
+              class="px-4 py-2 rounded-lg font-medium transition-colors hover:bg-blue-100 dark:hover:bg-blue-900/30"
+            >
+              {{ size }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Filtros activos -->
+      @if (showFilterIndicators()) {
+        <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Filtros aplicados:</h4>
+          <div class="flex flex-wrap gap-2">
+            @if (selectedMainTopic() !== 'all') {
+              <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300">
+                Tema: {{ selectedMainTopic() }}
+                <button 
+                  (click)="removeFilter('main_topic')"
+                  class="ml-1.5 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                >
+                  ×
+                </button>
+              </span>
+            }
+            @if (selectedLevel() !== 'all') {
+              <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300">
+                Nivel: {{ selectedLevel() }}
+                <button 
+                  (click)="removeFilter('level')"
+                  class="ml-1.5 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
+                >
+                  ×
+                </button>
+              </span>
+            }
+            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300">
+              Orden: {{ getCurrentSortLabel() }} {{ getSortOrderIcon() }}
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Estado de carga -->
+  @if (loading()) {
     <div class="flex flex-col items-center justify-center min-h-[400px] space-y-4">
       <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
       <p class="text-gray-600 dark:text-gray-400 text-lg">Cargando tests en progreso...</p>
@@ -239,11 +299,29 @@
     </div>
   }
 
+  <!-- Información de resultados -->
+  @if (!loading() && tests().length > 0) {
+    <div class="mb-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+      <div>
+        Mostrando 
+        <span class="font-medium">{{ getStartIndex() }}</span> a 
+        <span class="font-medium">{{ getEndIndex() }}</span> de 
+        <span class="font-medium">{{ totalTests() }}</span> test{{ totalTests() !== 1 ? 's' : '' }} en progreso
+      </div>
+      <div>
+        Orden: 
+        <span class="font-medium text-gray-800 dark:text-gray-200">
+          {{ getCurrentSortLabel() }} {{ getSortOrderIcon() }}
+        </span>
+      </div>
+    </div>
+  }
+
   <!-- Lista de tests en progreso -->
-  @if (!loading() || tests().length > 0) {
-    <div class="space-y-6">
+  @if (!loading() && tests().length > 0) {
+    <div class="space-y-4">
       @for (test of tests(); track test.id) {
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md dark:hover:shadow-gray-900/30 transition-shadow border-l-4 border-l-amber-500">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md dark:hover:shadow-gray-900/30 transition-all border-l-4 border-l-amber-500">
           <div class="p-6">
             <!-- Header con información básica -->
             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
@@ -253,10 +331,10 @@
                     {{ test.test_level }}
                   </span>
                   <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300">
-                    {{ test.progress | number:'1.0-0' }}%
+                    {{ calculateProgress(test) }}%
                   </span>
                   <span class="text-xs text-gray-500 dark:text-gray-400">
-                    Última actividad: {{ test.last_activity }}
+                    {{ getFormatDate(test.created_at) }}
                   </span>
                 </div>
                 
@@ -287,40 +365,40 @@
               <!-- Progreso destacado -->
               <div class="flex-shrink-0">
                 <div class="text-center">
-                  <div class="text-3xl font-bold {{ getProgressColor(test.progress) }}">
-                    {{ test.progress | number:'1.0-0' }}%
+                  <div class="text-3xl font-bold {{ getProgressColor(calculateProgress(test)) }}">
+                    {{ calculateProgress(test) }}%
                   </div>
                   <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {{ getProgressMessage(test.progress) }}
+                    {{ getProgressMessage(calculateProgress(test)) }}
                   </div>
                 </div>
               </div>
             </div>
             
             <!-- Barra de progreso -->
-            <div class="mb-4">
+            <div class="mb-6">
               <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
                 <span>Progreso actual</span>
                 <span>{{ test.answered_count }}/{{ test.total_questions }} preguntas</span>
               </div>
               <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
                 <div 
-                  class="h-2.5 rounded-full transition-all duration-300 {{ getProgressBarColor(test.progress) }}"
-                  [style.width.%]="test.progress">
+                  class="h-2.5 rounded-full transition-all duration-300 {{ getProgressBarColor(calculateProgress(test)) }}"
+                  [style.width.%]="calculateProgress(test)">
                 </div>
               </div>
             </div>
             
-            <!-- Estadísticas detalladas (sin resultados de respuestas) -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+            <!-- Estadísticas detalladas -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
               <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                 <div class="text-center">
                   <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ test.remaining_count }}
+                    {{ getRemainingQuestions(test) }}
                   </div>
                   <div class="text-sm text-gray-500 dark:text-gray-400">Preguntas restantes</div>
                   <div class="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                    {{ getRemainingTimeEstimate(test) }} aprox.
+                    {{ getEstimatedTimeToComplete(test) }} aprox.
                   </div>
                 </div>
               </div>
@@ -328,7 +406,16 @@
               <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                 <div class="text-center">
                   <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ test.time_spent || '0s' }}
+                    {{ test.answered_count }}
+                  </div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Preguntas respondidas</div>
+                </div>
+              </div>
+              
+              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                <div class="text-center">
+                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {{ test.time_taken ? getFormatTime(test.time_taken) : 'N/A' }}
                   </div>
                   <div class="text-sm text-gray-500 dark:text-gray-400">Tiempo invertido</div>
                 </div>
@@ -337,7 +424,7 @@
               <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                 <div class="text-center">
                   <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ formatDate(test.created_at) }}
+                    {{ getFormatDate(test.created_at) }}
                   </div>
                   <div class="text-sm text-gray-500 dark:text-gray-400">Fecha de inicio</div>
                 </div>
@@ -366,7 +453,6 @@
                 Reiniciar Test
               </button>
               
-              <!-- Eliminar el botón de "Revisar Respuestas" ya que no se pueden revisar en progreso -->
               <a 
                 [routerLink]="['/tests', test.test_id, 'details']"
                 class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex-1"
@@ -381,49 +467,54 @@
         </div>
       }
     </div>
-  }
 
-  <!-- Cargar más -->
-  @if (hasMore() && tests().length > 0) {
-    <div class="mt-8 text-center">
-      @if (loadingMore()) {
-        <div class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700">
-          <div class="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-2"></div>
-          Cargando más tests...
-        </div>
-      } @else {
-        <button 
-          (click)="loadMoreTests()"
-          class="inline-flex items-center px-6 py-3 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
-        >
-          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
-          </svg>
-          Cargar más tests ({{ totalTests() - tests().length }} restantes)
-        </button>
-      }
-    </div>
-  }
-
-  <!-- Mostrar si no hay más tests -->
-  @if (!hasMore() && tests().length > 0) {
-    <div class="mt-8 text-center">
-      <div class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700">
-        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-        </svg>
-        ¡Has visto todos tus tests en progreso!
+    <!-- Paginación -->
+    @if (showPagination()) {
+      <div class="mt-8">
+        <nav class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            Página {{ currentPage() }} de {{ totalPages() }}
+          </div>
+          
+          <div class="flex items-center justify-center">
+            <div class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <!-- Botón Anterior -->
+              <button (click)="previousPage()"
+                      [disabled]="currentPage() === 1"
+                      class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-l-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                <span class="sr-only">Anterior</span>
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+              </button>
+              
+              <!-- Números de página -->
+              @for (page of getPageNumbers(); track page) {
+                <button (click)="goToPage(page)"
+                        [class]="currentPage() === page 
+                          ? 'z-10 text-white bg-blue-600 dark:bg-blue-700 border border-blue-500 dark:border-blue-600 relative inline-flex items-center px-4 py-2 text-sm font-medium'
+                          : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 relative inline-flex items-center px-4 py-2 text-sm font-medium transition-colors'">
+                  {{ page }}
+                </button>
+              }
+              
+              <!-- Botón Siguiente -->
+              <button (click)="nextPage()"
+                      [disabled]="!hasMore()"
+                      class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-r-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                <span class="sr-only">Siguiente</span>
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            {{ selectedPageSize() }} resultados por página
+          </div>
+        </nav>
       </div>
-    </div>
-  }
-
-  <!-- Contador de resultados -->
-  @if (tests().length > 0) {
-    <div class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-      Mostrando {{ tests().length }} de {{ totalTests() }} tests en progreso
-      @if (selectedMainTopic() !== 'all' || selectedLevel() !== 'all') {
-        <span class="ml-2">(con filtros aplicados)</span>
-      }
-    </div>
+    }
   }
 </div>

@@ -1,12 +1,12 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { TestService } from '../../../core/services/test.service';
 import { TestWithStatus, TestsWithStatusResponse } from '../../../models/test.model';
-import { ModalComponent } from '../../../components/modal.component';
 import { User } from '../../../models/user.model';
-import { AuthService } from '../../../services/auth.service';
+import { AuthService } from '../../../shared/services/auth.service';
 import { Router } from '@angular/router';
+import { ModalComponent } from '../../../shared/components/modal.component';
+import { TestService } from '../../../shared/services/test.service';
 
 @Component({
   selector: 'app-tests-list',

@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { User, AuthResponse, UserUpdateData, ChangePasswordData, RegisterData } from '../models/user.model';
+import { User, AuthResponse, UserUpdateData, ChangePasswordData, RegisterData } from '../../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -88,21 +88,6 @@ private writeToStorage(key: string, value: any): void {
   register(userData: RegisterData): Observable<any> {
     return this.http.post(`${this.API_URL}/register`, userData);
   }
-
-  getCurrentUser(): Observable<any> {
-    return this.http.get(`${this.API_URL}/me`);
-  }
-
-  // Actualizar datos del usuario
-  updateUser(userData: UserUpdateData): Observable<any> {
-    return this.http.put(`${this.API_URL}/update`, userData);
-  }
-
-  // Cambiar contraseña
-  changePassword(passwordData: ChangePasswordData): Observable<any> {
-    return this.http.put(`${this.API_URL}/change-password`, passwordData);
-  }
-
 
   private setAuthState(data: AuthResponse): void {
     // Guardar en localStorage

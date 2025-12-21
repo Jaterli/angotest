@@ -1,10 +1,17 @@
 import { Component, OnInit, signal, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TestService } from '../../../core/services/test.service';
-import { Test, AnswerSubmit, ResumeTestResponse, SaveResultInput } from '../../../models/test.model';
-import { ModalComponent } from '../../../components/modal.component';
-import { Subscription, interval } from 'rxjs';
+import { TestService } from '../../../shared/services/test.service';
+import { Test, ResumeTestResponse } from '../../../models/test.model';
+import { ModalComponent } from '../../../shared/components/modal.component';
+
+// Interfaz para el input con claves string
+interface SaveResultInput {
+  test_id: number;
+  answers: Record<string, number>; // Cambiado a string keys
+  time_taken: number;
+  status: 'in_progress' | 'completed' | 'abandoned';
+}
 
 @Component({
   selector: 'app-test-single',
@@ -19,7 +26,7 @@ export class TestSingleComponent implements OnInit, OnDestroy {
 
   test?: Test;
   currentQuestionIndex = 0;
-  selectedAnswers: Record<number, number> = {};
+  selectedAnswers: Record<string, number> = {}; // Cambiado a string keys
   loading = signal(true);
   startTime = 0;
   timeElapsed = 0;
@@ -30,17 +37,18 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   showConfirmSubmitModal = signal(false);
   showErrorModal = signal(false);
   showSuccessModal = signal(false);
+  showConfirmExitModal = signal(false);
   
   // Datos para modales
   errorMessage = signal<string>('');
   timeTaken = signal<number>(0);
   score = signal<number>(0);
   
-  // Prevención de copia
+  // Prevención de copia (se desactiva al terminar/abandonar)
   isContentProtected = signal(true);
   
-  private autoSaveInterval = 30000; // 30 segundos
-  private autoSaveSubscription?: Subscription;
+  // Para manejar navegación forzosa (abandonar test)
+  isExiting = false;
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -50,24 +58,52 @@ export class TestSingleComponent implements OnInit, OnDestroy {
 
     // Prevenir acciones de copia
     this.setupCopyProtection();
+    
+    // Prevenir navegación accidental
+    this.setupNavigationProtection();
   }
 
   ngOnDestroy(): void {
-    // Guardar progreso al salir si está en progreso
-    if (this.isResuming && this.getAnsweredCount() > 0) {
+    // Limpiar protección de navegación
+    this.removeNavigationProtection();
+    
+    // Solo guardar si no se está saliendo intencionalmente
+    if (!this.isExiting && this.isResuming && this.getAnsweredCount() > 0) {
       this.saveProgress('in_progress');
     }
-    
-    // Limpiar suscripciones
-    this.autoSaveSubscription?.unsubscribe();
   }
 
   setupCopyProtection(): void {
     // Prevenir selección de texto
     document.addEventListener('selectstart', this.preventSelection.bind(this));
-    
     // Prevenir menú contextual
     document.addEventListener('contextmenu', this.preventContextMenu.bind(this));
+    // Prevenir copia (Ctrl+C, Cmd+C)
+    document.addEventListener('copy', this.preventCopy.bind(this));
+    // Prevenir corte (Ctrl+X, Cmd+X)
+    document.addEventListener('cut', this.preventCopy.bind(this));
+  }
+
+  removeCopyProtection(): void {
+    // Eliminar todos los event listeners de protección
+    document.removeEventListener('selectstart', this.preventSelection.bind(this));
+    document.removeEventListener('contextmenu', this.preventContextMenu.bind(this));
+    document.removeEventListener('copy', this.preventCopy.bind(this));
+    document.removeEventListener('cut', this.preventCopy.bind(this));
+  }
+
+  setupNavigationProtection(): void {
+    // Prevenir recarga de página
+    window.addEventListener('beforeunload', this.preventUnload.bind(this));
+    
+    // Prevenir navegación con el botón atrás
+    history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', this.preventBackNavigation.bind(this));
+  }
+
+  removeNavigationProtection(): void {
+    window.removeEventListener('beforeunload', this.preventUnload.bind(this));
+    window.removeEventListener('popstate', this.preventBackNavigation.bind(this));
   }
 
   loadTest(testId: number): void {
@@ -75,13 +111,12 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     
     this.testService.getTestProgress(testId).subscribe({
       next: (res: ResumeTestResponse) => {
-        console.log('Test cargado:', res);
         this.test = res.test;
         this.isResuming = res.is_resuming;
         this.resultId = res.result_id;
         
         // Cargar respuestas guardadas si hay
-        if (res.is_resuming && res.answers && res.answers.length > 0) {
+        if (res.is_resuming && res.answers) {
           this.loadSavedAnswers(res.answers);
           this.timeElapsed = res.time_elapsed || 0;
         }
@@ -91,9 +126,6 @@ export class TestSingleComponent implements OnInit, OnDestroy {
         
         // Iniciar tiempo
         this.startTime = Date.now() - (this.timeElapsed * 1000);
-        
-        // Iniciar auto-guardado
-        this.startAutoSave();
         
         this.loading.set(false);
       },
@@ -106,10 +138,32 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadSavedAnswers(savedAnswers: AnswerSubmit[]): void {
-    savedAnswers.forEach(answer => {
-      this.selectedAnswers[answer.question_id] = answer.answer_id;
-    });
+  loadSavedAnswers(savedAnswers: any): void {
+    // Asegurar que sea un objeto con claves string
+    if (typeof savedAnswers === 'object' && savedAnswers !== null) {
+      if (Array.isArray(savedAnswers)) {
+        // Si viene como array (backward compatibility), convertir a mapa
+        this.selectedAnswers = this.arrayToMap(savedAnswers);
+      } else {
+        // Si ya es un objeto con claves string, usarlo directamente
+        this.selectedAnswers = savedAnswers;
+      }
+    } else {
+      this.selectedAnswers = {};
+    }
+  }
+
+  // Método auxiliar para convertir array a mapa (si fuera necesario)
+  private arrayToMap(answersArray: any[]): Record<string, number> {
+    const result: Record<string, number> = {};
+    if (answersArray && Array.isArray(answersArray)) {
+      answersArray.forEach((item: any) => {
+        if (item.question_id !== undefined && item.answer_id !== undefined) {
+          result[item.question_id.toString()] = item.answer_id;
+        }
+      });
+    }
+    return result;
   }
 
   getAnswerLetter(index: number): string {
@@ -131,25 +185,15 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     return this.test.questions.length - 1;
   }
 
-  private startAutoSave(): void {
-    this.autoSaveSubscription = interval(this.autoSaveInterval).subscribe(() => {
-      this.saveProgress('in_progress');
-    });
-  }
-
   saveProgress(status: 'in_progress' | 'completed' = 'in_progress'): void {
     if (!this.test) return;
 
-    const answers: AnswerSubmit[] = Object.entries(this.selectedAnswers).map(([qid, aid]) => ({
-      question_id: +qid,
-      answer_id: +aid
-    }));
-
+    // Ya tenemos selectedAnswers como Record<string, number>
     const timeSpent = Math.floor((Date.now() - this.startTime) / 1000);
     
     const saveData: SaveResultInput = {
       test_id: this.test.id!,
-      answers: answers,
+      answers: this.selectedAnswers, // Directamente el mapa con claves string
       time_taken: timeSpent,
       status: status
     };
@@ -169,7 +213,7 @@ export class TestSingleComponent implements OnInit, OnDestroy {
 
   // Métodos del template
   isQuestionAnswered(questionId: number): boolean {
-    return this.selectedAnswers[questionId] !== undefined;
+    return this.selectedAnswers[questionId.toString()] !== undefined;
   }
 
   getAnsweredCount(): number {
@@ -184,8 +228,8 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     const currentQuestion = this.getCurrentQuestion();
     if (!currentQuestion) return;
 
-    // Permitir cambiar la respuesta
-    this.selectedAnswers[currentQuestion.id!] = answerId;
+    // Guardar la respuesta seleccionada con key string
+    this.selectedAnswers[currentQuestion.id!.toString()] = answerId;
     
     // Deshabilitar protección temporalmente para permitir la selección
     this.isContentProtected.set(false);
@@ -194,44 +238,39 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     }, 100);
   }
 
+  // Obtener la respuesta seleccionada para una pregunta
+  getSelectedAnswer(questionId: number): number | undefined {
+    return this.selectedAnswers[questionId.toString()];
+  }
+
   nextQuestion(): void {
     if (!this.test) return;
     
     // Verificar que la pregunta actual esté respondida
     const currentQuestion = this.getCurrentQuestion();
     if (!currentQuestion || !this.isQuestionAnswered(currentQuestion.id!)) {
-      return; // No avanzar si no está respondida
+      this.errorMessage.set('Debes responder esta pregunta antes de avanzar.');
+      this.showErrorModal.set(true);
+      return;
     }
+    
+    // Guardar progreso al avanzar (solo aquí)
+    this.saveProgress('in_progress');
     
     // Avanzar a la siguiente pregunta sin responder
     for (let i = this.currentQuestionIndex + 1; i < this.test.questions.length; i++) {
       const question = this.test.questions[i];
       if (!this.isQuestionAnswered(question.id!)) {
         this.currentQuestionIndex = i;
-        // Guardar progreso
-        this.saveProgress('in_progress');
         return;
       }
     }
     
     // Si todas las siguientes están respondidas, ir a la última
     this.currentQuestionIndex = this.test.questions.length - 1;
-    this.saveProgress('in_progress');
   }
 
-  
-//   previousQuestion(): void {
-//     if (this.currentQuestionIndex > 0) {
-//       // Permitir retroceder solo a preguntas ya respondidas
-//       for (let i = this.currentQuestionIndex - 1; i >= 0; i--) {
-//         const question = this.test?.questions[i];
-//         if (question && this.isQuestionAnswered(question.id!)) {
-//           this.currentQuestionIndex = i;
-//           return;
-//         }
-//       }
-//     }
-//   }
+  // NO HAY previousQuestion() - NO se permite retroceder
 
   showSubmitConfirmation(): void {
     if (this.getAnsweredCount() !== this.test?.questions.length) {
@@ -247,17 +286,12 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     if (!this.test) return;
 
     // Guardar como completado
-    const answers: AnswerSubmit[] = Object.entries(this.selectedAnswers).map(([qid, aid]) => ({
-      question_id: +qid,
-      answer_id: +aid
-    }));
-
     const timeSpent = Math.floor((Date.now() - this.startTime) / 1000);
     this.timeTaken.set(timeSpent);
 
     const saveData: SaveResultInput = {
       test_id: this.test.id!,
-      answers: answers,
+      answers: this.selectedAnswers, // Mapa directamente
       time_taken: timeSpent,
       status: 'completed'
     };
@@ -272,9 +306,14 @@ export class TestSingleComponent implements OnInit, OnDestroy {
           this.score.set(total > 0 ? Math.round((correct / total) * 100) : 0);
         }
         
+        // Desactivar protección de copia al terminar
+        this.removeCopyProtection();
+        this.removeNavigationProtection();
+        this.isContentProtected.set(false);
+        
         this.showSuccessModal.set(true);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error al completar test:', err);
         this.errorMessage.set(err.error?.message || 'Error al completar el test. Por favor, intenta de nuevo.');
         this.showErrorModal.set(true);
@@ -334,8 +373,71 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Prevenir recarga/navegación accidental
+  preventUnload(event: BeforeUnloadEvent): void {
+    if (this.isResuming && this.getAnsweredCount() > 0 && !this.isExiting) {
+      event.preventDefault();
+    }
+    return;
+  }
+
+  preventBackNavigation(event: PopStateEvent): void {
+    if (this.isResuming && this.getAnsweredCount() > 0 && !this.isExiting) {
+      history.pushState(null, '', window.location.href);
+      this.showConfirmExitModal.set(true);
+    }
+  }
+
+  // Métodos para abandonar el test
+  showExitConfirmation(): void {
+    this.showConfirmExitModal.set(true);
+  }
+
+  abandonTest(): void {
+    if (!this.test) return;
+    
+    this.isExiting = true;
+    
+    // Guardar progreso con status 'in_progress' para poder retomar
+    const timeSpent = Math.floor((Date.now() - this.startTime) / 1000);
+    
+    const saveData: SaveResultInput = {
+      test_id: this.test.id!,
+      answers: this.selectedAnswers, // Mapa directamente
+      time_taken: timeSpent,
+      status: 'in_progress'
+    };
+
+    this.testService.saveOrUpdateResult(saveData).subscribe({
+      next: () => {
+        console.log('Test abandonado, progreso guardado');
+        // Desactivar protección de copia al abandonar
+        this.removeCopyProtection();
+        this.removeNavigationProtection();
+        this.isContentProtected.set(false);
+        
+        // Navegar a la página de tests en progreso
+        this.router.navigate(['/tests/in-progress']);
+      },
+      error: (err) => {
+        console.error('Error al guardar progreso al abandonar:', err);
+        // Aún así navegar, pero mostrar error
+        this.removeCopyProtection();
+        this.removeNavigationProtection();
+        this.isContentProtected.set(false);
+        this.router.navigate(['/tests/in-progress']);
+      }
+    });
+    
+    this.showConfirmExitModal.set(false);
+  }
+
+  cancelExit(): void {
+    this.showConfirmExitModal.set(false);
+  }
+
   // Métodos para manejar modales
-  onConfirmSubmit(): void {
+  confirmSubmit(): void {
     this.submitTest();
   }
 
@@ -350,45 +452,5 @@ export class TestSingleComponent implements OnInit, OnDestroy {
 
   onErrorModalConfirm(): void {
     this.showErrorModal.set(false);
-  }
-
-  // Verificar si hay siguiente pregunta disponible
-  hasNextQuestion(): boolean {
-    if (!this.test) return false;
-    
-    // La siguiente pregunta está disponible si:
-    // 1. No es la última pregunta
-    // 2. La pregunta actual está respondida
-    const currentQuestion = this.getCurrentQuestion();
-    if (!currentQuestion) return false;
-    
-    if (this.currentQuestionIndex < this.test.questions.length - 1) {
-      return this.isQuestionAnswered(currentQuestion.id!);
-    }
-    
-    return false;
-  }
-
-  // Verificar si hay pregunta anterior disponible
-  hasPreviousQuestion(): boolean {
-    if (this.currentQuestionIndex === 0) return false;
-    
-    // Solo hay pregunta anterior si se ha respondido alguna pregunta anterior
-    for (let i = 0; i < this.currentQuestionIndex; i++) {
-      const question = this.test?.questions[i];
-      if (question && this.isQuestionAnswered(question.id!)) {
-        return true;
-      }
-    }
-    
-    return false;
-  }
-
-  // Ir a la primera pregunta sin responder
-  goToFirstUnanswered(): void {
-    const firstUnanswered = this.getFirstUnansweredQuestionIndex();
-    if (firstUnanswered !== -1 && firstUnanswered !== this.currentQuestionIndex) {
-      this.currentQuestionIndex = firstUnanswered;
-    }
   }
 }

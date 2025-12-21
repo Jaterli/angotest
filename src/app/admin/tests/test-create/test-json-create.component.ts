@@ -2,9 +2,9 @@ import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TestService } from '../../../core/services/test.service';
-import { ModalComponent } from '../../../components/modal.component';
-import { AuthService } from '../../../services/auth.service';
+import { AuthService } from '../../../shared/services/auth.service';
+import { ModalComponent } from '../../../shared/components/modal.component';
+import { TestsManagementService } from '../../services/tests-management.service';
 
 @Component({
   selector: 'app-test-json-create',
@@ -32,8 +32,11 @@ export class TestJsonCreateComponent {
   errorMessage = signal('');
   successMessage = signal('');
 
+  // Opciones de nivel predefinidas
+  levels = ['Principiante', 'Intermedio', 'Avanzado'];
+
   constructor(
-    private testService: TestService,
+    private testsManagementService: TestsManagementService,
     private authService: AuthService,
     private router: Router
   ) {}
@@ -74,11 +77,19 @@ export class TestJsonCreateComponent {
   validateTestStructure(testData: any): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    // Validar campos requeridos del test
-    const requiredFields = ['title', 'description', 'category', 'level', 'test_date'];
+    // Validar campos requeridos del test según el nuevo modelo
+    const requiredFields = ['title', 'main_topic', 'level', 'test_date'];
     for (const field of requiredFields) {
       if (!testData[field]) {
         errors.push(`Falta el campo requerido: ${field}`);
+      }
+    }
+
+    // Validar campos opcionales pero recomendados
+    const recommendedFields = ['description', 'sub_topic', 'specific_topic'];
+    for (const field of recommendedFields) {
+      if (!testData[field]) {
+        console.log(`Campo ${field} no presente, se establecerá como 'General'`);
       }
     }
 
@@ -88,6 +99,11 @@ export class TestJsonCreateComponent {
       if (!dateRegex.test(testData.test_date)) {
         errors.push('El campo test_date debe tener formato YYYY-MM-DD');
       }
+    }
+
+    // Validar nivel
+    if (testData.level && !this.levels.includes(testData.level)) {
+      errors.push(`Nivel inválido. Los niveles válidos son: ${this.levels.join(', ')}`);
     }
 
     // Validar preguntas
@@ -157,14 +173,9 @@ export class TestJsonCreateComponent {
     }
 
     // Preparar el objeto test con el usuario autenticado
-    const testData = {
-      ...this.previewTest(),
-      created_by: currentUser.id,
-      // Asegurar que test_date tenga el formato correcto
-      test_date: new Date(this.previewTest().test_date).toISOString().split('T')[0]
-    };
+    const testData = this.prepareTestData();
 
-    this.testService.createTest(testData).subscribe({
+    this.testsManagementService.createTest(testData).subscribe({
       next: (response) => {
         this.loading.set(false);
         this.successMessage.set(`Test "${this.previewTest().title}" creado exitosamente con ${this.previewTest().questions.length} preguntas.`);
@@ -172,11 +183,53 @@ export class TestJsonCreateComponent {
       },
       error: (err) => {
         this.loading.set(false);
-        this.errorMessage.set(err.error?.message || 'Error al crear el test. Por favor, verifica los datos e intenta nuevamente.');
+        this.errorMessage.set(this.getErrorMessage(err));
         this.showErrorModal.set(true);
         console.error('Error creating test:', err);
       }
     });
+  }
+
+  private prepareTestData(): any {
+    const preview = this.previewTest();
+    
+    return {
+      title: preview.title.trim(),
+      description: preview.description?.trim() || '',
+      main_topic: preview.main_topic || 'General',
+      sub_topic: preview.sub_topic || 'General',
+      specific_topic: preview.specific_topic || 'General',
+      level: preview.level || 'Principiante',
+      test_date: preview.test_date,
+      questions: preview.questions.map((question: any) => ({
+        question_text: question.question_text.trim(),
+        answers: question.answers.map((answer: any) => ({
+          answer_text: answer.answer_text.trim(),
+          is_correct: answer.is_correct || false
+        }))
+      })),
+      created_by: this.authService.getUser()?.id
+    };
+  }
+
+  private getErrorMessage(err: any): string {
+    if (err.error?.error) {
+      return err.error.error;
+    }
+    
+    if (err.status === 400) {
+      return 'Datos inválidos enviados. Por favor, verifica la estructura del JSON.';
+    }
+    
+    if (err.status === 401) {
+      return 'No tienes permisos para crear tests.';
+    }
+    
+    if (err.status === 500) {
+      return 'Error del servidor. Intenta nuevamente más tarde.';
+    }
+    
+    return 'Error al crear el test. Por favor, verifica los datos e intenta nuevamente.';
   }
 
   // Método para confirmar limpieza del formulario
@@ -197,12 +250,14 @@ export class TestJsonCreateComponent {
     this.showConfirmClearModal.set(false);
   }
 
-  // Método para pegar un ejemplo de JSON
+  // Método para pegar un ejemplo de JSON actualizado
   pasteExample(): void {
     const exampleJson = {
       "title": "Fundamentos de Programación",
       "description": "Test básico sobre conceptos fundamentales de programación",
-      "category": "Programación",
+      "main_topic": "Ciencias de la Computación",
+      "sub_topic": "Fundamentos de Programación",
+      "specific_topic": "Sintaxis y Variables",
       "level": "Principiante",
       "test_date": "2024-12-10",
       "questions": [

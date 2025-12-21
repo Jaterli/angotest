@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChangePasswordData, UserUpdateData } from '../../models/user.model';
+import { UserService } from '../../shared/services/user.service';
 
 @Component({
   selector: 'app-profile',
@@ -19,7 +19,7 @@ import { ChangePasswordData, UserUpdateData } from '../../models/user.model';
 })
 export class ProfileComponent implements OnInit {
   private fb = inject(FormBuilder);
-  private authService = inject(AuthService);
+  private userService = inject(UserService);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
@@ -108,7 +108,7 @@ export class ProfileComponent implements OnInit {
   // Cargar datos del usuario
   loadUserData() {
     this.loading.set(true);
-    this.authService.getCurrentUser()
+    this.userService.getCurrentUser()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: any) => {
@@ -190,7 +190,7 @@ export class ProfileComponent implements OnInit {
       birth_date: this.profileForm.value.birthDate
     };
 
-    this.authService.updateUser(userData)
+    this.userService.updateUser(userData)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: any) => {
@@ -229,7 +229,7 @@ export class ProfileComponent implements OnInit {
       new_password: this.passwordForm.value.newPassword
     };
 
-    this.authService.changePassword(passwordData)
+    this.userService.changePassword(passwordData)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: any) => {

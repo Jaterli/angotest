@@ -114,7 +114,7 @@
                 <!-- En la sección de opciones de respuesta -->
                 @for (answer of getCurrentQuestion()!.answers; track answer.id; let i = $index) {
                 <label class="flex items-start p-4 rounded-xl border-2 cursor-pointer transition-all duration-200
-                    @if (selectedAnswers[getCurrentQuestion()!.id!] === answer.id) {
+                    @if (getSelectedAnswer(getCurrentQuestion()!.id!) === answer.id) {
                     border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20
                     } @else {
                     border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500
@@ -126,7 +126,7 @@
                         name="currentQuestion"
                         [value]="answer.id"
                         (change)="selectAnswer(answer.id!)"
-                        [checked]="selectedAnswers[getCurrentQuestion()!.id!] === answer.id"
+                        [checked]="getSelectedAnswer(getCurrentQuestion()!.id!) === answer.id"
                         class="w-5 h-5 text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-0 cursor-pointer"
                     />
                     </div>
@@ -134,7 +134,7 @@
                     <div class="flex-1 min-w-0">
                     <div class="flex items-center">
                         <span class="inline-flex items-center justify-center w-6 h-6 mr-3 text-xs font-semibold rounded-full 
-                        @if (selectedAnswers[getCurrentQuestion()!.id!] === answer.id) {
+                        @if (getSelectedAnswer(getCurrentQuestion()!.id!) === answer.id) {
                             bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300
                         } @else {
                             bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300
@@ -181,7 +181,7 @@
                     </button>
                   } @else {
                     <button 
-                      (click)="showSubmitConfirmation()"
+                      (click)="confirmSubmit()"
                       [disabled]="!isQuestionAnswered(getCurrentQuestion()!.id!) || getUnansweredQuestionsCount() > 0"
                       [class]="isQuestionAnswered(getCurrentQuestion()!.id!) && getUnansweredQuestionsCount() === 0
                         ? 'bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-600 text-white' 
@@ -262,17 +262,6 @@
   </div>
 }
 
-<!-- Modal de confirmación de envío -->
-<app-modal 
-  [isOpen]="showConfirmSubmitModal()"
-  title="¿Finalizar Test?"
-  message="Una vez enviado no podrás modificar tus respuestas. ¿Estás seguro de que quieres finalizar el test?"
-  icon="info"
-  confirmText="Sí, Enviar Test"
-  cancelText="Seguir Respondiendo"
-  (confirm)="onConfirmSubmit()"
-  (cancel)="onCancelSubmit()">
-</app-modal>
 
 <!-- Modal de éxito -->
 <app-modal 

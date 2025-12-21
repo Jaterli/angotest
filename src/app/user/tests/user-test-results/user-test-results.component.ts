@@ -1,10 +1,9 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { TestService } from '../../../core/services/test.service';
+import { TestService } from '../../../shared/services/test.service';
 import { Result } from '../../../models/test.model';
 import { User } from '../../../models/user.model';
-import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-user-test-results',
@@ -64,7 +63,6 @@ export class UserTestResultsComponent implements OnInit {
 
   constructor(
     private testService: TestService,
-    private authService: AuthService
   ) {}
 
   ngOnInit(): void {

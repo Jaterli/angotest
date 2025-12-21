@@ -2,8 +2,8 @@
 import { Component, signal, computed } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../services/auth.service';
 import { ThemeToggleComponent } from '../theme-toggle.component';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-navbar',

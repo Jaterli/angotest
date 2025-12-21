@@ -1,0 +1,40 @@
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Estilos para respuestas en el modal */
+.answer-correct {
+  @apply bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/30;
+}
+
+.answer-incorrect {
+  @apply bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30;
+}
+
+.answer-selected {
+  @apply bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/30;
+}
+
+.answer-normal {
+  @apply bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-700;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}

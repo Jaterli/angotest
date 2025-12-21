@@ -2,15 +2,14 @@ import { Component, OnInit, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ModalComponent } from '../modal.component';
-import { GenerateTestRequest, TopicsResponse, UserQuota } from '../../models/generate-test.model';
 import { AITestService } from '../../services/generate-test.service';
 import { debounceTime, distinctUntilChanged, switchMap, Subject, of } from 'rxjs';
+import { GenerateTestRequest, UserQuota } from '../../../models/generate-test.model';
 
 @Component({
   selector: 'app-generate-test',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, ModalComponent],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './generate-test.component.html'
 })
 export class GenerateTestComponent implements OnInit, OnDestroy {
@@ -63,7 +62,7 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
       specific_topic: ['', Validators.required],
       level: ['Principiante', Validators.required],
       num_questions: [10, [Validators.required, Validators.min(10), Validators.max(50)]],
-      num_answers: [4, [Validators.required, Validators.min(3), Validators.max(4)]],
+      num_answers: [3, [Validators.required, Validators.min(3), Validators.max(4)]],
       language: ['es', Validators.required],
       ai_prompt: [''] // Campo opcional para admin
     });
