@@ -1,16 +1,17 @@
 export interface GenerateTestRequest {
-  main_topic: string;
-  sub_topic: string;
-  specific_topic: string;
+  main_topic?: string;
+  sub_topic?: string;
+  specific_topic?: string;
   level: string;
   num_questions: number;
   num_answers: number;
   language: string;
-  ai_prompt?: string; // Nuevo campo opcional
+  ai_prompt?: string;
+  generation_mode?: string;
 }
 
 export interface AIRequestStatus {
-  id: number;
+  request_id: number;
   user_id: number;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   main_topic: string;

@@ -1,17 +1,18 @@
-<!-- generate-test.component.html -->
 <div class="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8 px-4">
   <div class="max-w-4xl mx-auto">
-    
-    <!-- Título y descripción -->
+
+    <!-- Título -->
     <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Generar Test con IA</h1>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        Generar Test con IA
+      </h1>
       <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
         Crea tests personalizados automáticamente utilizando inteligencia artificial.
         Selecciona las opciones y genera un test educativo en segundos.
       </p>
     </div>
 
-    <!-- Panel de quota -->
+    <!-- Quota -->
     @if (quota()) {
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-4 mb-6">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -54,36 +55,65 @@
       </div>
     }
 
-    <!-- Formulario de generación -->
+    <!-- FORMULARIO -->
     @if (!generating()) {
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6">
         <form [formGroup]="generateForm" (ngSubmit)="onSubmit()" class="space-y-6">
-          
 
-          <!-- Sección de temas jerárquicos -->
-          <div class="space-y-6">
-            <!-- Tema Principal -->
+          <!-- MODO (solo admin) -->
+          @if (userRole === 'admin') {
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Modo de generación
+              </label>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  (click)="generateForm.get('generation_mode')?.setValue('structured')"
+                  [class]="generateForm.value.generation_mode === 'structured'
+                    ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'"
+                  class="px-4 py-3 rounded-lg font-medium transition-colors"
+                >
+                  Por temas
+                </button>
+
+                <button
+                  type="button"
+                  (click)="generateForm.get('generation_mode')?.setValue('prompt')"
+                  [class]="generateForm.value.generation_mode === 'prompt'
+                    ? 'bg-blue-600 dark:bg-blue-700 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'"
+                  class="px-4 py-3 rounded-lg font-medium transition-colors"
+                >
+                  Instrucciones IA
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- ===================== -->
+          <!-- MODO ESTRUCTURADO -->
+          <!-- ===================== -->
+          @if (generateForm.value.generation_mode === 'structured') {
+
+            <!-- Tema principal -->
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Tema Principal *
               </label>
-              @if (topicsLoading()) {
-                <div class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 animate-pulse">
-                  <div class="h-4 bg-gray-200 dark:bg-gray-600 rounded w-3/4"></div>
-                </div>
-              } @else {
                 <select
                   formControlName="main_topic"
                   [class]="generateForm.get('main_topic')?.invalid && generateForm.get('main_topic')?.touched 
-                    ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
-                    : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+                    ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+                    : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
                 >
                   <option value="" disabled selected>Selecciona un tema principal</option>
                   @for (topic of mainTopics(); track topic) {
                     <option [value]="topic">{{ topic }}</option>
                   }
                 </select>
-              }
+              
             </div>
 
             <!-- Subtema -->
@@ -122,18 +152,18 @@
                 <select
                   formControlName="sub_topic"
                   [class]="generateForm.get('sub_topic')?.invalid && generateForm.get('sub_topic')?.touched 
-                    ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
-                    : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+                    ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+                    : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
                 >
                   <option value="" disabled selected>Selecciona un subtema</option>
-                  @for (subTopic of subTopics(); track subTopic) {
-                    <option [value]="subTopic">{{ subTopic }}</option>
+                  @for (sub of subTopics(); track sub) {
+                    <option [value]="sub">{{ sub }}</option>
                   }
                 </select>
               }
             </div>
 
-            <!-- Tema Específico -->
+            <!-- Tema específico -->
             <div class="space-y-2">
               <div class="flex items-center justify-between">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -169,49 +199,40 @@
                 <select
                   formControlName="specific_topic"
                   [class]="generateForm.get('specific_topic')?.invalid && generateForm.get('specific_topic')?.touched 
-                    ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
-                    : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
+                    ? 'w-full px-4 py-3 border-2 border-red-300 dark:border-red-500 rounded-lg bg-red-50 dark:bg-red-900/20 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 dark:focus:ring-red-400 transition-all' 
+                    : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
                 >
                   <option value="" disabled selected>Selecciona un tema específico</option>
-                  @for (specificTopic of specificTopics(); track specificTopic) {
-                    <option [value]="specificTopic">{{ specificTopic }}</option>
+                  @for (spec of specificTopics(); track spec) {
+                    <option [value]="spec">{{ spec }}</option>
                   }
                   <option value="General">General</option>
                 </select>
               }
             </div>
+          }
 
-            <!-- Instrucciones adicionales para IA (solo admin) -->
-            @if (userRole === 'admin') {
-              <div class="space-y-2">
-                <div class="flex items-center justify-between">
-                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Instrucciones para IA (Opcional)
-                  </label>
-                  <button
-                    type="button"
-                    (click)="toggleAIPrompt()"
-                    class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-                  >
-                    {{ showAIPrompt ? 'Ocultar' : 'Mostrar' }}
-                  </button>
-                </div>
-                
-                @if (showAIPrompt) {
-                  <textarea
-                    formControlName="ai_prompt"
-                    rows="4"
-                    placeholder="Escribe instrucciones específicas para la IA sobre cómo generar el test (ej: 'Incluye preguntas sobre X', 'Evita temas relacionados con Y', 'Enfócate en...')"
-                    class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
-                  ></textarea>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">
-                    Estas instrucciones ayudarán a la IA a generar un test más específico según tus necesidades.
-                  </p>
-                }
-              </div>
-            }
+          <!-- ===================== -->
+          <!-- MODO PROMPT IA -->
+          <!-- ===================== -->
+          @if (generateForm.value.generation_mode === 'prompt') {
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Instrucciones para la IA *
+              </label>
+              <textarea
+                formControlName="ai_prompt"
+                rows="6"
+                placeholder="Ej: Genera un test avanzado sobre criptografía aplicada a blockchain, con preguntas prácticas..."
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
+              ></textarea>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Describe libremente el test que quieres generar.
+              </p>
+            </div>
 
-            <!-- Resumen dinámico actualizado -->
+          } @else {         
+            <!-- Resumen dinámico -->
             <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
               <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-3">Resumen del Test</h4>
               <div class="space-y-3">
@@ -233,10 +254,9 @@
                     {{ generateForm.get('specific_topic')?.value || 'No seleccionado' }}
                   </span>
                 </div>
-                <!-- Resto del resumen... -->
               </div>
             </div>
-          </div>
+          }
 
           <!-- Nivel -->
           <div class="space-y-2">
@@ -248,8 +268,8 @@
                 <button
                   type="button"
                   (click)="generateForm.get('level')?.setValue(level)"
-                  [class]="generateForm.get('level')?.value === level 
-                    ? 'bg-blue-600 dark:bg-blue-700 text-white' 
+                  [class]="generateForm.get('level')?.value === level
+                    ? 'bg-blue-600 dark:bg-blue-700 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'"
                   class="py-3 rounded-lg font-medium transition-colors"
                 >
@@ -259,23 +279,23 @@
             </div>
           </div>
 
-          <!-- Preguntas y Respuestas -->
+          <!-- Preguntas y respuestas -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Número de Preguntas
               </label>
               <div class="grid grid-cols-5 gap-2">
-                @for (num of questionOptions; track num) {
+                @for (n of questionOptions; track n) {
                   <button
                     type="button"
-                    (click)="generateForm.get('num_questions')?.setValue(num)"
-                    [class]="generateForm.get('num_questions')?.value === num 
-                      ? 'bg-blue-600 dark:bg-blue-700 text-white' 
+                    (click)="generateForm.get('num_questions')?.setValue(n)"
+                    [class]="generateForm.get('num_questions')?.value === n
+                      ? 'bg-blue-600 dark:bg-blue-700 text-white'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'"
                     class="py-3 rounded-lg font-medium transition-colors"
                   >
-                    {{ num }}
+                    {{ n }}
                   </button>
                 }
               </div>
@@ -286,16 +306,16 @@
                 Opciones por Pregunta
               </label>
               <div class="grid grid-cols-2 gap-2">
-                @for (num of answerOptions; track num) {
+                @for (n of answerOptions; track n) {
                   <button
                     type="button"
-                    (click)="generateForm.get('num_answers')?.setValue(num)"
-                    [class]="generateForm.get('num_answers')?.value === num 
-                      ? 'bg-blue-600 dark:bg-blue-700 text-white' 
+                    (click)="generateForm.get('num_answers')?.setValue(n)"
+                    [class]="generateForm.get('num_answers')?.value === n
+                      ? 'bg-blue-600 dark:bg-blue-700 text-white'
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'"
                     class="py-3 rounded-lg font-medium transition-colors"
                   >
-                    {{ num }} opciones
+                    {{ n }} opciones
                   </button>
                 }
               </div>
@@ -309,49 +329,12 @@
             </label>
             <select
               formControlName="language"
-              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
+              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
             >
               @for (lang of languages; track lang.code) {
                 <option [value]="lang.code">{{ lang.name }}</option>
               }
             </select>
-          </div>
-
-          <!-- Resumen dinámico -->
-          <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-            <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-3">Resumen del Test</h4>
-            <div class="space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="text-gray-500 dark:text-gray-400">Temática</span>
-                <span class="font-medium text-gray-900 dark:text-gray-100">
-                  {{ generateForm.get('topic')?.value || 'No seleccionada' }}
-                </span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-gray-500 dark:text-gray-400">Categoría</span>
-                <span class="font-medium text-gray-900 dark:text-gray-100">
-                  {{ generateForm.get('category')?.value || 'No seleccionada' }}
-                </span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-gray-500 dark:text-gray-400">Nivel</span>
-                <span class="font-medium text-gray-900 dark:text-gray-100">
-                  {{ generateForm.get('level')?.value }}
-                </span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-gray-500 dark:text-gray-400">Preguntas</span>
-                <span class="font-medium text-gray-900 dark:text-gray-100">
-                  {{ generateForm.get('num_questions')?.value }}
-                </span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-gray-500 dark:text-gray-400">Tiempo estimado</span>
-                <span class="font-medium text-gray-900 dark:text-gray-100">
-                  {{ (generateForm.get('num_questions')?.value * 0.5) | number:'1.0-0' }} min
-                </span>
-              </div>
-            </div>
           </div>
 
           <!-- Error -->
@@ -366,11 +349,11 @@
             </div>
           }
 
-          <!-- Botón de generar -->
-          <button 
-            type="submit" 
-            [disabled]="generateForm.invalid || loading() || (quota() && quota()!.remaining_requests <= 0) || topicsLoading() || subTopicsLoading() || specificTopicsLoading()"
-            class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-600 dark:hover:to-purple-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          <!-- Botón -->
+          <button
+            type="submit"
+            [disabled]="loading() || generateForm.invalid || (quota() && quota()!.remaining_requests <= 0)"
+            class="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-600 dark:hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             @if (loading()) {
               <svg class="w-5 h-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -405,7 +388,7 @@
       </div>
     }
 
-    <!-- Estado de generación -->
+    <!-- GENERANDO -->
     @if (generating() && requestId()) {
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
         <div class="max-w-md mx-auto">
@@ -422,8 +405,7 @@
 
           <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">Generando Test con IA</h3>
           <p class="text-gray-600 dark:text-gray-400 mb-6">
-            Estamos creando tu test sobre <strong>{{ generateForm.get('topic')?.value }}</strong> 
-            en la categoría <strong>{{ generateForm.get('category')?.value }}</strong>.
+            Estamos creando tu test...
             Esto puede tomar unos segundos...
           </p>
           
@@ -443,7 +425,7 @@
 
           <button 
             (click)="cancelGeneration()"
-            class="mt-8 inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+            class="mt-8 inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
             Cancelar
           </button>
         </div>
