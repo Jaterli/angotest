@@ -49,6 +49,7 @@ export class TestEditComponent implements OnInit {
       sub_topic: ['', Validators.required],
       specific_topic: ['', Validators.required],
       level: ['', Validators.required],
+      is_active: [true],
       questions: this.fb.array([])
     });
   }
@@ -119,7 +120,8 @@ export class TestEditComponent implements OnInit {
       main_topic: test.main_topic || '',
       sub_topic: test.sub_topic || '',
       specific_topic: test.specific_topic || '',
-      level: test.level || ''
+      level: test.level || '',
+      is_active: test.is_active !== undefined ? test.is_active : true      
     });
 
     // Cargar preguntas
@@ -305,6 +307,7 @@ export class TestEditComponent implements OnInit {
       specific_topic: formValue.specific_topic,
       level: formValue.level,
       test_date: formValue.test_date,
+      is_active: formValue.is_active,
       questions: filteredQuestions
     };
   }

@@ -35,6 +35,7 @@ export class AdminTestListComponent implements OnInit {
     main_topic: '',
     sub_topic: '',
     level: '',
+    is_active: true,
     search: ''
   });
 
@@ -42,7 +43,7 @@ export class AdminTestListComponent implements OnInit {
   filterOptions = signal<TestsFilterOptions>({
     main_topics: [],
     sub_topics: [],
-    levels: []
+    levels: [],
   });
 
   // Opciones de ordenación
@@ -52,6 +53,7 @@ export class AdminTestListComponent implements OnInit {
     { value: 'main_topic', label: 'Tema principal' },
     { value: 'sub_topic', label: 'Subtema' },
     { value: 'level', label: 'Nivel' },
+    { value: 'is_active', label: 'Activado' },    
     { value: 'test_date', label: 'Fecha del test' }
   ];
 

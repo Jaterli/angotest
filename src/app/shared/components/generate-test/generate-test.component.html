@@ -56,7 +56,7 @@
     }
 
     <!-- FORMULARIO -->
-    @if (!generating()) {
+    @if (!loading()) {
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6">
         <form [formGroup]="generateForm" (ngSubmit)="onSubmit()" class="space-y-6">
 
@@ -389,7 +389,7 @@
     }
 
     <!-- GENERANDO -->
-    @if (generating() && requestId()) {
+    @if (loading() && !testId()) {
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
         <div class="max-w-md mx-auto">
           <!-- Animación de carga -->
@@ -409,12 +409,7 @@
             Esto puede tomar unos segundos...
           </p>
           
-          <div class="space-y-4">
-            <div class="text-left">
-              <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">ID de solicitud</div>
-              <div class="font-mono text-gray-900 dark:text-gray-100">{{ requestId() }}</div>
-            </div>
-            
+          <div class="space-y-4">           
             <div class="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400">
               <svg class="w-5 h-5 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>

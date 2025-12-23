@@ -37,7 +37,6 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
   /* ---------------------------- SIGNALS ---------------------------- */
 
   loading = signal(false);
-  generating = signal(false);
 
   topicsLoading = signal(false);
   subTopicsLoading = signal(false);
@@ -47,7 +46,7 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
 
   quota = signal<UserQuota | null>(null);
-  requestId = signal<number | null>(null);
+  testId = signal<number | null>(null);
 
   mainTopics = signal<string[]>([]);
   subTopics = signal<string[]>([]);
@@ -285,9 +284,22 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
     this.aiTestService.generateTest(payload).subscribe({
       next: res => {
         this.loading.set(false);
-        this.generating.set(true);
-        this.requestId.set(res.request_id);
-        this.startPollingStatus(res.request_id);
+
+        if (res.status === 'completed') {
+          clearInterval(this.checkInterval);
+          
+          if (this.userRole != 'admin') {
+            this.router.navigate(['/tests', res.generated_test_id, 'start-single']);
+          } else {
+            this.router.navigate(['/tests']);
+          }
+        }
+
+        if (res.status === 'failed') {
+          clearInterval(this.checkInterval);
+          this.error.set(res.error_message || 'Error al generar el test');
+        }
+        
       },
       error: err => {
         this.loading.set(false);
@@ -296,34 +308,11 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
     });
   }
 
-  /* ---------------------------- POLLING ----------------------------- */
-
-  private startPollingStatus(requestId: number): void {
-    this.checkInterval = window.setInterval(() => {
-      this.aiTestService.getRequestStatus(requestId).subscribe({
-        next: status => {
-          if (status.status === 'completed') {
-            clearInterval(this.checkInterval);
-            this.generating.set(false);
-            this.router.navigate(['/tests', status.generated_test_id, 'start-single']);
-          }
-
-          if (status.status === 'failed') {
-            clearInterval(this.checkInterval);
-            this.generating.set(false);
-            this.error.set(status.error_message || 'Error al generar el test');
-          }
-        }
-      });
-    }, 3000);
-  }
-
   cancelGeneration(): void {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
     }
-    this.generating.set(false);
-    this.requestId.set(null);
+    this.testId.set(null);
   }
 
   /* ---------------------------- HELPERS ----------------------------- */

@@ -18,6 +18,7 @@ export interface Test {
   sub_topic: string;
   specific_topic: string;
   level: string;
+  is_active: boolean;
   test_date: string;
   created_by: number;
   created_at: string; 
@@ -41,6 +42,7 @@ export interface TestsListFilters {
   main_topic?: string;
   sub_topic?: string;
   level?: string;
+  is_active?: boolean;
   search?: string;
 }
 
@@ -55,6 +57,7 @@ export interface TestsListResponse {
     main_topic?: string;
     sub_topic?: string;
     level?: string;
+    is_active?: boolean;
     search?: string;
     sort_by?: string;
     sort_order?: 'asc' | 'desc';

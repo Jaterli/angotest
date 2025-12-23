@@ -8,7 +8,7 @@ import { ModalComponent } from '../../../shared/components/modal.component';
 // Interfaz para el input con claves string
 interface SaveResultInput {
   test_id: number;
-  answers: Record<string, number>; // Cambiado a string keys
+  answers: Record<string, number>;
   time_taken: number;
   status: 'in_progress' | 'completed' | 'abandoned';
 }
@@ -26,7 +26,7 @@ export class TestSingleComponent implements OnInit, OnDestroy {
 
   test?: Test;
   currentQuestionIndex = 0;
-  selectedAnswers: Record<string, number> = {}; // Cambiado a string keys
+  selectedAnswers: Record<string, number> = {};
   loading = signal(true);
   startTime = 0;
   timeElapsed = 0;
@@ -188,12 +188,11 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   saveProgress(status: 'in_progress' | 'completed' = 'in_progress'): void {
     if (!this.test) return;
 
-    // Ya tenemos selectedAnswers como Record<string, number>
     const timeSpent = Math.floor((Date.now() - this.startTime) / 1000);
     
     const saveData: SaveResultInput = {
       test_id: this.test.id!,
-      answers: this.selectedAnswers, // Directamente el mapa con claves string
+      answers: this.selectedAnswers,
       time_taken: timeSpent,
       status: status
     };
@@ -403,7 +402,7 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     
     const saveData: SaveResultInput = {
       test_id: this.test.id!,
-      answers: this.selectedAnswers, // Mapa directamente
+      answers: this.selectedAnswers,
       time_taken: timeSpent,
       status: 'in_progress'
     };

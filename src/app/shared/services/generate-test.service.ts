@@ -18,10 +18,10 @@ export class AITestService {
     return this.http.post<AIRequestStatus>(`${this.apiUrl}/generate-ai-test`, request);
   }
   
-  // Obtener estado de una solicitud
-  getRequestStatus(requestId: number): Observable<AIRequestStatus> {
-    return this.http.get<AIRequestStatus>(`${this.apiUrl}/requests/${requestId}`);
-  }
+  // // Obtener estado de una solicitud
+  // getRequestStatus(requestId: number): Observable<AIRequestStatus> {
+  //   return this.http.get<AIRequestStatus>(`${this.apiUrl}/requests/${requestId}`);
+  // }
   
   // Obtener solicitudes del usuario
   getUserRequests(): Observable<AIRequestStatus[]> {
