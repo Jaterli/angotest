@@ -165,10 +165,13 @@
             (ngModelChange)="onFilterChange()"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
-            <option value="updated">Última actualización</option>
             <option value="progress">Progreso</option>
-            <option value="date">Fecha de inicio</option>
+            <option value="test_title">Título del test</option>            
+            <option value="test_date">Fecha del test</option>
+            <option value="started_at">Fecha de inicio</option>
+            <option value="updated_at">Última actualización</option>
             <option value="time_taken">Tiempo invertido</option>
+            <option value="remaining_count">Preguntas restantes</option>            
           </select>
         </div>
 
@@ -334,7 +337,7 @@
                     {{ calculateProgress(test) }}%
                   </span>
                   <span class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ getFormatDate(test.created_at) }}
+                    {{ formatDate(test.test_created_at) }}
                   </span>
                 </div>
                 
@@ -402,20 +405,11 @@
                   </div>
                 </div>
               </div>
-              
+                            
               <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                 <div class="text-center">
                   <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ test.answered_count }}
-                  </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Preguntas respondidas</div>
-                </div>
-              </div>
-              
-              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ test.time_taken ? getFormatTime(test.time_taken) : 'N/A' }}
+                    {{ test.time_taken ? formatTime(test.time_taken) : 'N/A' }}
                   </div>
                   <div class="text-sm text-gray-500 dark:text-gray-400">Tiempo invertido</div>
                 </div>
@@ -424,11 +418,21 @@
               <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                 <div class="text-center">
                   <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ getFormatDate(test.created_at) }}
+                    {{ formatDate(test.started_at) }}
                   </div>
                   <div class="text-sm text-gray-500 dark:text-gray-400">Fecha de inicio</div>
                 </div>
               </div>
+
+              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                <div class="text-center">
+                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {{ formatDateTime(test.updated_at) }}
+                  </div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Fecha de actualización</div>
+                </div>
+              </div>
+
             </div>
             
             <!-- Acciones -->

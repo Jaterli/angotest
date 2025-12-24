@@ -30,7 +30,7 @@ export class InProgressTestsComponent implements OnInit {
   // Filtros
   selectedMainTopic = signal<string>('all');
   selectedLevel = signal<string>('all');
-  selectedSortBy = signal<'progress' | 'date' | 'updated' | 'remaining_time'>('updated');
+  selectedSortBy = signal<InProgressTestsFilter["sort_by"]>('updated_at');
   selectedSortOrder = signal<'asc' | 'desc'>('desc');
   selectedPageSize = signal<number>(10);
   
@@ -143,7 +143,7 @@ export class InProgressTestsComponent implements OnInit {
   resetFilters(): void {
     this.selectedMainTopic.set('all');
     this.selectedLevel.set('all');
-    this.selectedSortBy.set('updated');
+    this.selectedSortBy.set('updated_at');
     this.selectedSortOrder.set('desc');
     this.selectedPageSize.set(10);
     this.currentPage.set(1);
@@ -233,11 +233,15 @@ export class InProgressTestsComponent implements OnInit {
     return 'bg-red-500 dark:bg-red-500';
   }
 
-  getFormatDate(dateString: string): string {
+  formatDate(dateString: string): string {
     return this.sharedUtilsService.sharedFormatDate(dateString);
   }
 
-  getFormatTime(seconds: number): string {
+  formatDateTime(dateString: string): string {
+    return this.sharedUtilsService.sharedFormatDateTime(dateString);
+  }
+
+  formatTime(seconds: number): string {
     return this.sharedUtilsService.sharedFormatTime(seconds);
   }
 
@@ -268,7 +272,7 @@ export class InProgressTestsComponent implements OnInit {
     const remainingQuestions = this.getRemainingQuestions(test);
     const estimatedTime = timePerQuestion * remainingQuestions;
     
-    return this.getFormatTime(Math.round(estimatedTime));
+    return this.formatTime(Math.round(estimatedTime));
   }
 
   getAverageProgress(): number {
@@ -289,9 +293,12 @@ export class InProgressTestsComponent implements OnInit {
   getCurrentSortLabel(): string {
     switch (this.selectedSortBy()) {
       case 'progress': return 'Progreso';
-      case 'date': return 'Fecha de inicio';
-      case 'updated': return 'Última actualización';
-      case 'remaining_time': return 'Tiempo estimado restante';
+      case 'test_date': return 'Fecha del test';
+      case 'started_at': return 'Fecha de inicio';
+      case 'updated_at': return 'Última actualización';      
+      case 'time_taken': return 'Tiempo empleado';
+      case 'level': return 'Nivel';
+      case 'remaining_count': return 'Preguntas restantes';
       default: return 'Última actualización';
     }
   }

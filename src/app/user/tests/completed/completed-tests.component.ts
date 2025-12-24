@@ -30,7 +30,7 @@ export class CompletedTestsComponent implements OnInit {
   // Filtros
   selectedMainTopic = signal<string>('all');
   selectedLevel = signal<string>('all');
-  selectedSortBy = signal<'date' | 'score' | 'time'>('date');
+  selectedSortBy = signal<CompletedTestsFilter["sort_by"]>('updated_at');
   selectedSortOrder = signal<'asc' | 'desc'>('desc');
   selectedPageSize = signal<number>(10);
   
@@ -143,7 +143,7 @@ export class CompletedTestsComponent implements OnInit {
   resetFilters(): void {
     this.selectedMainTopic.set('all');
     this.selectedLevel.set('all');
-    this.selectedSortBy.set('date');
+    this.selectedSortBy.set('updated_at');
     this.selectedSortOrder.set('desc');
     this.selectedPageSize.set(10);
     this.currentPage.set(1);
@@ -213,12 +213,12 @@ export class CompletedTestsComponent implements OnInit {
     return this.sharedUtilsService.getSharedScoreMessage(score);
   }
 
-  getgetAccuracyColor(accuracy: number){
-    return this.sharedUtilsService.getSharedAccuracyColor(accuracy);
-  }
-  
   formatDate(dateString: string): string{
     return this.sharedUtilsService.sharedFormatDate(dateString);
+  }
+
+  formatDateTime(dateString: string): string{
+    return this.sharedUtilsService.sharedFormatDateTime(dateString);
   }
 
   formatTime(seconds: number): string{
@@ -251,10 +251,13 @@ export class CompletedTestsComponent implements OnInit {
 
   getCurrentSortLabel(): string {
     switch (this.selectedSortBy()) {
-      case 'date': return 'Fecha de realización';
+      case 'test_title': return 'Título del test';
+      case 'test_date': return 'Fecha del test';
+      case 'started_at': return 'Fecha de inicio';
+      case 'updated_at': return 'Fecha de finalización';      
+      case 'time_taken': return 'Tiempo empleado';
       case 'score': return 'Puntuación';
-      case 'time': return 'Tiempo empleado';
-      default: return 'Fecha de realización';
+      default: return 'Fecha de finalización';
     }
   }
 

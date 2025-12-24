@@ -2,16 +2,11 @@ import { Component, OnInit, signal, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TestService } from '../../../shared/services/test.service';
-import { Test, ResumeTestResponse } from '../../../models/test.model';
+import { Test, ResumeTestResponse, QuestionWithAnswers, NextQuestionResponse, SaveResultInput } from '../../../models/test.model';
 import { ModalComponent } from '../../../shared/components/modal.component';
+import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
+import { Observable, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';
 
-// Interfaz para el input con claves string
-interface SaveResultInput {
-  test_id: number;
-  answers: Record<string, number>;
-  time_taken: number;
-  status: 'in_progress' | 'completed' | 'abandoned';
-}
 
 @Component({
   selector: 'app-test-single',
@@ -21,11 +16,15 @@ interface SaveResultInput {
 })
 export class TestSingleComponent implements OnInit, OnDestroy {
   private testService = inject(TestService);
+  private sharedUtilsService = inject(SharedUtilsService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private destroy$ = new Subject<void>();
 
   test?: Test;
-  currentQuestionIndex = 0;
+  currentQuestion?: QuestionWithAnswers;
+  currentQuestionNumber = 0;
+  totalQuestions = 0;
   selectedAnswers: Record<string, number> = {};
   loading = signal(true);
   startTime = 0;
@@ -43,6 +42,12 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   errorMessage = signal<string>('');
   timeTaken = signal<number>(0);
   score = signal<number>(0);
+  
+  // Para navegación
+  isCompleted = false;
+  
+  // Estado de carga
+  savingProgress = signal(false);
   
   // Prevención de copia (se desactiva al terminar/abandonar)
   isContentProtected = signal(true);
@@ -66,6 +71,10 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Limpiar protección de navegación
     this.removeNavigationProtection();
+    
+    // Limpiar observables
+    this.destroy$.next();
+    this.destroy$.complete();
     
     // Solo guardar si no se está saliendo intencionalmente
     if (!this.isExiting && this.isResuming && this.getAnsweredCount() > 0) {
@@ -106,46 +115,93 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     window.removeEventListener('popstate', this.preventBackNavigation.bind(this));
   }
 
-  loadTest(testId: number): void {
-    this.loading.set(true);
+  loadTest(testId: number): void {    
+    console.log("loadTest id: ", testId);
     
-    this.testService.getTestProgress(testId).subscribe({
-      next: (res: ResumeTestResponse) => {
-        this.test = res.test;
-        this.isResuming = res.is_resuming;
-        this.resultId = res.result_id;
-        
-        // Cargar respuestas guardadas si hay
-        if (res.is_resuming && res.answers) {
-          this.loadSavedAnswers(res.answers);
+    this.testService.getTestProgress(testId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: ResumeTestResponse) => {
+          this.test = res.test;
+          this.isResuming = res.is_resuming;
+          this.resultId = res.result_id;
+          
+          // Cargar respuestas guardadas si hay
+          if (res.is_resuming && res.answers) {
+            this.loadSavedAnswers(res.answers);
+          }
+          
           this.timeElapsed = res.time_elapsed || 0;
+          
+          // Iniciar tiempo
+          this.startTime = Date.now() - (this.timeElapsed * 1000);
+          
+          // Obtener la siguiente pregunta sin responder
+          this.loadNextQuestion();
+          
+        },
+        error: (err) => {
+          console.error(err);
+          this.errorMessage.set('Error al cargar el progreso del test.');
+          this.showErrorModal.set(true);
         }
-        
-        // Posicionarse en la primera pregunta sin responder
-        this.currentQuestionIndex = this.getFirstUnansweredQuestionIndex();
-        
-        // Iniciar tiempo
-        this.startTime = Date.now() - (this.timeElapsed * 1000);
-        
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error(err);
-        this.errorMessage.set('Error al cargar el test. Por favor, intenta de nuevo.');
-        this.showErrorModal.set(true);
-        this.loading.set(false);
-      }
-    });
+      });
+  }
+
+  loadNextQuestion(): void {
+    if (!this.test?.id) {
+      console.error('No hay test ID para cargar pregunta');
+      return;
+    }
+       
+    this.testService.getNextUnansweredQuestion(this.test.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: NextQuestionResponse) => {
+          console.log('Respuesta del backend:', response);
+          
+          // Verificar si ya completó todas las preguntas
+          if (response.is_completed) {
+            this.totalQuestions = response.total_questions || this.totalQuestions;
+            this.showSubmitConfirmation();
+            return;
+          }
+          
+          this.currentQuestion = response.question;
+          this.currentQuestionNumber = response.question_number || 1;
+          this.totalQuestions = response.total_questions || this.totalQuestions;
+          this.isCompleted = response.is_completed || false;
+          
+          console.log('Pregunta cargada:', {
+            questionId: this.currentQuestion?.id,
+            number: this.currentQuestionNumber,
+            total: this.totalQuestions,
+            answered: this.getAnsweredCount()
+          });
+          
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error(err);
+          this.errorMessage.set('Error al cargar la siguiente pregunta.');
+          this.showErrorModal.set(true);
+        }
+      });
+  }
+
+  updateAnsweredCount(count: number): void {
+    // Este método es para sincronizar con el backend
+    // El contador real sigue siendo el de selectedAnswers
   }
 
   loadSavedAnswers(savedAnswers: any): void {
     // Asegurar que sea un objeto con claves string
     if (typeof savedAnswers === 'object' && savedAnswers !== null) {
       if (Array.isArray(savedAnswers)) {
-        // Si viene como array (backward compatibility), convertir a mapa
+        // Si viene como array, convertir a mapa
         this.selectedAnswers = this.arrayToMap(savedAnswers);
       } else {
-        // Si ya es un objeto con claves string, usarlo directamente
+        // Si ya es un objeto, usarlo directamente
         this.selectedAnswers = savedAnswers;
       }
     } else {
@@ -153,7 +209,6 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Método auxiliar para convertir array a mapa (si fuera necesario)
   private arrayToMap(answersArray: any[]): Record<string, number> {
     const result: Record<string, number> = {};
     if (answersArray && Array.isArray(answersArray)) {
@@ -170,23 +225,10 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     return String.fromCharCode(65 + index);
   }
 
-  // Obtener el índice de la primera pregunta sin responder
-  getFirstUnansweredQuestionIndex(): number {
-    if (!this.test) return 0;
-    
-    for (let i = 0; i < this.test.questions.length; i++) {
-      const question = this.test.questions[i];
-      if (!this.isQuestionAnswered(question.id!)) {
-        return i;
-      }
+  saveProgress(status: 'in_progress' | 'completed' = 'in_progress'): Observable<any> {
+    if (!this.test) {
+      return throwError(() => new Error('No hay test disponible'));
     }
-    
-    // Todas respondidas, mostrar la última
-    return this.test.questions.length - 1;
-  }
-
-  saveProgress(status: 'in_progress' | 'completed' = 'in_progress'): void {
-    if (!this.test) return;
 
     const timeSpent = Math.floor((Date.now() - this.startTime) / 1000);
     
@@ -197,17 +239,21 @@ export class TestSingleComponent implements OnInit, OnDestroy {
       status: status
     };
 
-    this.testService.saveOrUpdateResult(saveData).subscribe({
-      next: (response) => {
-        console.log('Progreso guardado:', response);
-        if (response.result && response.result.id) {
-          this.resultId = response.result.id;
+    console.log('Guardando progreso:', saveData);
+    
+    return this.testService.saveOrUpdateResult(saveData).pipe(
+      tap({
+        next: (response) => {
+          console.log('Progreso guardado:', response);
+          if (response.result && response.result.id) {
+            this.resultId = response.result.id;
+          }
+        },
+        error: (err) => {
+          console.error('Error al guardar progreso:', err);
         }
-      },
-      error: (err) => {
-        console.error('Error al guardar progreso:', err);
-      }
-    });
+      })
+    );
   }
 
   // Métodos del template
@@ -219,60 +265,80 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     return Object.keys(this.selectedAnswers).length;
   }
 
-  getCurrentQuestion() {
-    return this.test?.questions[this.currentQuestionIndex];
-  }
-
   selectAnswer(answerId: number) {
-    const currentQuestion = this.getCurrentQuestion();
-    if (!currentQuestion) return;
+    if (!this.currentQuestion) return;
 
-    // Guardar la respuesta seleccionada con key string
-    this.selectedAnswers[currentQuestion.id!.toString()] = answerId;
+    console.log(`Seleccionando respuesta ${answerId} para pregunta ${this.currentQuestion.id}`);
     
-    // Deshabilitar protección temporalmente para permitir la selección
+    this.selectedAnswers[this.currentQuestion.id.toString()] = answerId;
+    
     this.isContentProtected.set(false);
     setTimeout(() => {
       this.isContentProtected.set(true);
     }, 100);
   }
 
-  // Obtener la respuesta seleccionada para una pregunta
   getSelectedAnswer(questionId: number): number | undefined {
     return this.selectedAnswers[questionId.toString()];
   }
 
   nextQuestion(): void {
-    if (!this.test) return;
+    if (!this.currentQuestion) return;
     
     // Verificar que la pregunta actual esté respondida
-    const currentQuestion = this.getCurrentQuestion();
-    if (!currentQuestion || !this.isQuestionAnswered(currentQuestion.id!)) {
+    if (!this.isQuestionAnswered(this.currentQuestion.id)) {
       this.errorMessage.set('Debes responder esta pregunta antes de avanzar.');
       this.showErrorModal.set(true);
       return;
     }
     
-    // Guardar progreso al avanzar (solo aquí)
-    this.saveProgress('in_progress');
+    // Deshabilitar botones mientras se guarda y carga
+    this.savingProgress.set(true);
     
-    // Avanzar a la siguiente pregunta sin responder
-    for (let i = this.currentQuestionIndex + 1; i < this.test.questions.length; i++) {
-      const question = this.test.questions[i];
-      if (!this.isQuestionAnswered(question.id!)) {
-        this.currentQuestionIndex = i;
-        return;
-      }
-    }
+    console.log('Guardando respuesta antes de avanzar...');
     
-    // Si todas las siguientes están respondidas, ir a la última
-    this.currentQuestionIndex = this.test.questions.length - 1;
+    // Primero guardar la respuesta actual
+    this.saveProgress('in_progress')
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap(() => {
+          console.log('Respuesta guardada, cargando siguiente pregunta...');
+          // Una vez guardado, cargar siguiente pregunta
+          return this.testService.getNextUnansweredQuestion(this.test!.id);
+        })
+      )
+      .subscribe({
+        next: (response: NextQuestionResponse) => {
+          console.log('Siguiente pregunta recibida:', response);
+          
+          // Verificar si ya completó todas las preguntas
+          if (response.is_completed) {
+            this.totalQuestions = response.total_questions || this.totalQuestions;
+            this.savingProgress.set(false);
+            this.showSubmitConfirmation();
+            return;
+          }
+          
+          // Actualizar pregunta actual
+          this.currentQuestion = response.question;
+          this.currentQuestionNumber = response.question_number;
+          this.totalQuestions = response.total_questions;
+          this.isCompleted = response.is_completed;
+          
+          this.savingProgress.set(false);
+        },
+        error: (err) => {
+          console.error('Error al avanzar:', err);
+          this.errorMessage.set('Error al guardar progreso o cargar siguiente pregunta.');
+          this.showErrorModal.set(true);
+          this.savingProgress.set(false);
+        }
+      });
   }
 
-  // NO HAY previousQuestion() - NO se permite retroceder
-
   showSubmitConfirmation(): void {
-    if (this.getAnsweredCount() !== this.test?.questions.length) {
+    // Verificar que todas las preguntas estén respondidas
+    if (this.getAnsweredCount() !== this.totalQuestions) {
       this.errorMessage.set('Debes responder todas las preguntas antes de finalizar el test.');
       this.showErrorModal.set(true);
       return;
@@ -290,34 +356,36 @@ export class TestSingleComponent implements OnInit, OnDestroy {
 
     const saveData: SaveResultInput = {
       test_id: this.test.id!,
-      answers: this.selectedAnswers, // Mapa directamente
+      answers: this.selectedAnswers,
       time_taken: timeSpent,
       status: 'completed'
     };
 
-    this.testService.saveOrUpdateResult(saveData).subscribe({
-      next: (response: any) => {
-        console.log('Test completado:', response);
-        
-        if (response.result) {
-          const correct = response.result.correct_answers || 0;
-          const total = response.result.total || this.test?.questions.length;
-          this.score.set(total > 0 ? Math.round((correct / total) * 100) : 0);
+    this.testService.saveOrUpdateResult(saveData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          console.log('Test completado:', response);
+          
+          if (response.result) {
+            const correct = response.result.correct_answers || 0;
+            const total = response.result.total || this.totalQuestions;
+            this.score.set(total > 0 ? Math.round((correct / total) * 100) : 0);
+          }
+          
+          // Desactivar protección de copia al terminar
+          this.removeCopyProtection();
+          this.removeNavigationProtection();
+          this.isContentProtected.set(false);
+          
+          this.showSuccessModal.set(true);
+        },
+        error: (err: any) => {
+          console.error('Error al completar test:', err);
+          this.errorMessage.set(err.error?.message || 'Error al completar el test. Por favor, intenta de nuevo.');
+          this.showErrorModal.set(true);
         }
-        
-        // Desactivar protección de copia al terminar
-        this.removeCopyProtection();
-        this.removeNavigationProtection();
-        this.isContentProtected.set(false);
-        
-        this.showSuccessModal.set(true);
-      },
-      error: (err: any) => {
-        console.error('Error al completar test:', err);
-        this.errorMessage.set(err.error?.message || 'Error al completar el test. Por favor, intenta de nuevo.');
-        this.showErrorModal.set(true);
-      }
-    });
+      });
     
     this.showConfirmSubmitModal.set(false);
     this.isResuming = false;
@@ -338,18 +406,12 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   }
 
   getProgressPercentage(): number {
-    if (!this.test) return 0;
-    return (this.getAnsweredCount() / this.test.questions.length) * 100;
+    if (!this.totalQuestions || this.totalQuestions === 0) return 0;
+    return (this.getAnsweredCount() / this.totalQuestions) * 100;
   }
 
   getUnansweredQuestionsCount(): number {
-    if (!this.test) return 0;
-    return this.test.questions.length - this.getAnsweredCount();
-  }
-
-  isLastQuestion(): boolean {
-    if (!this.test) return false;
-    return this.currentQuestionIndex === this.test.questions.length - 1;
+    return this.totalQuestions - this.getAnsweredCount();
   }
 
   // Métodos para prevenir copia
@@ -396,39 +458,12 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     if (!this.test) return;
     
     this.isExiting = true;
-    
-    // Guardar progreso con status 'in_progress' para poder retomar
-    const timeSpent = Math.floor((Date.now() - this.startTime) / 1000);
-    
-    const saveData: SaveResultInput = {
-      test_id: this.test.id!,
-      answers: this.selectedAnswers,
-      time_taken: timeSpent,
-      status: 'in_progress'
-    };
+    this.showConfirmExitModal.set(false);    
+    this.router.navigate(['/tests/in-progress']);            
+  }
 
-    this.testService.saveOrUpdateResult(saveData).subscribe({
-      next: () => {
-        console.log('Test abandonado, progreso guardado');
-        // Desactivar protección de copia al abandonar
-        this.removeCopyProtection();
-        this.removeNavigationProtection();
-        this.isContentProtected.set(false);
-        
-        // Navegar a la página de tests en progreso
-        this.router.navigate(['/tests/in-progress']);
-      },
-      error: (err) => {
-        console.error('Error al guardar progreso al abandonar:', err);
-        // Aún así navegar, pero mostrar error
-        this.removeCopyProtection();
-        this.removeNavigationProtection();
-        this.isContentProtected.set(false);
-        this.router.navigate(['/tests/in-progress']);
-      }
-    });
-    
-    this.showConfirmExitModal.set(false);
+  getLevelBadgeClass(level: string): string {
+    return this.sharedUtilsService.getSharedLevelBadgeClass(level);
   }
 
   cancelExit(): void {

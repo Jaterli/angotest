@@ -164,10 +164,14 @@
             [(ngModel)]="selectedSortBy"
             (ngModelChange)="onFilterChange()"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
-          >
-            <option value="date">Fecha de realización</option>
+          > 
+            <option value="test_title">Título del test</option>  
+            <option value="test_date">Fecha del test</option>
+            <option value="created_at">Fecha de inicio</option>            
+            <option value="updated_at">Fecha de finalización</option>
             <option value="score">Puntuación</option>
-            <option value="time">Tiempo empleado</option>
+            <option value="level">Nivel</option>
+            <option value="time_taken">Tiempo empleado</option>
           </select>
         </div>
 
@@ -382,18 +386,6 @@
                     {{ test.correct_answers }}/{{ test.total_questions }}
                   </div>
                   <div class="text-sm text-gray-500 dark:text-gray-400">Respuestas correctas</div>
-                  <div class="text-xs text-emerald-600 dark:text-emerald-400 mt-1">
-                    {{ test.accuracy | number:'1.0-1' }}% de precisión
-                  </div>
-                </div>
-              </div>
-              
-              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ test.time_taken ? formatTime(test.time_taken) : 'N/A' }}
-                  </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Tiempo empleado</div>
                 </div>
               </div>
               
@@ -405,15 +397,24 @@
                   <div class="text-sm text-gray-500 dark:text-gray-400">Respuestas incorrectas</div>
                 </div>
               </div>
-              
+
               <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                 <div class="text-center">
                   <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ test.total_questions }}
+                    {{ test.time_taken ? formatTime(test.time_taken) : 'N/A' }}
                   </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Total preguntas</div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Tiempo empleado</div>
                 </div>
               </div>
+                            
+              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                <div class="text-center">
+                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {{ formatDateTime(test.updated_at) }}
+                  </div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Fecha de actualización</div>
+                </div>
+              </div>              
             </div>
             
             <!-- Acciones -->

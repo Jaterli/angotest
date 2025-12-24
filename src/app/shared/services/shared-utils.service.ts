@@ -2,18 +2,6 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
-// Interfaces compartidas
-export interface ResultDetailsResponse {
-  result: any;
-  test: any;
-  questions: any[];
-  total_questions: number;
-  score_details: {
-    correct: number;
-    wrong: number;
-    score_percentage: number;
-  };
-}
 
 @Injectable({
   providedIn: 'root' // Disponible globalmente
@@ -156,14 +144,6 @@ export class SharedUtilsService {
     return this.http.get(`${this.apiUrl}/users/${userId}/results`, { params: filters });
   }
 
-  // Utilidades adicionales
-  sharedFormatDate_v2(date: string | Date): string {
-    return new Date(date).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
 
   getSharedLevelBadgeClass(level: string): string {
     switch (level?.toLowerCase()) {
@@ -174,7 +154,15 @@ export class SharedUtilsService {
     }
   }
 
-  sharedFormatDate(dateString: string): string {
+  sharedFormatDate(dateString: string | Date): string {
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'  
+    });
+  }
+
+  sharedFormatDateTime(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('es-ES', {
       day: '2-digit',
@@ -221,8 +209,6 @@ export class SharedUtilsService {
     
     return pages;
   }
-
-
 
   // Calcular porcentaje de progreso
   sharedCalculateProgress(correct: number, total: number): number {

@@ -10,7 +10,10 @@ import {
   CompletedTestsFullResponse,
   CompletedTestsFilter,
   InProgressTestsFullResponse,
-  InProgressTestsFilter
+  InProgressTestsFilter,
+  QuestionsResponse,
+  SingleQuestionResponse,
+  NextQuestionResponse 
 } from '../../models/test.model';
 
 @Injectable({
@@ -22,8 +25,31 @@ export class TestService {
   constructor(private http: HttpClient) {}
 
 
-  getTestById(id: number): Observable<Test> {
-    return this.http.get<Test>(`${this.apiUrl}/tests/${id}`);
+  // Obtener la siguiente pregunta sin responder
+  getNextUnansweredQuestion(testId: number): Observable<NextQuestionResponse> {
+    return this.http.get<NextQuestionResponse>(
+      `${this.apiUrl}/tests/${testId}/next-question`
+    );
+  }
+
+  // Obtener todas las preguntas de un test (paginadas)
+  getTestQuestions(testId: number, page: number = 1, pageSize: number = 1): Observable<QuestionsResponse> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('page_size', pageSize.toString());
+    
+    return this.http.get<QuestionsResponse>(`${this.apiUrl}/tests/${testId}/questions`, { params });
+  }
+
+  // Obtener una pregunta específica
+  getSingleQuestion(testId: number, questionNumber: number): Observable<SingleQuestionResponse> {
+    return this.http.get<SingleQuestionResponse>(
+      `${this.apiUrl}/tests/${testId}/questions/${questionNumber}`
+    );
+  }
+
+  getTestById(testId: number): Observable<Test> {
+    return this.http.get<Test>(`${this.apiUrl}/tests/${testId}`);
   }
   
   // Guardar progreso o finalizar test
@@ -73,8 +99,6 @@ export class TestService {
       params = params.set('to_date', filter.to_date);
     }
 
-    console.log('TestService: obteniendo tests completados con filtros:', Object.fromEntries(params.keys().map(key => [key, params.get(key)])));
-
     return this.http.get<CompletedTestsFullResponse>(
       `${this.apiUrl}/tests/completed`, 
       { params }
@@ -104,8 +128,6 @@ export class TestService {
     params = params.set('sort_by', filter.sort_by || 'updated');
     params = params.set('sort_order', filter.sort_order || 'desc');
 
-    console.log('TestService: obteniendo tests en progreso con filtros:', Object.fromEntries(params.keys().map(key => [key, params.get(key)])));
-
     return this.http.get<InProgressTestsFullResponse>(
       `${this.apiUrl}/tests/in-progress`, 
       { params }
@@ -114,7 +136,6 @@ export class TestService {
   
 
   // ======= Nuevo método para tests por hacer ======
-
   getNotStartedTests(
     page: number = 1, 
     pageSize: number = 10, 
@@ -143,9 +164,6 @@ export class TestService {
     if (sortOrder) {
       params = params.set('sort_order', sortOrder);
     }
-
-    console.log('TestService: obteniendo tests no iniciados con params:', 
-      Object.fromEntries(params.keys().map(key => [key, params.get(key)])));
 
     return this.http.get<NotStartedTestsResponse>(
       `${this.apiUrl}/tests/not-started`, 

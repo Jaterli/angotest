@@ -19,9 +19,9 @@ export const APP_ROUTES: Routes = [
   { path: 'admin/users/results/:id', loadComponent: () => import('./admin/user-results/user-results.component').then(m => m.UserResultsComponent), canActivate: [authGuard, adminGuard] },
   
   // Rutas de usuario
-  { path: 'tests/:id/start', loadComponent: () => import('./user/tests/test-resolve/test-resolve.component').then(m => m.TestResolveComponent), canActivate: [authGuard] },
+  //{ path: 'tests/:id/start', loadComponent: () => import('./user/tests/test-resolve/test-resolve.component').then(m => m.TestResolveComponent), canActivate: [authGuard] },
   { path: 'tests/:id/start-single', loadComponent: () => import('./user/tests/test-single/test-single.component').then(m => m.TestSingleComponent), canActivate: [authGuard] },
-  { path: 'tests/:id/resume', loadComponent: () => import('./user/tests/test-resolve/test-resolve.component').then(m => m.TestResolveComponent), canActivate: [authGuard] },
+  //{ path: 'tests/:id/resume', loadComponent: () => import('./user/tests/test-resolve/test-resolve.component').then(m => m.TestResolveComponent), canActivate: [authGuard] },
   { path: 'tests/list', loadComponent: () => import('./user/tests/tests-list/tests-list.component').then(m => m.TestsListComponent), canActivate: [authGuard] },
   { path: 'tests/not-started', loadComponent: () => import('./user/tests/no-started/not-started-tests.component').then(m => m.NotStartedTestsComponent), canActivate: [authGuard] },
   { path: 'tests/completed', loadComponent: () => import('./user/tests/completed/completed-tests.component').then(m => m.CompletedTestsComponent), canActivate: [authGuard] },

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TestService } from '../../../shared/services/test.service';
-import { NotStartedTestsResponse, TestsFilter, TestWithStatus } from '../../../models/test.model';
+import { NotStartedTestsResponse, TestWithStatus } from '../../../models/test.model';
 import { AuthService } from '../../../shared/services/auth.service';
 import { User } from '../../../models/user.model';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';

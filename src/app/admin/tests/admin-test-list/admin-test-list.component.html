@@ -181,7 +181,7 @@
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-900/50">
-            <tr>
+            <tr>              
               <!-- Título con ordenación -->
               <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
                   (click)="onSortChange('title')">
@@ -287,25 +287,25 @@
                 <!-- Columna Título -->
                 <td class="px-6 py-4">
                   <div class="flex items-start">
-                    <div class="w-8 h-8 flex items-center justify-center mr-3 mt-1">
+                    <div class="mr-1 mt-1"> 
                       @if (test.is_active) {
-                        <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
-                        </svg>
+                          <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                          </svg>
 
-                      } @else {
-                        <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
-                        </svg>
+                        } @else {
+                          <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                          </svg>
                       }
                     </div>
                     <div>
                       <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ test.title }}</div>
-                      @if (test.description) {
-                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2 max-w-xs">
-                          {{ test.description }}
-                        </div>
-                      }
+                        @if (test.description) {
+                          <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2 max-w-xs">
+                            {{ test.description }}
+                          </div>
+                        }
                     </div>
                   </div>
                 </td>

@@ -22,7 +22,7 @@ export interface Test {
   test_date: string;
   created_by: number;
   created_at: string; 
-  questions: Question[];
+  questions?: Question[];
   results?: Result[];
 }
 
@@ -32,18 +32,6 @@ export interface TestsResponse {
 
 export interface TestWithCount extends Test {
   question_count: number;
-}
-
-export interface TestsListFilters {
-  page: number;
-  page_size: number;
-  sort_by: string;
-  sort_order: 'asc' | 'desc';
-  main_topic?: string;
-  sub_topic?: string;
-  level?: string;
-  is_active?: boolean;
-  search?: string;
 }
 
 export interface TestsListResponse {
@@ -64,12 +52,6 @@ export interface TestsListResponse {
   };
 }
 
-export interface TestsFilterOptions {
-  main_topics: string[];
-  sub_topics: string[];
-  levels: string[];
-}
-
 
 export interface Result {
   id: number;
@@ -87,15 +69,15 @@ export interface Result {
   time_taken: number;
 }
 
-export interface ResultResponse {
-  results: Result[];
-}
+// export interface ResultResponse {
+//   results: Result[];
+// }
 
-export interface NotCompletedTestsResponse {
-  tests: Test[];
-  not_completed_count: number;
-  message: string;
-}
+// export interface NotCompletedTestsResponse {
+//   tests: Test[];
+//   not_completed_count: number;
+//   message: string;
+// }
 
 export interface AnswerSubmit {
   question_id: number;
@@ -170,6 +152,20 @@ export interface NotStartedTestsResponse {
 
 
 // Detalles de un test completado
+
+export interface CompletedTestsFilter {
+  page?: number;
+  page_size?: number;
+  main_topic?: string;
+  level?: string;
+  status?: 'completed' | 'in_progress';
+  sort_by?: 'test_title' | 'test_date' | 'started_at' | 'updated_at' | 'time_taken' | 'score' | 'level';
+  sort_order?: 'asc' | 'desc';
+  search?: string;
+  from_date?: string;
+  to_date?: string;
+}
+
 export interface CompletedTestResponse {
   id: number;
   user_id: number;
@@ -199,33 +195,6 @@ export interface CompletedTestResponse {
   completion_time?: string;
 }
 
-
-export interface TestsFilter {
-  page?: number;
-  page_size?: number;
-  main_topic?: string;
-  level?: string;
-  status?: string; // 'completed' | 'in_progress' | 'all'
-  sort_by?: 'date' | 'score' | 'time' | 'title' | 'level';
-  sort_order?: 'asc' | 'desc';
-  search?: string;
-  from_date?: string;
-  to_date?: string;
-}
-
-export interface CompletedTestsFilter {
-  page?: number;
-  page_size?: number;
-  main_topic?: string;
-  level?: string;
-  status?: string; // 'completed' | 'in_progress' | 'all'
-  sort_by?: 'date' | 'score' | 'time' | 'title' | 'level';
-  sort_order?: 'asc' | 'desc';
-  search?: string;
-  from_date?: string;
-  to_date?: string;
-}
-
 export interface CompletedTestsResponse {
   tests: CompletedTestResponse[];
   total_tests: number;
@@ -249,8 +218,16 @@ export interface CompletedTestsFullResponse {
 }
 
 
-
 // Modelos para tests en progreso
+export interface InProgressTestsFilter {
+  page?: number;
+  page_size?: number;
+  main_topic?: string;
+  level?: string;
+  sort_by?: 'test_title' | 'progress' | 'test_date' | 'updated_at' | 'started_at' | 'time_taken' | 'level' | 'remaining_time' | 'remaining_count';
+  sort_order?: 'asc' | 'desc';
+}
+
 export interface InProgressTestResponse {
   id: number;
   user_id: number;
@@ -259,6 +236,7 @@ export interface InProgressTestResponse {
   status: string;
   answers?: string;
   created_at: string;
+  started_at: string;
   updated_at: string;
   
   // Datos del test
@@ -279,15 +257,6 @@ export interface InProgressTestResponse {
   accuracy: number;
   time_spent?: string;
   last_activity?: string;
-}
-
-export interface InProgressTestsFilter {
-  page?: number;
-  page_size?: number;
-  main_topic?: string;
-  level?: string;
-  sort_by?: 'progress' | 'date' | 'updated' | 'remaining_time';
-  sort_order?: 'asc' | 'desc';
 }
 
 export interface InProgressTestsResponse {
@@ -326,6 +295,7 @@ export interface TopicStructure {
   };
 }
 
+
 // Interfaz para el formulario de edición
 export interface TestEditFormData {
   title: string;
@@ -348,4 +318,63 @@ export interface AnswerEditFormData {
   id?: number;
   answer_text: string;
   is_correct: boolean;
+}
+
+
+export interface QuestionsResponse {
+  test_id: number;
+  total: number;
+  page: number;
+  page_size: number;
+  questions: QuestionWithAnswers[];
+  progress: number;
+}
+
+export interface SingleQuestionResponse {
+  question: QuestionWithAnswers;
+  question_number: number;
+  total_questions: number;
+  has_next: boolean;
+  has_previous: boolean;
+}
+
+export interface QuestionWithAnswers {
+  id: number;
+  question_text: string;
+  answers: AnswerResponse[];
+}
+
+export interface AnswerResponse {
+  id: number;
+  answer_text: string;
+}
+
+
+// Nueva interfaz para siguiente pregunta
+export interface NextQuestionResponse {
+  question: QuestionWithAnswers;
+  question_number: number;
+  total_questions: number;
+  is_completed: boolean;  
+  answered_count: number;
+  progress: number;
+}
+
+export interface SingleQuestionResponse {
+  question: QuestionWithAnswers;
+  question_number: number;
+  total_questions: number;
+  has_next: boolean;
+  is_last: boolean;
+}
+
+export interface QuestionWithAnswers {
+  id: number;
+  question_text: string;
+  answers: AnswerResponse[];
+}
+
+export interface AnswerResponse {
+  id: number;
+  answer_text: string;
 }
