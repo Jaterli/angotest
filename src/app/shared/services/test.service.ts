@@ -6,14 +6,15 @@ import {
   ResumeTestResponse, 
   TestsWithStatusResponse,
   Test,
-  NotStartedTestsResponse,
   CompletedTestsFullResponse,
   CompletedTestsFilter,
   InProgressTestsFullResponse,
   InProgressTestsFilter,
   QuestionsResponse,
   SingleQuestionResponse,
-  NextQuestionResponse 
+  NextQuestionResponse, 
+  NotStartedTestsFilter,
+  NotStartedTestsFullResponse
 } from '../../models/test.model';
 
 @Injectable({
@@ -135,37 +136,33 @@ export class TestService {
   }
   
 
-  // ======= Nuevo método para tests por hacer ======
-  getNotStartedTests(
-    page: number = 1, 
-    pageSize: number = 10, 
-    mainTopic?: string, 
-    level?: string,
-    sortBy?: string,
-    sortOrder?: string
-  ): Observable<NotStartedTestsResponse> {
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('page_size', pageSize.toString());
-
-    if (mainTopic && mainTopic !== 'all') {
-      params = params.set('main_topic', mainTopic);
+  // ======= Método para tests por hacer ======
+  getNotStartedTests(filter: NotStartedTestsFilter): Observable<NotStartedTestsFullResponse> {
+    let params = new HttpParams();
+    
+    // Parámetros obligatorios con valores por defecto
+    params = params.set('page', (filter.page || 1).toString());
+    params = params.set('page_size', (filter.page_size || 10).toString());
+    
+    // Parámetros de filtro
+    if (filter.main_topic && filter.main_topic !== 'all') {
+      params = params.set('main_topic', filter.main_topic);
     }
     
-    if (level && level !== 'all') {
-      params = params.set('level', level);
-    }
-
-    // Agregar parámetros de ordenación si existen
-    if (sortBy) {
-      params = params.set('sort_by', sortBy);
+    if (filter.level && filter.level !== 'all') {
+      params = params.set('level', filter.level);
     }
     
-    if (sortOrder) {
-      params = params.set('sort_order', sortOrder);
+    // Parámetros de ordenación
+    if (filter.sort_by) {
+      params = params.set('sort_by', filter.sort_by);
+    }
+    
+    if (filter.sort_order) {
+      params = params.set('sort_order', filter.sort_order);
     }
 
-    return this.http.get<NotStartedTestsResponse>(
+    return this.http.get<NotStartedTestsFullResponse>(
       `${this.apiUrl}/tests/not-started`, 
       { params }
     );

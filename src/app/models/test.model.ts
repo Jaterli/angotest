@@ -132,11 +132,14 @@ export interface TestWithStatus extends Test {
 }
 
 
+// Detalles de un test sin iniciar
 export interface NotStartedTestsFilter {
   page?: number;
   page_size?: number;
   main_topic?: string;
   level?: string;
+  sort_by?: 'test_title' | 'test_date' | 'level' | 'questions';
+  sort_order?: 'asc' | 'desc';
 }
 
 export interface NotStartedTestsResponse {
@@ -150,9 +153,25 @@ export interface NotStartedTestsResponse {
   levels: string[];
 }
 
+export interface NotStartedTestsStats {
+  total_tests: number;
+  total_questions: number;
+  average_questions: number;
+  levels_distribution: {
+    principiante: number;
+    intermedio: number;
+    avanzado: number;
+  };
+  main_topics_count: number;
+}
+
+export interface NotStartedTestsFullResponse {
+  data: NotStartedTestsResponse;
+  stats: NotStartedTestsStats;
+}
+
 
 // Detalles de un test completado
-
 export interface CompletedTestsFilter {
   page?: number;
   page_size?: number;
@@ -329,6 +348,7 @@ export interface QuestionsResponse {
   questions: QuestionWithAnswers[];
   progress: number;
 }
+
 
 export interface SingleQuestionResponse {
   question: QuestionWithAnswers;

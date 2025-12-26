@@ -33,7 +33,6 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   resultId?: number;
   
   // Señales para modales
-  showConfirmSubmitModal = signal(false);
   showErrorModal = signal(false);
   showSuccessModal = signal(false);
   showConfirmExitModal = signal(false);
@@ -158,27 +157,18 @@ export class TestSingleComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: NextQuestionResponse) => {
-          console.log('Respuesta del backend:', response);
           
           // Verificar si ya completó todas las preguntas
           if (response.is_completed) {
             this.totalQuestions = response.total_questions || this.totalQuestions;
-            this.showSubmitConfirmation();
+            this.showSuccessModal.set(true);
             return;
           }
           
           this.currentQuestion = response.question;
           this.currentQuestionNumber = response.question_number || 1;
           this.totalQuestions = response.total_questions || this.totalQuestions;
-          this.isCompleted = response.is_completed || false;
-          
-          console.log('Pregunta cargada:', {
-            questionId: this.currentQuestion?.id,
-            number: this.currentQuestionNumber,
-            total: this.totalQuestions,
-            answered: this.getAnsweredCount()
-          });
-          
+          this.isCompleted = response.is_completed || false;          
           this.loading.set(false);
         },
         error: (err) => {
@@ -238,13 +228,10 @@ export class TestSingleComponent implements OnInit, OnDestroy {
       time_taken: timeSpent,
       status: status
     };
-
-    console.log('Guardando progreso:', saveData);
-    
+  
     return this.testService.saveOrUpdateResult(saveData).pipe(
       tap({
         next: (response) => {
-          console.log('Progreso guardado:', response);
           if (response.result && response.result.id) {
             this.resultId = response.result.id;
           }
@@ -267,9 +254,7 @@ export class TestSingleComponent implements OnInit, OnDestroy {
 
   selectAnswer(answerId: number) {
     if (!this.currentQuestion) return;
-
-    console.log(`Seleccionando respuesta ${answerId} para pregunta ${this.currentQuestion.id}`);
-    
+   
     this.selectedAnswers[this.currentQuestion.id.toString()] = answerId;
     
     this.isContentProtected.set(false);
@@ -294,9 +279,7 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     
     // Deshabilitar botones mientras se guarda y carga
     this.savingProgress.set(true);
-    
-    console.log('Guardando respuesta antes de avanzar...');
-    
+       
     // Primero guardar la respuesta actual
     this.saveProgress('in_progress')
       .pipe(
@@ -309,13 +292,12 @@ export class TestSingleComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (response: NextQuestionResponse) => {
-          console.log('Siguiente pregunta recibida:', response);
           
           // Verificar si ya completó todas las preguntas
           if (response.is_completed) {
             this.totalQuestions = response.total_questions || this.totalQuestions;
             this.savingProgress.set(false);
-            this.showSubmitConfirmation();
+            this.showSuccessModal();
             return;
           }
           
@@ -336,16 +318,6 @@ export class TestSingleComponent implements OnInit, OnDestroy {
       });
   }
 
-  showSubmitConfirmation(): void {
-    // Verificar que todas las preguntas estén respondidas
-    if (this.getAnsweredCount() !== this.totalQuestions) {
-      this.errorMessage.set('Debes responder todas las preguntas antes de finalizar el test.');
-      this.showErrorModal.set(true);
-      return;
-    }
-    
-    this.showConfirmSubmitModal.set(true);
-  }
 
   submitTest(): void {
     if (!this.test) return;
@@ -367,10 +339,9 @@ export class TestSingleComponent implements OnInit, OnDestroy {
         next: (response: any) => {
           console.log('Test completado:', response);
           
-          if (response.result) {
-            const correct = response.result.correct_answers || 0;
-            const total = response.result.total || this.totalQuestions;
-            this.score.set(total > 0 ? Math.round((correct / total) * 100) : 0);
+          if (response) {
+            const correct = response.correct_answers || 0;
+            this.score.set(response.score_percentage);
           }
           
           // Desactivar protección de copia al terminar
@@ -386,8 +357,8 @@ export class TestSingleComponent implements OnInit, OnDestroy {
           this.showErrorModal.set(true);
         }
       });
-    
-    this.showConfirmSubmitModal.set(false);
+
+    this.showSuccessModal.set(false);
     this.isResuming = false;
   }
 
@@ -462,6 +433,10 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     this.router.navigate(['/tests/in-progress']);            
   }
 
+  formatTime(seconds: number): string{
+    return this.sharedUtilsService.sharedFormatTime(seconds);
+  }
+
   getLevelBadgeClass(level: string): string {
     return this.sharedUtilsService.getSharedLevelBadgeClass(level);
   }
@@ -473,10 +448,6 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   // Métodos para manejar modales
   confirmSubmit(): void {
     this.submitTest();
-  }
-
-  onCancelSubmit(): void {
-    this.showConfirmSubmitModal.set(false);
   }
 
   onSuccessModalConfirm(): void {

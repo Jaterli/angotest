@@ -1,10 +1,11 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TestWithCount, TestsListFilters, TestsFilterOptions } from '../../../models/test.model';
+import { TestWithCount } from '../../../models/test.model';
 import { RouterModule } from '@angular/router';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { TestsManagementService } from '../../services/tests-management.service';
+import { TestsFilterOptions, TestsListFilters } from '../../models/test-admin.models';
 
 @Component({
   selector: 'app-admin-tests-list',

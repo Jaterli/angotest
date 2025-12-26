@@ -176,7 +176,7 @@
                   <!-- Botón Siguiente o Finalizar -->
                   @if (getUnansweredQuestionsCount() == 0) {
                     <button 
-                      (click)="showSubmitConfirmation()"
+                      (click)="confirmSubmit()"
                       [disabled]="!isQuestionAnswered(currentQuestion.id)"
                       [class]="isQuestionAnswered(currentQuestion.id)
                         ? 'bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-600 text-white' 
@@ -270,24 +270,11 @@
   </div>
 }
 
-
-<!-- Modal de confirmación de envío -->
-<app-modal 
-  [isOpen]="showConfirmSubmitModal()"
-  title="¿Finalizar Test?"
-  [message]="'Estás a punto de finalizar el test. Has respondido ' + getAnsweredCount() + ' de ' + totalQuestions + ' preguntas. ¿Estás seguro de que deseas continuar?'"
-  icon="warning"
-  confirmText="Sí, Finalizar"
-  cancelText="No, Continuar"
-  (confirm)="confirmSubmit()"
-  (cancel)="onCancelSubmit()">
-</app-modal>
-
 <!-- Modal de éxito -->
 <app-modal 
   [isOpen]="showSuccessModal()"
   title="¡Test Completado!"
-  [message]="'Has completado el test con un puntaje del ' + score() + '%. Tiempo empleado: ' + timeTaken() + ' segundos.'"
+  [message]="'Has completado el test con un puntaje del ' + score() + '%. Tiempo empleado: ' +formatTime(timeTaken()) + '.'"
   icon="success"
   confirmText="Ver Resultados"
   cancelText="Volver a Tests"

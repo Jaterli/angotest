@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { IncorrectAnswersResponse } from '../../models/result.model';
 
 interface AnswerSubmit {
   question_id: number;
@@ -19,7 +20,19 @@ export class ResultService {
     return this.http.post(`${this.apiUrl}/tests/submit-result`, { test_id: testId, answers, time_taken: timeSpent });
   }
 
-  getMyResults(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/tests/results/me`);
-  }
+  // getMyResults(): Observable<any> {
+  //   return this.http.get(`${this.apiUrl}/tests/results/me`);
+  // }
+
+
+ getIncorrectAnswers(resultId: number): Observable<IncorrectAnswersResponse> {
+  console.log(`TestService: obteniendo respuestas incorrectas para resultado ${resultId}...`);
+  return this.http.get<IncorrectAnswersResponse>(
+    `${this.apiUrl}/results/${resultId}/incorrect-answers`
+  );
 }
+  
+
+}
+
+

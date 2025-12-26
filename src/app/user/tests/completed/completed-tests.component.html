@@ -419,16 +419,17 @@
             
             <!-- Acciones -->
             <div class="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <a 
-                [routerLink]="['/tests', test.test_id, 'review']"
+              
+              <button 
+                (click)="openReviewModal(test)"
                 class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex-1"
               >
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
                   <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
                 </svg>
-                Revisar respuestas
-              </a>
+                Revisar errores
+              </button>
               
               <a 
                 [routerLink]="['/tests', test.test_id, 'start-single']"
@@ -440,6 +441,8 @@
                 Realizar de nuevo
               </a>
             </div>
+
+            
           </div>
         </div>
       }
@@ -495,3 +498,156 @@
     }
   }
 </div>
+
+
+<!-- Modal para revisar respuestas incorrectas -->
+<app-modal 
+  [isOpen]="showReviewModal()"
+  [title]="selectedResult ? 'Respuestas Incorrectas - ' + selectedResult.test_title : 'Respuestas Incorrectas'"
+  icon="warning"
+  size="lg"
+  confirmText="Cerrar"
+  (confirm)="closeReviewModal()"
+  [showCancelButton]="false"
+  [customContent]="true"
+>
+  <div class="space-y-6">
+    <!-- Cargando -->
+    @if (reviewLoading()) {
+      <div class="flex flex-col items-center justify-center py-8">
+        <div class="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p class="text-gray-600 dark:text-gray-400">Cargando respuestas incorrectas...</p>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (reviewError()) {
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div class="flex items-center">
+          <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          <p class="text-sm text-red-700 dark:text-red-300">{{ reviewError() }}</p>
+        </div>
+      </div>
+    }
+
+    <!-- Sin respuestas incorrectas -->
+    @if (!reviewLoading() && !reviewError() && incorrectQuestions().length === 0 && selectedResult) {
+      <div class="text-center py-8">
+        <div class="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">¡Perfecto!</h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-4">
+          No tienes respuestas incorrectas en este test.
+        </p>
+        <div class="inline-flex items-center px-4 py-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 text-sm font-medium">
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+          </svg>
+          Puntuación: {{ selectedResult.score_rounded }}%
+        </div>
+      </div>
+    }
+
+    <!-- Lista de respuestas incorrectas -->
+    @if (!reviewLoading() && !reviewError() && incorrectQuestions().length > 0) {
+      <div>
+        <!-- Resumen -->
+        @if (reviewSummary()) {
+          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              <div>
+                <div class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ reviewSummary().total_questions }}</div>
+                <div class="text-xs text-gray-600 dark:text-gray-400">Total preguntas</div>
+              </div>
+              <div>
+                <div class="text-xl font-bold text-emerald-600 dark:text-emerald-400">{{ reviewSummary().total_correct }}</div>
+                <div class="text-xs text-gray-600 dark:text-gray-400">Correctas</div>
+              </div>
+              <div>
+                <div class="text-xl font-bold text-red-600 dark:text-red-400">{{ reviewSummary().total_incorrect }}</div>
+                <div class="text-xs text-gray-600 dark:text-gray-400">Incorrectas</div>
+              </div>
+              <div>
+                <div class="text-xl font-bold {{ getAccuracyColor(reviewSummary().score_percentage) }}">
+                  {{ reviewSummary().score_percentage | number:'1.0-1' }}%
+                </div>
+                <div class="text-xs text-gray-600 dark:text-gray-400">Puntuación</div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Lista de preguntas -->
+        <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+          @for (question of incorrectQuestions(); track question.question_id; let i = $index) {
+            <div class="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+              <div class="flex items-start gap-3 mb-4">
+                <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                  <span class="text-sm font-bold text-red-700 dark:text-red-300">{{ i + 1 }}</span>
+                </div>
+                <div class="flex-1">
+                  <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{{ getQuestionNumber(i) }}</h4>
+                  <p class="text-gray-900 dark:text-gray-100 text-base">{{ question.question_text }}</p>
+                </div>
+              </div>
+
+              <!-- Respuesta del usuario -->
+              <div class="mb-4">
+                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center">
+                  <svg class="w-4 h-4 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                  </svg>
+                  Tu respuesta
+                </div>
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                  <div class="flex items-center">
+                    <div class="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+                    <p class="text-red-800 dark:text-red-300">{{ question.user_answer_text }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Respuesta correcta -->
+              <div>
+                <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center">
+                  <svg class="w-4 h-4 mr-2 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  Respuesta correcta
+                </div>
+                <div class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
+                  <div class="flex items-center">
+                    <div class="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
+                    <p class="text-emerald-800 dark:text-emerald-300">{{ question.correct_answer_text }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Consejo -->
+        <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <div class="flex items-start">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            <div>
+              <p class="text-sm text-blue-800 dark:text-blue-300">
+                Revisa estas respuestas para mejorar tu desempeño en futuros tests. 
+                <span class="font-medium">{{ incorrectQuestions().length }}</span> 
+                {{ incorrectQuestions().length === 1 ? 'pregunta' : 'preguntas' }} 
+                necesitan tu atención.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</app-modal>

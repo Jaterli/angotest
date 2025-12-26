@@ -3,7 +3,11 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TestService } from '../../../shared/services/test.service';
-import { NotStartedTestsResponse, TestWithStatus } from '../../../models/test.model';
+import { 
+  TestWithStatus, 
+  NotStartedTestsFilter,
+  NotStartedTestsFullResponse 
+} from '../../../models/test.model';
 import { AuthService } from '../../../shared/services/auth.service';
 import { User } from '../../../models/user.model';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
@@ -23,10 +27,10 @@ export class NotStartedTestsComponent implements OnInit {
   tests = signal<TestWithStatus[]>([]);
   loading = signal(true);
   
-  // Filtros
+  // Filtros - usando NotStartedTestsFilter
   selectedMainTopic = signal<string>('all');
   selectedLevel = signal<string>('all');
-  selectedSortBy = signal<'date' | 'questions' | 'title'>('date');
+  selectedSortBy = signal<NotStartedTestsFilter["sort_by"]>('test_date');
   selectedSortOrder = signal<'asc' | 'desc'>('desc');
   selectedPageSize = signal<number>(10);
   
@@ -48,7 +52,8 @@ export class NotStartedTestsComponent implements OnInit {
       principiante: 0,
       intermedio: 0,
       avanzado: 0
-    }
+    },
+    main_topics_count: 0
   });
   
   // Usuario
@@ -80,7 +85,7 @@ export class NotStartedTestsComponent implements OnInit {
         const filters = JSON.parse(savedFilters);
         this.selectedMainTopic.set(filters.mainTopic || 'all');
         this.selectedLevel.set(filters.level || 'all');
-        this.selectedSortBy.set(filters.sortBy || 'date');
+        this.selectedSortBy.set(filters.sortBy || 'created_at');
         this.selectedSortOrder.set(filters.sortOrder || 'desc');
         this.selectedPageSize.set(filters.pageSize || 10);
       }
@@ -104,27 +109,43 @@ export class NotStartedTestsComponent implements OnInit {
   loadTests(): void {
     this.loading.set(true);
 
-    this.testService.getNotStartedTests(
-      this.currentPage(),
-      this.selectedPageSize(),
-      this.selectedMainTopic() !== 'all' ? this.selectedMainTopic() : undefined,
-      this.selectedLevel() !== 'all' ? this.selectedLevel() : undefined,
-      this.selectedSortBy(),
-      this.selectedSortOrder() === 'asc' ? 'asc' : 'desc'
-    ).subscribe({
-      next: (res: NotStartedTestsResponse) => {
-        this.tests.set(res.tests);
-        this.totalTests.set(res.total_tests);
-        this.totalPages.set(res.total_pages);
-        this.currentPage.set(res.current_page);
-        this.hasMore.set(res.has_more);
-        
-        // Actualizar opciones de filtros si es la primera página
-        if (this.currentPage() === 1) {
+    const filter: NotStartedTestsFilter = {
+      page: this.currentPage(),
+      page_size: this.selectedPageSize(),
+      main_topic: this.selectedMainTopic() !== 'all' ? this.selectedMainTopic() : undefined,
+      level: this.selectedLevel() !== 'all' ? this.selectedLevel() : undefined,
+      sort_by: this.selectedSortBy(),
+      sort_order: this.selectedSortOrder()
+    };
+
+    // Necesitamos crear un método en TestService para usar NotStartedTestsFilter
+    this.testService.getNotStartedTests(filter).subscribe({
+      next: (res: any) => {
+        // Manejar tanto la respuesta antigua como la nueva estructura
+        if (res.data) {
+          // Nueva estructura: { data: ..., stats: ... }
+          this.tests.set(res.data.tests);
+          this.totalTests.set(res.data.total_tests);
+          this.totalPages.set(res.data.total_pages);
+          this.currentPage.set(res.data.current_page);
+          this.hasMore.set(res.data.has_more);
+          this.mainTopics.set(res.data.main_topics);
+          this.levels.set(res.data.levels);
+          
+          if (res.stats) {
+            this.stats.set(res.stats);
+          } else {
+            this.calculateStats(res.data.tests);
+          }
+        } else {
+          // Estructura antigua (mantener compatibilidad)
+          this.tests.set(res.tests);
+          this.totalTests.set(res.total_tests);
+          this.totalPages.set(res.total_pages);
+          this.currentPage.set(res.current_page);
+          this.hasMore.set(res.has_more);
           this.mainTopics.set(res.main_topics);
           this.levels.set(res.levels);
-          
-          // Calcular estadísticas
           this.calculateStats(res.tests);
         }
         
@@ -141,8 +162,15 @@ export class NotStartedTestsComponent implements OnInit {
   private calculateStats(tests: TestWithStatus[]): void {
     const totalQuestions = tests.reduce((sum, test) => sum + (test.total_questions || 0), 0);
     const levelsDist = { principiante: 0, intermedio: 0, avanzado: 0 };
+    const mainTopicsSet = new Set<string>();
     
     tests.forEach(test => {
+      // Contar temas principales únicos
+      if (test.main_topic) {
+        mainTopicsSet.add(test.main_topic);
+      }
+      
+      // Contar distribución de niveles
       const level = test.level?.toLowerCase() || '';
       if (level.includes('principiante')) levelsDist.principiante++;
       else if (level.includes('intermedio')) levelsDist.intermedio++;
@@ -152,25 +180,18 @@ export class NotStartedTestsComponent implements OnInit {
     this.stats.set({
       total_tests: tests.length,
       total_questions: totalQuestions,
-      average_questions: tests.length > 0 ? totalQuestions / tests.length : 0,
-      levels_distribution: levelsDist
+      average_questions: tests.length > 0 ? Math.round(totalQuestions / tests.length) : 0,
+      levels_distribution: levelsDist,
+      main_topics_count: mainTopicsSet.size
     });
   }
   
-  getStatusBadgeClass(status:string){
-    return this.sharedUtilsService.getSharedStatusBadgeClass(status);
+  getLevelBadgeClass(level: string): string {
+    return this.sharedUtilsService.getSharedLevelBadgeClass(level);
   }
 
-  getLevelBadgeClass(level:string){
-     return this.sharedUtilsService.getSharedLevelBadgeClass(level);
-  }
-
-  getStatusText(status:string){
-    return this.sharedUtilsService.getSharedStatusText(status);
-  }
-
-  getPageNumbers(){
-    return this.sharedUtilsService.getSharedPageNumbers(this.totalPages(),this.currentPage());
+  getPageNumbers(): number[] {
+    return this.sharedUtilsService.getSharedPageNumbers(this.totalPages(), this.currentPage());
   }
 
   // Métodos para filtros
@@ -183,13 +204,12 @@ export class NotStartedTestsComponent implements OnInit {
   resetFilters(): void {
     this.selectedMainTopic.set('all');
     this.selectedLevel.set('all');
-    this.selectedSortBy.set('date');
+    this.selectedSortBy.set('test_date');
     this.selectedSortOrder.set('desc');
     this.selectedPageSize.set(10);
     this.currentPage.set(1);
     this.onFilterChange();
   }
-
 
   toggleSortOrder(): void {
     this.selectedSortOrder.update(order => order === 'asc' ? 'desc' : 'asc');
@@ -233,7 +253,6 @@ export class NotStartedTestsComponent implements OnInit {
     }
   }
 
-
   getStartIndex(): number {
     return ((this.currentPage() - 1) * this.selectedPageSize()) + 1;
   }
@@ -244,9 +263,10 @@ export class NotStartedTestsComponent implements OnInit {
 
   getCurrentSortLabel(): string {
     switch (this.selectedSortBy()) {
-      case 'date': return 'Fecha de creación';
+      case 'test_date': return 'Fecha de creación';
       case 'questions': return 'Número de preguntas';
-      case 'title': return 'Título';
+      case 'test_title': return 'Título';
+      case 'level': return 'Nivel de dificultad';
       default: return 'Fecha de creación';
     }
   }
@@ -267,4 +287,21 @@ export class NotStartedTestsComponent implements OnInit {
     return this.totalTests() > 0 && this.totalPages() > 1;
   }
 
+  // Nuevos métodos para estadísticas
+  getAverageQuestions(): string {
+    const avg = this.stats().average_questions;
+    return avg === 0 ? 'N/A' : avg.toFixed(1);
+  }
+
+  getLevelPercentage(level: 'principiante' | 'intermedio' | 'avanzado'): number {
+    const total = this.stats().total_tests;
+    if (total === 0) return 0;
+    
+    const count = this.stats().levels_distribution[level];
+    return Math.round((count / total) * 100);
+  }
+
+  formatDate(dateString: string): string {
+    return this.sharedUtilsService.sharedFormatDate(dateString);
+  }
 }
