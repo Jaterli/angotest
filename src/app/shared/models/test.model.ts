@@ -19,9 +19,9 @@ export interface Test {
   specific_topic: string;
   level: string;
   is_active: boolean;
-  test_date: string;
   created_by: number;
   created_at: string; 
+  updated_at: string;   
   questions?: Question[];
   results?: Result[];
 }
@@ -138,7 +138,7 @@ export interface NotStartedTestsFilter {
   page_size?: number;
   main_topic?: string;
   level?: string;
-  sort_by?: 'test_title' | 'test_date' | 'level' | 'questions';
+  sort_by?: 'test_title' | 'test_created_at' | 'test_level' | 'questions';
   sort_order?: 'asc' | 'desc';
 }
 
@@ -178,7 +178,7 @@ export interface CompletedTestsFilter {
   main_topic?: string;
   level?: string;
   status?: 'completed' | 'in_progress';
-  sort_by?: 'test_title' | 'test_date' | 'started_at' | 'updated_at' | 'time_taken' | 'score' | 'level';
+  sort_by?: 'test_title' | 'test_created_at' | 'test_level' | 'result_started_at' | 'result_updated_at' | 'result_time_taken' | 'score';
   sort_order?: 'asc' | 'desc';
   search?: string;
   from_date?: string;
@@ -186,14 +186,14 @@ export interface CompletedTestsFilter {
 }
 
 export interface CompletedTestResponse {
-  id: number;
+  result_id: number;
   user_id: number;
   test_id: number;
   correct_answers: number;
   wrong_answers: number;
   time_taken: number;
   status: string;
-  created_at: string;
+  started_at: string;
   updated_at: string;
   
   // Datos del test
@@ -203,10 +203,10 @@ export interface CompletedTestResponse {
   test_sub_topic: string;
   test_specific_topic: string;
   test_level: string;
-  test_date: string;
   test_created_at: string;
   
   // Estadísticas
+  attempt: number;
   total_questions: number;
   score_percent: number;
   score_rounded: number;
@@ -215,7 +215,7 @@ export interface CompletedTestResponse {
 }
 
 export interface CompletedTestsResponse {
-  tests: CompletedTestResponse[];
+  test_results: CompletedTestResponse[];
   total_tests: number;
   total_pages: number;
   current_page: number;
@@ -243,18 +243,17 @@ export interface InProgressTestsFilter {
   page_size?: number;
   main_topic?: string;
   level?: string;
-  sort_by?: 'test_title' | 'progress' | 'test_date' | 'updated_at' | 'started_at' | 'time_taken' | 'level' | 'remaining_time' | 'remaining_count';
+  sort_by?: 'test_title' | 'progress' | 'test_created_at' | 'result_updated_at' | 'result_started_at' | 'result_time_taken' | 'test_level' | 'remaining_time' | 'remaining_count';
   sort_order?: 'asc' | 'desc';
 }
 
 export interface InProgressTestResponse {
-  id: number;
+  result_id: number;
   user_id: number;
   test_id: number;
   time_taken: number;
   status: string;
   answers?: string;
-  created_at: string;
   started_at: string;
   updated_at: string;
   
@@ -265,7 +264,6 @@ export interface InProgressTestResponse {
   test_sub_topic: string;
   test_specific_topic: string;
   test_level: string;
-  test_date: string;
   test_created_at: string;
   
   // Estadísticas
@@ -279,7 +277,7 @@ export interface InProgressTestResponse {
 }
 
 export interface InProgressTestsResponse {
-  tests: InProgressTestResponse[];
+  results: InProgressTestResponse[];
   total_tests: number;
   total_pages: number;
   current_page: number;
@@ -323,7 +321,7 @@ export interface TestEditFormData {
   sub_topic: string;
   specific_topic: string;
   level: string;
-  test_date: string;
+  created_at: string;
   questions: QuestionEditFormData[];
 }
 

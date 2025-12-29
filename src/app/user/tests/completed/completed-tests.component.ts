@@ -4,13 +4,9 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TestService } from '../../../shared/services/test.service';
 import { AuthService } from '../../../shared/services/auth.service';
-import { User } from '../../../models/user.model';
+import { User } from '../../../shared/models/user.model';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
-import { 
-  CompletedTestResponse, 
-  CompletedTestsStats,
-  CompletedTestsFilter 
-} from '../../../models/test.model';
+import { CompletedTestResponse, CompletedTestsStats, CompletedTestsFilter } from '../../../shared/models/test.model';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { ResultService } from '../../../shared/services/result.service';
 
@@ -27,13 +23,13 @@ export class CompletedTestsComponent implements OnInit {
   private sharedUtilsService = inject(SharedUtilsService);
 
   // Tests y estado
-  tests = signal<CompletedTestResponse[]>([]);
+  completedTestsData = signal<CompletedTestResponse[]>([]);
   loading = signal(true);
   
   // Filtros
   selectedMainTopic = signal<string>('all');
   selectedLevel = signal<string>('all');
-  selectedSortBy = signal<CompletedTestsFilter["sort_by"]>('updated_at');
+  selectedSortBy = signal<CompletedTestsFilter["sort_by"]>('result_updated_at');
   selectedSortOrder = signal<'asc' | 'desc'>('desc');
   selectedPageSize = signal<number>(10);
   
@@ -59,11 +55,12 @@ export class CompletedTestsComponent implements OnInit {
   showReviewModal = signal(false);
   reviewLoading = signal(false);
   reviewError = signal<string>('');
-  
+    
   // Datos para el modal
   selectedResult: any = null;
   incorrectQuestions = signal<any[]>([]);
   reviewSummary = signal<any>(null);
+  showCorrectAnswer = false;
   
   // Memoria de filtros (localStorage)
   private readonly FILTER_STORAGE_KEY = 'completed_tests_filters';
@@ -123,7 +120,7 @@ export class CompletedTestsComponent implements OnInit {
 
     this.testService.getMyCompletedTests(filter).subscribe({
       next: (res) => {
-        this.tests.set(res.data.tests);
+        this.completedTestsData.set(res.data.test_results);
         this.totalTests.set(res.data.total_tests);
         this.totalPages.set(res.data.total_pages);
         this.currentPage.set(res.data.current_page);
@@ -146,14 +143,14 @@ export class CompletedTestsComponent implements OnInit {
   }
 
   // Método para abrir modal de revisión
-  openReviewModal(test: CompletedTestResponse): void {
-    this.selectedResult = test;
+  openReviewModal(completedTestData: CompletedTestResponse): void {
+    this.selectedResult = completedTestData;
     this.reviewLoading.set(true);
     this.reviewError.set('');
     this.showReviewModal.set(true);
     
     // Cargar respuestas incorrectas
-    this.resultService.getIncorrectAnswers(test.id).subscribe({
+    this.resultService.getIncorrectAnswers(completedTestData.result_id).subscribe({
       next: (response) => {
         this.incorrectQuestions.set(response.incorrect_questions || []);
         this.reviewSummary.set(response.summary || null);
@@ -184,7 +181,7 @@ export class CompletedTestsComponent implements OnInit {
   resetFilters(): void {
     this.selectedMainTopic.set('all');
     this.selectedLevel.set('all');
-    this.selectedSortBy.set('updated_at');
+    this.selectedSortBy.set('result_updated_at');
     this.selectedSortOrder.set('desc');
     this.selectedPageSize.set(10);
     this.currentPage.set(1);
@@ -243,10 +240,6 @@ export class CompletedTestsComponent implements OnInit {
     return this.sharedUtilsService.getSharedAccuracyColor(accuracy);
   }
 
-  getScoreBadgeClass(score: number): string {
-    return this.sharedUtilsService.getSharedScoreBadgeClass(score);
-  }
-
   getScoreMessage(score: number): string {
     return this.sharedUtilsService.getSharedScoreMessage(score);
   }
@@ -257,6 +250,10 @@ export class CompletedTestsComponent implements OnInit {
 
   formatDateTime(dateString: string): string {
     return this.sharedUtilsService.sharedFormatDateTime(dateString);
+  }
+
+  formatOnlyTime(dateString: string): string {
+    return this.sharedUtilsService.sharedFormatOnlyTime(dateString);
   }
 
   formatTime(seconds: number): string {
@@ -289,10 +286,10 @@ export class CompletedTestsComponent implements OnInit {
   getCurrentSortLabel(): string {
     switch (this.selectedSortBy()) {
       case 'test_title': return 'Título del test';
-      case 'test_date': return 'Fecha del test';
-      case 'started_at': return 'Fecha de inicio';
-      case 'updated_at': return 'Fecha de finalización';      
-      case 'time_taken': return 'Tiempo empleado';
+      case 'test_created_at': return 'Fecha del test';
+      case 'result_started_at': return 'Fecha de inicio';
+      case 'result_updated_at': return 'Fecha de finalización';      
+      case 'result_time_taken': return 'Tiempo empleado';
       case 'score': return 'Puntuación';
       default: return 'Fecha de finalización';
     }
@@ -311,7 +308,4 @@ export class CompletedTestsComponent implements OnInit {
     return this.incorrectQuestions().length > 0;
   }
   
-  getQuestionNumber(index: number): string {
-    return `Pregunta ${index + 1}`;
-  }
 }

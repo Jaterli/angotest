@@ -173,6 +173,26 @@ export class SharedUtilsService {
     });
   }
 
+  // sharedFormatCompleteDateTime(dateString: string): string {
+  //   const date = new Date(dateString);
+  //   return date.toLocaleTimeString('es-ES', {
+  //     day: '2-digit',
+  //     month: '2-digit',
+  //     year: 'numeric',
+  //     hour: '2-digit',
+  //     minute: '2-digit',
+  //     second: '2-digit'
+  //   });
+  // }
+
+  sharedFormatOnlyTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
   sharedFormatTime(seconds: number): string {
     if (!seconds || seconds === 0) return 'N/A';
     
@@ -216,9 +236,9 @@ export class SharedUtilsService {
   }
 
   // Validar si un test está disponible
-  sharedIsTestAvailable(testDate: Date | string): boolean {
+  sharedIsTestAvailable(createdAt: Date | string): boolean {
     const today = new Date();
-    const date = new Date(testDate);
+    const date = new Date(createdAt);
     return date <= today;
   }
 }

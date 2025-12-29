@@ -13,15 +13,58 @@ import { AuthService } from '../../services/auth.service';
 })
 export class NavbarComponent {
   showMobileMenu = signal(false);
+  showUserDropdown = signal(false);
+  userProfilePic = signal<string | null>(null); // Opcional: para avatar personalizado
 
   constructor(private authService: AuthService) {}
 
+  getUserInitials(): string {
+    if (!this.currentUser) return 'U';
+    
+    // Tomar iniciales del nombre y apellido
+    const firstName = this.currentUser.first_name || '';
+    const lastName = this.currentUser.last_name || '';
+    
+    if (firstName && lastName) {
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    } else if (this.currentUser.username) {
+      return this.currentUser.username.charAt(0).toUpperCase();
+    } else if (this.currentUser.email) {
+      return this.currentUser.email.charAt(0).toUpperCase();
+    }
+    
+    return 'U';
+  }
+
+  getUserDisplayName(): string {
+    if (!this.currentUser) return 'Usuario';
+    
+    // Preferir nombre completo
+    if (this.currentUser.first_name && this.currentUser.last_name) {
+      return `${this.currentUser.first_name} ${this.currentUser.last_name}`;
+    }
+    
+    // Si no, usar username
+    if (this.currentUser.username) {
+      return this.currentUser.username;
+    }
+    
+    // Si no, usar email (recortado)
+    if (this.currentUser.email) {
+      return this.currentUser.email.split('@')[0];
+    }
+    
+    return 'Usuario';
+  }
+
+
   toggleMobileMenu(): void {
     this.showMobileMenu.update(value => !value);
+    this.showUserDropdown.set(false);    
   }
 
   closeMobileMenu(): void {
-    this.showMobileMenu.set(false);
+    this.showMobileMenu.set(false);      
   }
 
   // Exponer señales y propiedades para template
@@ -78,5 +121,7 @@ export class NavbarComponent {
 
   logout() {
     this.authService.logout();
+    this.showUserDropdown.set(false);
+    this.showMobileMenu.set(false);    
   }
 }

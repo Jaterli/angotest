@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { PLATFORM_ID } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { User, AuthResponse, UserUpdateData, ChangePasswordData, RegisterData } from '../../models/user.model';
+import { User, AuthResponse, UserUpdateData, ChangePasswordData, RegisterData } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {

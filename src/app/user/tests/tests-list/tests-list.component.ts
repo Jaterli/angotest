@@ -1,8 +1,8 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { TestWithStatus, TestsWithStatusResponse } from '../../../models/test.model';
-import { User } from '../../../models/user.model';
+import { TestWithStatus, TestsWithStatusResponse } from '../../../shared/models/test.model';
+import { User } from '../../../shared/models/user.model';
 import { AuthService } from '../../../shared/services/auth.service';
 import { Router } from '@angular/router';
 import { ModalComponent } from '../../../shared/components/modal.component';

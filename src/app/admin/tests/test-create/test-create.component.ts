@@ -59,11 +59,11 @@ export class TestCreateComponent implements OnInit, OnDestroy {
     this.testForm = this.fb.group({
       title: ['', Validators.required],
       description: [''],
-      test_date: ['', Validators.required],
       main_topic: ['', Validators.required],
       sub_topic: ['', Validators.required],
       specific_topic: ['', Validators.required],
       level: ['', Validators.required],
+      is_active: [true], // Nuevo campo
       questions: this.fb.array([])
     });
   }
@@ -275,17 +275,21 @@ export class TestCreateComponent implements OnInit, OnDestroy {
     this.showValidationModal.set(true);
   }
   
-  addQuestion(): void {
+  addQuestion() {
     this.questions.push(this.fb.group({
       question_text: ['', Validators.required],
       answers: this.fb.array([
-        this.fb.group({ answer_text: '', is_correct: false, id: null }),
-        this.fb.group({ answer_text: '', is_correct: false, id: null }),
-        this.fb.group({ answer_text: '', is_correct: false, id: null }),
-        this.fb.group({ answer_text: '', is_correct: false, id: null })
+        this.fb.group({ answer_text: ['', Validators.required], is_correct: [true], id: null }),
+        this.fb.group({ answer_text: ['', Validators.required], is_correct: [false], id: null }),
+        this.fb.group({ answer_text: ['', Validators.required], is_correct: [false], id: null }),
       ])
     }));
+
+    const lastQuestion = document.querySelector('#cuestions > div:last-child');
+    if (lastQuestion)
+      lastQuestion.scrollIntoView();
   }
+
   
   getAnswers(qIndex: number): FormArray {
     return this.questions.at(qIndex).get('answers') as FormArray;
@@ -347,7 +351,7 @@ export class TestCreateComponent implements OnInit, OnDestroy {
       sub_topic: formValue.sub_topic,
       specific_topic: formValue.specific_topic,
       level: formValue.level,
-      test_date: formValue.test_date,
+      is_active: formValue.is_active, // Incluir is_active
       questions: filteredQuestions
     };
   }
@@ -444,13 +448,34 @@ export class TestCreateComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Manejar cambio de respuesta correcta (selección única)
+  onCorrectAnswerChange(questionIndex: number, answerIndex: number): void {
+    const answersArray = this.questions.at(questionIndex).get('answers') as FormArray;
+    
+    // Desmarcar todas las respuestas de esta pregunta
+    answersArray.controls.forEach((answerControl, index) => {
+      answerControl.get('is_correct')?.setValue(index === answerIndex);
+    });
+  }
+
+  // Verificar si una pregunta tiene respuesta correcta
+  hasCorrectAnswer(questionIndex: number): boolean {
+    const answersArray = this.questions.at(questionIndex).get('answers') as FormArray;
+    return answersArray.controls.some(answerControl => answerControl.get('is_correct')?.value);
+  }
+
+  // Verificar que todas las preguntas tengan respuesta correcta
+  allQuestionsHaveCorrectAnswer(): boolean {
+    return this.questions.controls.every((_, index) => this.hasCorrectAnswer(index));
+  }
+ 
   // Reiniciar formulario
   resetForm(): void {
     if (confirm('Se perderán todos los datos ingresados. ¿Estás seguro?')) {
       this.testForm.reset({
         title: '',
         description: '',
-        test_date: '',
+        created_at: '',
         main_topic: '',
         sub_topic: '',
         specific_topic: '',

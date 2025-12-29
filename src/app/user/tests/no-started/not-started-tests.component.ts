@@ -7,9 +7,9 @@ import {
   TestWithStatus, 
   NotStartedTestsFilter,
   NotStartedTestsFullResponse 
-} from '../../../models/test.model';
+} from '../../../shared/models/test.model';
 import { AuthService } from '../../../shared/services/auth.service';
-import { User } from '../../../models/user.model';
+import { User } from '../../../shared/models/user.model';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
 
 @Component({
@@ -30,12 +30,12 @@ export class NotStartedTestsComponent implements OnInit {
   // Filtros - usando NotStartedTestsFilter
   selectedMainTopic = signal<string>('all');
   selectedLevel = signal<string>('all');
-  selectedSortBy = signal<NotStartedTestsFilter["sort_by"]>('test_date');
+  selectedSortBy = signal<NotStartedTestsFilter["sort_by"]>('test_created_at');
   selectedSortOrder = signal<'asc' | 'desc'>('desc');
   selectedPageSize = signal<number>(10);
   
   mainTopics = signal<string[]>([]);
-  levels = signal<string[]>([]);
+  levels = signal<string[]>(['principiante', 'intermedio', 'avanzado']);
   
   // Paginación
   currentPage = signal(1);
@@ -130,7 +130,6 @@ export class NotStartedTestsComponent implements OnInit {
           this.currentPage.set(res.data.current_page);
           this.hasMore.set(res.data.has_more);
           this.mainTopics.set(res.data.main_topics);
-          this.levels.set(res.data.levels);
           
           if (res.stats) {
             this.stats.set(res.stats);
@@ -145,7 +144,6 @@ export class NotStartedTestsComponent implements OnInit {
           this.currentPage.set(res.current_page);
           this.hasMore.set(res.has_more);
           this.mainTopics.set(res.main_topics);
-          this.levels.set(res.levels);
           this.calculateStats(res.tests);
         }
         
@@ -204,7 +202,7 @@ export class NotStartedTestsComponent implements OnInit {
   resetFilters(): void {
     this.selectedMainTopic.set('all');
     this.selectedLevel.set('all');
-    this.selectedSortBy.set('test_date');
+    this.selectedSortBy.set('test_created_at');
     this.selectedSortOrder.set('desc');
     this.selectedPageSize.set(10);
     this.currentPage.set(1);
@@ -263,10 +261,10 @@ export class NotStartedTestsComponent implements OnInit {
 
   getCurrentSortLabel(): string {
     switch (this.selectedSortBy()) {
-      case 'test_date': return 'Fecha de creación';
-      case 'questions': return 'Número de preguntas';
+      case 'test_created_at': return 'Fecha de creación';
       case 'test_title': return 'Título';
-      case 'level': return 'Nivel de dificultad';
+      case 'test_level': return 'Nivel de dificultad';
+      case 'questions': return 'Número de preguntas';
       default: return 'Fecha de creación';
     }
   }

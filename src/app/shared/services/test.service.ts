@@ -15,7 +15,7 @@ import {
   NextQuestionResponse, 
   NotStartedTestsFilter,
   NotStartedTestsFullResponse
-} from '../../models/test.model';
+} from '../models/test.model';
 
 @Injectable({
   providedIn: 'root'

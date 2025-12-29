@@ -25,7 +25,7 @@
 
   <!-- Estadísticas generales -->
   @if (stats() && !loading()) {
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
       <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
         <div class="flex items-center">
           <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-4">
@@ -71,22 +71,6 @@
               {{ stats()!.average_questions | number:'1.0-0' }}
             </div>
             <div class="text-xs text-gray-500 dark:text-gray-400">Promedio preguntas/test</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center">
-          <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-4">
-            <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
-            </svg>
-          </div>
-          <div>
-            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {{ totalTests() }}
-            </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">Total tests</div>
           </div>
         </div>
       </div>
@@ -168,10 +152,10 @@
               (ngModelChange)="onFilterChange()"
               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
             >
-              <option value="test_title">Título</option>
-              <option value="test_date">Fecha de creación</option>
+              <option value="t_title">Título</option>
+              <option value="t_created_at">Fecha de creación</option>
+              <option value="t_level">Nivel</option>              
               <option value="questions">Número de preguntas</option>
-              <option value="level">Nivel</option>              
             </select>
           </div>
 
@@ -375,7 +359,7 @@
                 <div class="text-xs text-gray-500 dark:text-gray-400">Preguntas</div>
               </div>
               <div class="text-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-                <div class="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
+                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
                   {{ test.created_at | date:'dd/MM/yyyy' }}
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400">Creado</div>

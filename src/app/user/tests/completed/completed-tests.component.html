@@ -25,7 +25,7 @@
 
   <!-- Estadísticas generales -->
   @if (stats() && !loading()) {
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
       <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
         <div class="flex items-center">
           <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-4">
@@ -74,21 +74,6 @@
         </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center">
-          <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-4">
-            <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-            </svg>
-          </div>
-          <div>
-            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {{ totalTests() }}
-            </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">Total de resultados</div>
-          </div>
-        </div>
-      </div>
     </div>
   }
 
@@ -166,12 +151,13 @@
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           > 
             <option value="test_title">Título del test</option>  
-            <option value="test_date">Fecha del test</option>
-            <option value="created_at">Fecha de inicio</option>            
-            <option value="updated_at">Fecha de finalización</option>
+            <option value="test_created_at">Fecha del test</option>
+            <option value="test_level">Nivel</option>            
+            <option value="result_created_at">Fecha de inicio</option>            
+            <option value="result_updated_at">Fecha de finalización</option>
+            <option value="result_time_taken">Tiempo invertido</option>                        
             <option value="score">Puntuación</option>
-            <option value="level">Nivel</option>
-            <option value="time_taken">Tiempo empleado</option>
+
           </select>
         </div>
 
@@ -266,7 +252,7 @@
   }
 
   <!-- Sin resultados -->
-  @if (!loading() && tests().length === 0 && totalTests() === 0) {
+  @if (!loading() && completedTestsData().length === 0 && totalTests() === 0) {
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
       <div class="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4">
         <svg fill="currentColor" viewBox="0 0 20 20">
@@ -303,7 +289,7 @@
   }
 
   <!-- Información de resultados -->
-  @if (!loading() && tests().length > 0) {
+  @if (!loading() && completedTestsData().length > 0) {
     <div class="mb-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
       <div>
         Mostrando 
@@ -321,45 +307,42 @@
   }
 
   <!-- Lista de tests completados -->
-  @if (!loading() && tests().length > 0) {
+  @if (!loading() && completedTestsData().length > 0) {
     <div class="space-y-4">
-      @for (test of tests(); track test.id) {
+      @for (data of completedTestsData(); track data.result_id) {
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md dark:hover:shadow-gray-900/30 transition-all">
           <div class="p-6">
             <!-- Header con información básica -->
             <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
               <div class="flex-1">
                 <div class="flex flex-wrap items-center gap-2 mb-2">
-                  <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full {{ getLevelBadgeClass(test.test_level) }}">
-                    {{ test.test_level }}
-                  </span>
-                  <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full {{ getScoreBadgeClass(test.score_rounded) }}">
-                    {{ test.score_rounded }}%
+                  <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full {{ getLevelBadgeClass(data.test_level) }}">
+                    {{ data.test_level }}
                   </span>
                   <span class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ formatDate(test.created_at) }}
+                    {{ formatDateTime(data.test_created_at) }}
                   </span>
                 </div>
                 
                 <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                  {{ test.test_title }}
+                  {{ data.test_title }}
                 </h3>
                 
-                @if (test.test_description) {
+                @if (data.test_description) {
                   <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
-                    {{ test.test_description }}
+                    {{ data.test_description }}
                   </p>
                 }
                 
                 <!-- Temas -->
                 <div class="text-sm text-gray-600 dark:text-gray-400">
-                  <span class="font-medium">{{ test.test_main_topic }}</span>
-                  @if (test.test_sub_topic && test.test_sub_topic !== 'General') {
+                  <span class="font-medium">{{ data.test_main_topic }}</span>
+                  @if (data.test_sub_topic && data.test_sub_topic !== 'General') {
                     <span class="mx-1">›</span>
-                    <span>{{ test.test_sub_topic }}</span>
-                    @if (test.test_specific_topic && test.test_specific_topic !== 'General') {
+                    <span>{{ data.test_sub_topic }}</span>
+                    @if (data.test_specific_topic && data.test_specific_topic !== 'General') {
                       <span class="mx-1">›</span>
-                      <span>{{ test.test_specific_topic }}</span>
+                      <span>{{ data.test_specific_topic }}</span>
                     }
                   }
                 </div>
@@ -368,11 +351,11 @@
               <!-- Puntuación destacada -->
               <div class="flex-shrink-0">
                 <div class="text-center">
-                  <div class="text-3xl font-bold {{ getAccuracyColor(test.accuracy) }}">
-                    {{ test.score_rounded }}%
+                  <div class="text-3xl font-bold {{ getAccuracyColor(data.accuracy) }}">
+                    {{ data.score_rounded }}%
                   </div>
                   <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {{ getScoreMessage(test.score_rounded) }}
+                    {{ getScoreMessage(data.score_rounded) }}
                   </div>
                 </div>
               </div>
@@ -382,46 +365,56 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
               <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                 <div class="text-center">
-                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ test.correct_answers }}/{{ test.total_questions }}
-                  </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Respuestas correctas</div>
+                  <div class="text-2xl font-bold">
+                    <span class="text-green-800 dark:text-green-500">
+                      ✓ {{ data.correct_answers }}
+                    </span> /
+                    <span class="text-red-800 dark:text-red-500">
+                      ✗ {{ data.wrong_answers }}
+                    </span>  
+                    de {{ data.total_questions }}
+                  </div>                
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Respuestas</div>
                 </div>
               </div>
               
               <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                 <div class="text-center">
                   <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ test.wrong_answers }}
+                    {{ data.attempt }}
                   </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Respuestas incorrectas</div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Intento</div>
+                </div>
+              </div>
+
+              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                <div class="text-center">
+                  <span class="text-2xl tracking-tighter font-bold text-gray-900 dark:text-gray-100">
+                    {{ formatDate(data.updated_at) }},
+                  </span>
+                  <span class="text-sm">
+                    {{ formatOnlyTime(data.updated_at) }}
+                  </span>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Fecha de finalización</div>
                 </div>
               </div>
 
               <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
                 <div class="text-center">
                   <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ test.time_taken ? formatTime(test.time_taken) : 'N/A' }}
+                    {{ data.time_taken ? formatTime(data.time_taken) : 'N/A' }}
                   </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Tiempo empleado</div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">Tiempo invertido</div>
                 </div>
               </div>
-                            
-              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ formatDateTime(test.updated_at) }}
-                  </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Fecha de actualización</div>
-                </div>
-              </div>              
+         
             </div>
             
             <!-- Acciones -->
             <div class="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
               
               <button 
-                (click)="openReviewModal(test)"
+                (click)="openReviewModal(data)"
                 class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex-1"
               >
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -432,7 +425,7 @@
               </button>
               
               <a 
-                [routerLink]="['/tests', test.test_id, 'start-single']"
+                [routerLink]="['/tests', data.test_id, 'start-single']"
                 class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex-1"
               >
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -441,7 +434,6 @@
                 Realizar de nuevo
               </a>
             </div>
-
             
           </div>
         </div>
@@ -503,8 +495,7 @@
 <!-- Modal para revisar respuestas incorrectas -->
 <app-modal 
   [isOpen]="showReviewModal()"
-  [title]="selectedResult ? 'Respuestas Incorrectas - ' + selectedResult.test_title : 'Respuestas Incorrectas'"
-  icon="warning"
+  [title]="selectedResult ? 'Respuestas Incorrectas - ' + selectedResult.t_title : 'Respuestas Incorrectas'"
   size="lg"
   confirmText="Cerrar"
   (confirm)="closeReviewModal()"
@@ -591,7 +582,7 @@
                   <span class="text-sm font-bold text-red-700 dark:text-red-300">{{ i + 1 }}</span>
                 </div>
                 <div class="flex-1">
-                  <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">{{ getQuestionNumber(i) }}</h4>
+                  <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Pregunta {{ question.question_number }}</h4>
                   <p class="text-gray-900 dark:text-gray-100 text-base">{{ question.question_text }}</p>
                 </div>
               </div>
@@ -599,32 +590,22 @@
               <!-- Respuesta del usuario -->
               <div class="mb-4">
                 <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center">
-                  <svg class="w-4 h-4 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                  </svg>
+                  <div class="font-bold mr-2 text-red-500">✗</div>
                   Tu respuesta
                 </div>
                 <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                  <div class="flex items-center">
-                    <div class="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
-                    <p class="text-red-800 dark:text-red-300">{{ question.user_answer_text }}</p>
-                  </div>
+                  <p class="text-red-800 dark:text-red-300">{{ question.user_answer_text }}</p>
                 </div>
               </div>
 
               <!-- Respuesta correcta -->
-              <div>
+              <div *ngIf="showCorrectAnswer">
                 <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center">
-                  <svg class="w-4 h-4 mr-2 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                  </svg>
+                  <div class="font-bold mr-2 text-emerald-500">✓</div>
                   Respuesta correcta
                 </div>
                 <div class="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
-                  <div class="flex items-center">
-                    <div class="w-2 h-2 bg-emerald-500 rounded-full mr-3"></div>
-                    <p class="text-emerald-800 dark:text-emerald-300">{{ question.correct_answer_text }}</p>
-                  </div>
+                  <p class="text-emerald-800 dark:text-emerald-300">{{ question.correct_answer_text }}</p>
                 </div>
               </div>
             </div>

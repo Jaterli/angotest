@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TestWithCount } from '../../../models/test.model';
+import { TestWithCount } from '../../../shared/models/test.model';
 import { RouterModule } from '@angular/router';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { TestsManagementService } from '../../services/tests-management.service';
@@ -49,13 +49,13 @@ export class AdminTestListComponent implements OnInit {
 
   // Opciones de ordenación
   sortOptions = [
-    { value: 'created_at', label: 'Fecha de creación' },
     { value: 'title', label: 'Título' },
     { value: 'main_topic', label: 'Tema principal' },
     { value: 'sub_topic', label: 'Subtema' },
-    { value: 'level', label: 'Nivel' },
+    { value: 'created_at', label: 'Fecha de creación' },
+    { value: 'updated_at', label: 'Fecha de actualización' },
+    { value: 'level', label: 'Nivel' },   
     { value: 'is_active', label: 'Activado' },    
-    { value: 'test_date', label: 'Fecha del test' }
   ];
 
   // Computed properties

@@ -4,13 +4,13 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TestService } from '../../../shared/services/test.service';
 import { AuthService } from '../../../shared/services/auth.service';
-import { User } from '../../../models/user.model';
+import { User } from '../../../shared/models/user.model';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
 import { 
   InProgressTestResponse, 
   InProgressTestsStats,
   InProgressTestsFilter 
-} from '../../../models/test.model';
+} from '../../../shared/models/test.model';
 
 @Component({
   selector: 'app-in-progress-tests',
@@ -24,13 +24,13 @@ export class InProgressTestsComponent implements OnInit {
   private sharedUtilsService = inject(SharedUtilsService);
 
   // Tests y estado
-  tests = signal<InProgressTestResponse[]>([]);
+  inProgressTestsData = signal<InProgressTestResponse[]>([]);
   loading = signal(true);
   
   // Filtros
   selectedMainTopic = signal<string>('all');
   selectedLevel = signal<string>('all');
-  selectedSortBy = signal<InProgressTestsFilter["sort_by"]>('updated_at');
+  selectedSortBy = signal<InProgressTestsFilter["sort_by"]>('result_updated_at');
   selectedSortOrder = signal<'asc' | 'desc'>('desc');
   selectedPageSize = signal<number>(10);
   
@@ -110,7 +110,7 @@ export class InProgressTestsComponent implements OnInit {
 
     this.testService.getMyInProgressTests(filter).subscribe({
       next: (res) => {
-        this.tests.set(res.data.tests);
+        this.inProgressTestsData.set(res.data.results);
         this.totalTests.set(res.data.total_tests);
         this.totalPages.set(res.data.total_pages);
         this.currentPage.set(res.data.current_page);
@@ -143,7 +143,7 @@ export class InProgressTestsComponent implements OnInit {
   resetFilters(): void {
     this.selectedMainTopic.set('all');
     this.selectedLevel.set('all');
-    this.selectedSortBy.set('updated_at');
+    this.selectedSortBy.set('result_updated_at');
     this.selectedSortOrder.set('desc');
     this.selectedPageSize.set(10);
     this.currentPage.set(1);
@@ -241,6 +241,10 @@ export class InProgressTestsComponent implements OnInit {
     return this.sharedUtilsService.sharedFormatDateTime(dateString);
   }
 
+  formatOnlyTime(dateString: string): string {
+    return this.sharedUtilsService.sharedFormatOnlyTime(dateString);
+  }
+
   formatTime(seconds: number): string {
     return this.sharedUtilsService.sharedFormatTime(seconds);
   }
@@ -293,11 +297,11 @@ export class InProgressTestsComponent implements OnInit {
   getCurrentSortLabel(): string {
     switch (this.selectedSortBy()) {
       case 'progress': return 'Progreso';
-      case 'test_date': return 'Fecha del test';
-      case 'started_at': return 'Fecha de inicio';
-      case 'updated_at': return 'Última actualización';      
-      case 'time_taken': return 'Tiempo empleado';
-      case 'level': return 'Nivel';
+      case 'test_created_at': return 'Fecha del test';
+      case 'test_level': return 'Nivel';
+      case 'result_started_at': return 'Fecha de inicio';
+      case 'result_updated_at': return 'Última actualización';      
+      case 'result_time_taken': return 'Tiempo empleado';
       case 'remaining_count': return 'Preguntas restantes';
       default: return 'Última actualización';
     }
@@ -325,7 +329,7 @@ export class InProgressTestsComponent implements OnInit {
       this.testService.deleteTestProgress(testId).subscribe({
         next: () => {
           // Remover el test de la lista
-          this.tests.update(tests => tests.filter(t => t.test_id !== testId));
+          this.inProgressTestsData.update(tests => tests.filter(t => t.test_id !== testId));
           // Recargar para actualizar estadísticas
           this.loadTests();
         },

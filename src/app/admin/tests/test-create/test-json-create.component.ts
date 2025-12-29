@@ -78,7 +78,7 @@ export class TestJsonCreateComponent {
     const errors: string[] = [];
 
     // Validar campos requeridos del test según el nuevo modelo
-    const requiredFields = ['title', 'main_topic', 'level', 'test_date'];
+    const requiredFields = ['title', 'main_topic', 'level'];
     for (const field of requiredFields) {
       if (!testData[field]) {
         errors.push(`Falta el campo requerido: ${field}`);
@@ -90,14 +90,6 @@ export class TestJsonCreateComponent {
     for (const field of recommendedFields) {
       if (!testData[field]) {
         console.log(`Campo ${field} no presente, se establecerá como 'General'`);
-      }
-    }
-
-    // Validar formato de fecha
-    if (testData.test_date) {
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-      if (!dateRegex.test(testData.test_date)) {
-        errors.push('El campo test_date debe tener formato YYYY-MM-DD');
       }
     }
 
@@ -200,7 +192,6 @@ export class TestJsonCreateComponent {
       sub_topic: preview.sub_topic || 'General',
       specific_topic: preview.specific_topic || 'General',
       level: preview.level || 'Principiante',
-      test_date: preview.test_date,
       questions: preview.questions.map((question: any) => ({
         question_text: question.question_text.trim(),
         answers: question.answers.map((answer: any) => ({
@@ -259,7 +250,6 @@ export class TestJsonCreateComponent {
       "sub_topic": "Fundamentos de Programación",
       "specific_topic": "Sintaxis y Variables",
       "level": "Principiante",
-      "test_date": "2024-12-10",
       "questions": [
         {
           "question_text": "¿Qué es una variable?",

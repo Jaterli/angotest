@@ -19,7 +19,7 @@ export interface IncorrectAnswersResponse {
     sub_topic: string;
     specific_topic: string;
     level: string;
-    test_date: string;
+    created_at: string;
   };
   incorrect_questions: IncorrectAnswer[];
   total_questions: number;

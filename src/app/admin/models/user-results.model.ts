@@ -7,15 +7,15 @@ export interface UserResultDetail {
   sub_topic: string;
   specific_topic: string;
   level: string;
+  t_created_at: string;
   total_questions: number;
   correct_answers: number;
   wrong_answers: number;
   score: number;
   time_taken: number;
   status: 'completed' | 'in_progress' | 'abandoned';
-  created_at: string;
+  started_at: string;
   updated_at: string;
-  test_date: string;
 }
 
 export interface UserResultsFilters {

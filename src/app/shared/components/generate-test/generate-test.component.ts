@@ -19,7 +19,7 @@ import { AITestService } from '../../services/generate-test.service';
 import {
   GenerateTestRequest,
   UserQuota
-} from '../../../models/generate-test.model';
+} from '../../models/generate-test.model';
 import { AuthService } from '../../services/auth.service';
 
 @Component({

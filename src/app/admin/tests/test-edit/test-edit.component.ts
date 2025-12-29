@@ -2,7 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Test, TopicStructure } from '../../../models/test.model';
+import { Test } from '../../../shared/models/test.model';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { TestsManagementService } from '../../services/tests-management.service';
 
@@ -24,12 +24,6 @@ export class TestEditComponent implements OnInit {
   testId!: number;
   testData: Test | null = null;
 
-  // Estructura de temas
-  topicsHierarchy: TopicStructure = {};
-  mainTopics: string[] = [];
-  subTopics: string[] = [];
-  specificTopics: string[] = [];
-
   // Estados para modales
   showSuccessModal = signal(false);
   showErrorModal = signal(false);
@@ -44,7 +38,6 @@ export class TestEditComponent implements OnInit {
     this.testForm = this.fb.group({
       title: ['', Validators.required],
       description: [''],
-      test_date: ['', Validators.required],
       main_topic: ['', Validators.required],
       sub_topic: ['', Validators.required],
       specific_topic: ['', Validators.required],
@@ -107,16 +100,10 @@ export class TestEditComponent implements OnInit {
       this.questions.removeAt(0);
     }
 
-    // Formatear fecha
-    const formattedDate = test.test_date ? 
-      test.test_date.split('T')[0] : 
-      new Date().toISOString().split('T')[0];
-
     // Establecer valores principales
     this.testForm.patchValue({
       title: test.title || '',
       description: test.description || '',
-      test_date: formattedDate,
       main_topic: test.main_topic || '',
       sub_topic: test.sub_topic || '',
       specific_topic: test.specific_topic || '',
@@ -131,7 +118,6 @@ export class TestEditComponent implements OnInit {
       });
     }
   }
-
 
   addQuestionWithData(question: any) {
     const questionGroup = this.fb.group({
@@ -152,12 +138,12 @@ export class TestEditComponent implements OnInit {
         }));
       });
     } else {
-      // Agregar respuestas por defecto
+      // Agregar respuestas por defecto (primera correcta)
       for (let i = 0; i < 4; i++) {
         answersArray.push(this.fb.group({
           id: [null],
           answer_text: ['', Validators.required],
-          is_correct: [i === 0] // Primera respuesta correcta por defecto
+          is_correct: [i === 0]
         }));
       }
     }
@@ -175,9 +161,12 @@ export class TestEditComponent implements OnInit {
         this.fb.group({ id: [null], answer_text: ['', Validators.required], is_correct: [true] }),
         this.fb.group({ id: [null], answer_text: ['', Validators.required], is_correct: [false] }),
         this.fb.group({ id: [null], answer_text: ['', Validators.required], is_correct: [false] }),
-        this.fb.group({ id: [null], answer_text: ['', Validators.required], is_correct: [false] })
       ])
     }));
+
+    const lastQuestion = document.querySelector('#cuestions > div:last-child');
+    if (lastQuestion)
+      lastQuestion.scrollIntoView();
   }
 
   getAnswers(qIndex: number): FormArray {
@@ -190,6 +179,27 @@ export class TestEditComponent implements OnInit {
       answer_text: ['', Validators.required], 
       is_correct: [false] 
     }));
+  }
+
+  // NUEVO MÉTODO: Manejar cambio de respuesta correcta (selección única)
+  onCorrectAnswerChange(questionIndex: number, answerIndex: number): void {
+    const answersArray = this.questions.at(questionIndex).get('answers') as FormArray;
+    
+    // Desmarcar todas las respuestas de esta pregunta
+    answersArray.controls.forEach((answerControl, index) => {
+      answerControl.get('is_correct')?.setValue(index === answerIndex);
+    });
+  }
+
+  // NUEVO MÉTODO: Verificar si una pregunta tiene respuesta correcta
+  hasCorrectAnswer(questionIndex: number): boolean {
+    const answersArray = this.questions.at(questionIndex).get('answers') as FormArray;
+    return answersArray.controls.some(answerControl => answerControl.get('is_correct')?.value);
+  }
+
+  // NUEVO MÉTODO: Verificar que todas las preguntas tengan respuesta correcta
+  allQuestionsHaveCorrectAnswer(): boolean {
+    return this.questions.controls.every((_, index) => this.hasCorrectAnswer(index));
   }
 
   validateForm(): boolean {
@@ -218,10 +228,12 @@ export class TestEditComponent implements OnInit {
     // Validar cada pregunta
     for (let i = 0; i < questions.length; i++) {
       const question = questions[i];
+      
+      // Validar que haya una respuesta correcta (selección única)
       const hasCorrectAnswer = question.answers.some((answer: any) => answer.is_correct);
       
       if (!hasCorrectAnswer) {
-        this.showError(`La pregunta "${question.question_text}" debe tener al menos una respuesta correcta.`);
+        this.showError(`La pregunta "${question.question_text}" debe tener una respuesta correcta seleccionada.`);
         return false;
       }
       
@@ -306,7 +318,6 @@ export class TestEditComponent implements OnInit {
       sub_topic: formValue.sub_topic,
       specific_topic: formValue.specific_topic,
       level: formValue.level,
-      test_date: formValue.test_date,
       is_active: formValue.is_active,
       questions: filteredQuestions
     };
@@ -355,8 +366,6 @@ export class TestEditComponent implements OnInit {
   }
 
   cancel() {
-    this.showErrorModal.set(false);
-    
     if (confirm('¿Estás seguro de que quieres cancelar? Los cambios no guardados se perderán.')) {
       this.router.navigate(['/admin/tests']);
     }

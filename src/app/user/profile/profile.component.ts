@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ChangePasswordData, UserUpdateData } from '../../models/user.model';
+import { ChangePasswordData, UserUpdateData } from '../../shared/models/user.model';
 import { UserService } from '../../shared/services/user.service';
 
 @Component({
