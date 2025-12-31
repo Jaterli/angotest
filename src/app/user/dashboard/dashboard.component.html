@@ -1,510 +1,623 @@
 <div class="container mx-auto p-4 md:p-6 lg:p-8">
-      
-      <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <div>
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Mi Dashboard</h1>
-          <p class="text-gray-600 dark:text-gray-400 mt-2">
-            {{ authService.currentUser()?.first_name || authService.currentUser()?.username }}, 
-            aquí puedes ver tu progreso y compararte con otros usuarios
-          </p>
-          @if (dashboardData() && lastUpdated()) {
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Actualizado {{ lastUpdated() }}
-            </p>
-          }
-        </div>
+  
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Mi Dashboard</h1>
+      <p class="text-gray-600 dark:text-gray-400 mt-2">
+        {{ authService.currentUser()?.first_name || authService.currentUser()?.username }}, 
+        aquí puedes ver tu progreso y compararte con otros usuarios
+      </p>
+      @if (dashboardData() && lastUpdated()) {
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Actualizado {{ lastUpdated() }}
+        </p>
+      }
+    </div>
 
-        <!-- Botón para refrescar -->
-        <button (click)="loadDashboardData(true)"
-                [disabled]="loading()"
-                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-          <svg [class]="loading() ? 'animate-spin' : ''" 
-               class="w-4 h-4 mr-2" 
-               fill="currentColor" 
-               viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-          </svg>
-          {{ loading() ? 'Actualizando...' : 'Actualizar Datos' }}
-        </button>
+    <!-- Botón para refrescar -->
+    <button (click)="loadDashboardData(true)"
+            [disabled]="loading()"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+      <svg [class]="loading() ? 'animate-spin' : ''" 
+           class="w-4 h-4 mr-2" 
+           fill="currentColor" 
+           viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+      </svg>
+      {{ loading() ? 'Actualizando...' : 'Actualizar Datos' }}
+    </button>
+  </div>
+
+  <!-- Estado de carga -->
+  @if (loading() && !dashboardData()) {
+    <div class="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-gray-600 dark:text-gray-400 text-lg">Cargando dashboard...</p>
+    </div>
+  }
+
+  <!-- Contenido principal -->
+  @if (dashboardData() && !loading()) {
+    
+    <!-- Sección: Resumen General -->
+    <div class="mb-12">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Resumen General</h2>
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+          <span class="text-sm text-gray-500 dark:text-gray-400">
+            Puntuación de eficiencia: {{ efficiencyScore() }}%
+          </span>
+        </div>
       </div>
 
-      <!-- Estado de carga -->
-      @if (loading() && !dashboardData()) {
-        <div class="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-          <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p class="text-gray-600 dark:text-gray-400 text-lg">Cargando dashboard...</p>
+      <!-- Estadísticas principales en 2x2 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        
+        <!-- Tests y Estado -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center mb-4">
+            <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg mr-4">
+              <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {{ personalStats()!.tests_completed }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Tests completados</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="text-center p-2 bg-gray-50 dark:bg-gray-900/50 rounded">
+              <div class="text-lg font-semibold text-blue-600 dark:text-blue-400">
+                {{ personalStats()!.tests_in_progress }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">En progreso</div>
+            </div>
+            <div class="text-center p-2 bg-gray-50 dark:bg-gray-900/50 rounded">
+              <div class="text-lg font-semibold text-amber-600 dark:text-amber-400">
+                {{ personalStats()!.tests_abandoned }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Abandonados</div>
+            </div>
+            <div class="text-center p-2 bg-gray-50 dark:bg-gray-900/50 rounded">
+              <div class="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                {{ totalTests() }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Total</div>
+            </div>
+          </div>
         </div>
-      }
 
-      <!-- Contenido principal -->
-      @if (dashboardData() && !loading()) {
-        <!-- Sección: Mis Resultados -->
-        <div class="mb-12">
-          <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Mis Resultados</h2>
-            <div class="flex items-center gap-2">
-              <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-              <span class="text-sm text-gray-500 dark:text-gray-400">
-                Eficiencia: {{ efficiencyScore() }}%
+        <!-- Puntuación y Precisión -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center mb-4">
+            <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-4">
+              <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {{ accuracyStats().accuracy_percentage | number:'1.0-1' }}%
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Precisión general</div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-gray-600 dark:text-gray-400">Primer intento:</span>
+              <span class="font-medium text-emerald-600 dark:text-emerald-400">
+                {{ personalStats()!.average_score_first_attempt | number:'1.0-1' }}%
+              </span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-gray-600 dark:text-gray-400">Todos los intentos:</span>
+              <span class="font-medium text-blue-600 dark:text-blue-400">
+                {{ personalStats()!.average_score | number:'1.0-1' }}%
               </span>
             </div>
           </div>
-
-          <!-- Estadísticas generales -->
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <!-- Tests Completados -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-              <div class="flex items-center">
-                <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg mr-4">
-                  <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                  </svg>
-                </div>
-                <div>
-                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ personalStats()!.tests_completed }}
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Tests completados</div>
-                </div>
-              </div>
-              <div class="mt-4 grid grid-cols-2 gap-2">
-                <div class="text-center p-2 bg-gray-50 dark:bg-gray-900/50 rounded">
-                  <div class="text-lg font-semibold text-blue-600 dark:text-blue-400">
-                    {{ personalStats()!.tests_in_progress }}
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">En progreso</div>
-                </div>
-                <div class="text-center p-2 bg-gray-50 dark:bg-gray-900/50 rounded">
-                  <div class="text-lg font-semibold text-amber-600 dark:text-amber-400">
-                    {{ personalStats()!.tests_abandoned }}
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Abandonados</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Puntuación Promedio -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-              <div class="flex items-center">
-                <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-4">
-                  <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
-                  </svg>
-                </div>
-                <div>
-                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ personalStats()!.average_score | number:'1.0-1' }}%
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Puntuación promedio</div>
-                </div>
-              </div>
-              <div class="mt-4">
-                <div class="flex items-center justify-between text-sm mb-1">
-                  <span class="text-gray-600 dark:text-gray-400">Primer intento:</span>
-                  <span class="font-medium text-emerald-600 dark:text-emerald-400">
-                    {{ personalStats()!.average_score_first | number:'1.0-1' }}%
-                  </span>
-                </div>
-                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-2">
-                  <div class="bg-emerald-500 h-1.5 rounded-full" 
-                       [style.width.%]="personalStats()!.average_score_first"></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Tiempo Promedio -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-              <div class="flex items-center">
-                <div class="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg mr-4">
-                  <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                  </svg>
-                </div>
-                <div>
-                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ timeStats().average_time_per_test }}
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Tiempo promedio/test</div>
-                </div>
-              </div>
-              <div class="mt-4">
-                <div class="flex items-center justify-between text-sm mb-1">
-                  <span class="text-gray-600 dark:text-gray-400">Primer intento:</span>
-                  <span class="font-medium text-amber-600 dark:text-amber-400">
-                    {{ timeStats().average_time_first_attempt }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Respuestas Correctas/Incorrectas -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-              <div class="flex items-center">
-                <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-4">
-                  <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                  </svg>
-                </div>
-                <div>
-                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ accuracyStats().correct_answers }}
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Respuestas correctas</div>
-                </div>
-              </div>
-              <div class="mt-4 grid grid-cols-2 gap-2">
-                <div class="text-center p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded">
-                  <div class="text-lg font-semibold text-emerald-700 dark:text-emerald-400">
-                    {{ accuracyStats().accuracy_percentage | number:'1.0-1' }}%
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Precisión</div>
-                </div>
-                <div class="text-center p-2 bg-red-50 dark:bg-red-900/20 rounded">
-                  <div class="text-lg font-semibold text-red-700 dark:text-red-400">
-                    {{ accuracyStats().incorrect_answers }}
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Incorrectas</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Estadísticas detalladas -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <!-- Tiempos Totales -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Tiempos Totales</h3>
-              <div class="space-y-4">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center">
-                    <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                    <span class="text-gray-700 dark:text-gray-300">Total invertido:</span>
-                  </div>
-                  <span class="font-bold text-gray-900 dark:text-gray-100">
-                    {{ timeStats().total_time_invested }}
-                  </span>
-                </div>
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center">
-                    <div class="w-3 h-3 bg-emerald-500 rounded-full mr-3"></div>
-                    <span class="text-gray-700 dark:text-gray-300">Primer intento:</span>
-                  </div>
-                  <span class="font-bold text-gray-900 dark:text-gray-100">
-                    {{ formatTime(personalStats()!.total_time_first) }}
-                  </span>
-                </div>
-                <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                    Diferencia de tiempo (primer vs promedio):
-                  </div>
-                  <div class="text-2xl font-bold" 
-                       [class]="getTimeDifferenceClass(timeDifference())">
-                    {{ formatTimeDifference(timeDifference()) }}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Resumen de Actividad -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Resumen de Actividad</h3>
-              <div class="space-y-4">
-                <div class="grid grid-cols-3 gap-4">
-                  <div class="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div class="text-xl font-bold text-blue-700 dark:text-blue-400">
-                      {{ personalStats()!.tests_completed }}
-                    </div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400">Completados</div>
-                  </div>
-                  <div class="text-center p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                    <div class="text-xl font-bold text-amber-700 dark:text-amber-400">
-                      {{ personalStats()!.tests_in_progress }}
-                    </div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400">En progreso</div>
-                  </div>
-                  <div class="text-center p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-                    <div class="text-xl font-bold text-gray-700 dark:text-gray-300">
-                      {{ totalTests() }}
-                    </div>
-                    <div class="text-xs text-gray-600 dark:text-gray-400">Total tests</div>
-                  </div>
-                </div>
-                <div class="text-sm text-gray-600 dark:text-gray-400">
-                  <span class="font-medium">Total respuestas:</span> 
-                  {{ accuracyStats().total_answers }}
-                </div>
-                <div class="text-sm text-gray-600 dark:text-gray-400">
-                  Completado el 
-                  <span class="font-medium text-emerald-600 dark:text-emerald-400">
-                    {{ completionPercentage() | number:'1.0-1' }}%
-                  </span> 
-                  de todos tus tests.
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
-        <!-- Sección: Comparación con Otros Usuarios -->
-        <div>
-          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-            <div>
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Comparación con la Comunidad</h2>
-              <p class="text-gray-600 dark:text-gray-400 mt-2">
-                Compara tu rendimiento con {{ rankingStats()!.total_users }} usuarios
-              </p>
-            </div>
-            
-            <button (click)="loadRankingsData()"
-                    [disabled]="rankingsLoading()"
-                    class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-              <svg [class]="rankingsLoading() ? 'animate-spin' : ''" 
-                   class="w-4 h-4 mr-2" 
-                   fill="currentColor" 
-                   viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
-              </svg>
-              {{ showRankings() ? 'Actualizar Rankings' : 'Ver Rankings Completos' }}
-            </button>
-          </div>
-
-          <!-- Estadísticas de Ranking -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            @for (position of rankingPositions(); track position.category) {
-              <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between mb-4">
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ position.category }}</h3>
-                  <div class="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300 rounded-full">
-                    {{ position.total_participants }} participantes
-                  </div>
-                </div>
-                
-                <div class="flex items-center justify-center mb-6">
-                  <div class="relative">
-                    <svg class="w-32 h-32" viewBox="0 0 36 36">
-                      <path d="M18 2.0845
-                        a 15.9155 15.9155 0 0 1 0 31.831
-                        a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#e5e7eb"
-                        stroke-width="3"
-                        stroke-dasharray="100, 100"/>
-                      <path d="M18 2.0845
-                        a 15.9155 15.9155 0 0 1 0 31.831
-                        a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        [attr.stroke]="getPositionColor(position.category)"
-                        stroke-width="3"
-                        [attr.stroke-dasharray]="position.percentile + ', 100'"/>
-                    </svg>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center">
-                      <span class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                        #{{ position.position }}
-                      </span>
-                      <span class="text-xs text-gray-500 dark:text-gray-400">Posición</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="text-center">
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                    Top 
-                    <span class="font-medium" [class]="getPercentileColor(position.percentile)">
-                      {{ position.percentile }}%
-                    </span> 
-                    de participantes
-                  </p>
-                  <div class="inline-flex items-center px-3 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 text-sm rounded-full">
-                    {{ position.formatted_value }}
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-
-          <!-- Rankings Detallados -->
-          @if (showRankings()) {
-            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
-              <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Rankings Completos</h3>
-                <button (click)="showRankings.set(false)"
-                        class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                  Ocultar
-                </button>
-              </div>
-
-              @if (rankingsLoading()) {
-                <div class="flex flex-col items-center justify-center py-8">
-                  <div class="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                  <p class="text-gray-600 dark:text-gray-400">Cargando rankings...</p>
-                </div>
-              }
-
-              @if (rankingsData() && !rankingsLoading()) {
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <!-- Top por Tests Completados -->
-                  <div>
-                    <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center">
-                      <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-                      </svg>
-                      Más Tests Completados
-                    </h4>
-                    <div class="space-y-2">
-                      @for (user of rankingsData()!.top_by_tests; track user.user_id; let i = $index) {
-                        <div [class]="getRankingItemClass(i, user.user_id)"
-                             class="flex items-center justify-between p-3 rounded-lg">
-                          <div class="flex items-center">
-                            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 mr-3">
-                              <span class="text-sm font-medium">{{ i + 1 }}</span>
-                            </div>
-                            <div>
-                              <div class="font-medium text-sm">
-                                {{ user.username }}
-                              </div>
-                              <div class="text-xs text-gray-500 dark:text-gray-400">
-                                {{ user.value | number:'1.0-0' }} tests
-                              </div>
-                            </div>
-                          </div>
-                          @if (user.user_id === authService.currentUser()?.id) {
-                            <span class="text-xs font-medium px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full">
-                              Tú
-                            </span>
-                          }
-                        </div>
-                      }
-                    </div>
-                  </div>
-
-                  <!-- Top por Menor Tiempo -->
-                  <div>
-                    <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-3 flex items-center">
-                      <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
-                      </svg>
-                      Menor Tiempo Promedio
-                    </h4>
-                    <div class="space-y-2">
-                      @for (user of rankingsData()!.top_by_avg_time; track user.user_id; let i = $index) {
-                        <div [class]="getRankingItemClass(i, user.user_id)"
-                             class="flex items-center justify-between p-3 rounded-lg">
-                          <div class="flex items-center">
-                            <div class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 mr-3">
-                              <span class="text-sm font-medium">{{ i + 1 }}</span>
-                            </div>
-                            <div>
-                              <div class="font-medium text-sm">
-                                {{ user.username }}
-                              </div>
-                              <div class="text-xs text-gray-500 dark:text-gray-400">
-                                {{ dashboardService.formatTime(user.value) }}
-                              </div>
-                            </div>
-                          </div>
-                          @if (user.user_id === authService.currentUser()?.id) {
-                            <span class="text-xs font-medium px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 rounded-full">
-                              Tú
-                            </span>
-                          }
-                        </div>
-                      }
-                    </div>
-                  </div>
-
-                  <!-- Posición del Usuario -->
-                  <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                    <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-4">Tu Posición en los Rankings</h4>
-                    <div class="space-y-3">
-                      <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Tests completados:</span>
-                        <span class="font-medium text-blue-600 dark:text-blue-400">
-                          #{{ rankingsData()!.my_position.tests }}
-                        </span>
-                      </div>
-                      <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Tiempo promedio:</span>
-                        <span class="font-medium text-emerald-600 dark:text-emerald-400">
-                          #{{ rankingsData()!.my_position.avg_time }}
-                        </span>
-                      </div>
-                      <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Primer intento:</span>
-                        <span class="font-medium text-amber-600 dark:text-amber-400">
-                          #{{ rankingsData()!.my_position.avg_time_first }}
-                        </span>
-                      </div>
-                      <div class="pt-3 border-t border-gray-200 dark:border-gray-700">
-                        <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                          Participando con {{ rankingStats()!.total_users }} usuarios
-                        </div>
-                        <a routerLink="/tests/not-started"
-                           class="block w-full text-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
-                          Mejorar mi posición
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        </div>
-
-        <!-- Acciones Rápidas -->
-        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <a routerLink="/tests/not-started"
-             class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-gray-900/30 transition-all text-center">
-            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
-              </svg>
-            </div>
-            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Nuevo Test</h4>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Realiza un nuevo desafío</p>
-          </a>
-          
-          <a routerLink="/tests/completed"
-             class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-gray-900/30 transition-all text-center">
-            <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center mx-auto mb-3">
-              <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-              </svg>
-            </div>
-            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Ver Resultados</h4>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Revisa tests completados</p>
-          </a>
-          
-          <a routerLink="/tests/in-progress"
-             class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-gray-900/30 transition-all text-center">
-            <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center mx-auto mb-3">
+        <!-- Tiempos -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center mb-4">
+            <div class="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg mr-4">
               <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
               </svg>
             </div>
-            <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Continuar Tests</h4>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Termina tests en progreso</p>
-          </a>
+            <div>
+              <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {{ formatTimeShort(personalStats()!.average_time_per_question) }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Tiempo/pregunta</div>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-gray-600 dark:text-gray-400">Primer intento:</span>
+              <span class="font-medium text-emerald-600 dark:text-emerald-400">
+                {{ formatTimeShort(personalStats()!.average_time_per_question_first_attempt) }}
+              </span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <span class="text-gray-600 dark:text-gray-400">Diferencia:</span>
+              <span class="font-medium" [class]="getTimeDifferenceClass(timeDifference())">
+                {{ formatTimeDifference(timeDifference()) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Respuestas -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center mb-4">
+            <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-4">
+              <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div>
+              <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                {{ accuracyStats().correct_answers }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Respuestas correctas</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="text-center p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded">
+              <div class="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                {{ accuracyStats().accuracy_percentage | number:'1.0-1' }}%
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Precisión</div>
+            </div>
+            <div class="text-center p-2 bg-red-50 dark:bg-red-900/20 rounded">
+              <div class="text-sm font-semibold text-red-700 dark:text-red-400">
+                {{ accuracyStats().incorrect_answers }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Incorrectas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estadísticas detalladas en 2 columnas -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        
+        <!-- Actividad Resumida -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Resumen de Actividad</h3>
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-gray-600 dark:text-gray-400">Total de preguntas:</span>
+                <span class="font-bold text-gray-900 dark:text-gray-100">{{ accuracyStats().total_answers }}</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div class="bg-blue-500 h-2 rounded-full" 
+                     [style.width.%]="(accuracyStats().correct_answers / accuracyStats().total_answers) * 100"></div>
+              </div>
+            </div>
+            
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-gray-600 dark:text-gray-400">Tasa de finalización:</span>
+                <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ completionPercentage() | number:'1.0-1' }}%</span>
+              </div>
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div class="bg-emerald-500 h-2 rounded-full" 
+                     [style.width.%]="completionPercentage()"></div>
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div class="text-center">
+                <div class="text-xl font-bold text-blue-600 dark:text-blue-400">{{ personalStats()!.total_questions_answered }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">Preguntas totales</div>
+              </div>
+              <div class="text-center">
+                <div class="text-xl font-bold text-emerald-600 dark:text-emerald-400">{{ personalStats()!.total_questions_first_attempt }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">Primer intento</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tiempos Totales -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Inversión de Tiempo</h3>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                <span class="text-gray-700 dark:text-gray-300">Total invertido:</span>
+              </div>
+              <span class="font-bold text-gray-900 dark:text-gray-100">
+                {{ timeStats().total_time_invested }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="w-3 h-3 bg-emerald-500 rounded-full mr-3"></div>
+                <span class="text-gray-700 dark:text-gray-300">Solo primer intento:</span>
+              </div>
+              <span class="font-bold text-gray-900 dark:text-gray-100">
+                {{ formatTime(personalStats()!.total_time_first) }}
+              </span>
+            </div>
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                Eficiencia por intento:
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-gray-600 dark:text-gray-400">Primer intento vs promedio:</span>
+                <span class="text-lg font-bold" [class]="getTimeDifferenceClass(timeDifference())">
+                  {{ formatTimeDifference(timeDifference()) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección: Desempeño por Nivel -->
+    <div class="mb-12">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Desempeño por Nivel</h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Comparación con el promedio de la comunidad
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        @for (level of getLevelStatsKeys(); track level) {
+          @if (levelStats()![level] && levelComparisons()?.[level]) {
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+              <!-- Header del nivel -->
+              <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center">
+                  <div class="w-4 h-4 rounded-full mr-3" 
+                       [style.backgroundColor]="getLevelColor(level)"></div>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ level }}</h3>
+                </div>
+                <span class="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 rounded-full">
+                  {{ levelComparisons()![level].total_users }} usuarios
+                </span>
+              </div>
+
+              <!-- Estadísticas principales -->
+              <div class="space-y-4">
+                <!-- Precisión -->
+                <div>
+                  <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Precisión</span>
+                    @if (levelComparisons()![level].accuracy_improvement !== 0) {
+                      <span [class]="getImprovementColor(levelComparisons()![level].accuracy_improvement, true)"
+                            class="text-xs font-medium">
+                        {{ getImprovementIcon(levelComparisons()![level].accuracy_improvement, true) }}
+                        {{ abs(levelComparisons()![level].accuracy_improvement).toFixed(1) }}%
+                      </span>
+                    }
+                  </div>
+                  <div class="flex items-end gap-2 mb-1">
+                    <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                      {{ levelStats()![level].all_attempts.average_score | number:'1.0-1' }}%
+                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                      vs {{ levelComparisons()![level].community_avg_accuracy.toFixed(1) }}%
+                    </div>
+                  </div>
+                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div class="bg-emerald-500 h-2 rounded-full" 
+                         [style.width.%]="levelStats()![level].all_attempts.average_score"></div>
+                  </div>
+                </div>
+
+                <!-- Tiempo -->
+                <div>
+                  <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Tiempo/pregunta</span>
+                    @if (levelComparisons()![level].time_improvement !== 0) {
+                      <span [class]="getImprovementColor(levelComparisons()![level].time_improvement, false)"
+                            class="text-xs font-medium">
+                        {{ getImprovementIcon(levelComparisons()![level].time_improvement, false) }}
+                        {{ abs(levelComparisons()![level].time_improvement).toFixed(1) }}%
+                      </span>
+                    }
+                  </div>
+                  <div class="flex items-end gap-2 mb-1">
+                    <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {{ formatTimeShort(levelStats()![level].all_attempts.average_time_per_question) }}
+                    </div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                      vs {{ formatTimeShort(levelComparisons()![level].community_avg_time) }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Actividad -->
+                <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center">
+                      <div class="text-xl font-bold text-gray-900 dark:text-gray-100">
+                        {{ levelStats()![level].all_attempts.tests_count }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">Tests</div>
+                    </div>
+                    <div class="text-center">
+                      <div class="text-xl font-bold text-purple-600 dark:text-purple-400">
+                        {{ levelStats()![level].all_attempts.questions_count }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">Preguntas</div>
+                    </div>
+                  </div>
+                  <div class="text-center text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    Promedio: {{ levelComparisons()![level].community_avg_tests.toFixed(1) }} tests
+                  </div>
+                </div>
+
+                <!-- Posición en ranking -->
+                @if (getMyLevelPosition(level)) {
+                  <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div class="text-sm text-gray-600 dark:text-gray-400 mb-2">Tu posición:</div>
+                    <div class="grid grid-cols-2 gap-2">
+                      <div class="text-center p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                        <div class="text-lg font-bold text-blue-600 dark:text-blue-400">
+                          #{{ getMyLevelPosition(level)!.accuracy_all }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Precisión</div>
+                      </div>
+                      <div class="text-center p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded">
+                        <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                          #{{ getMyLevelPosition(level)!.avg_time_per_question_all }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">Tiempo</div>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Sección: Posición en la Comunidad -->
+    <div class="mb-12">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Posición en la Comunidad</h2>
+          <p class="text-gray-600 dark:text-gray-400 mt-2">
+            Compara tu rendimiento con {{ rankingStats()!.total_users }} usuarios activos
+          </p>
+        </div>
+        
+        <button (click)="loadRankingsData()"
+                [disabled]="rankingsLoading()"
+                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+          <svg [class]="rankingsLoading() ? 'animate-spin' : ''" 
+               class="w-4 h-4 mr-2" 
+               fill="currentColor" 
+               viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+          </svg>
+          {{ showRankings() ? 'Actualizar Rankings' : 'Ver Rankings Detallados' }}
+        </button>
+      </div>
+
+      <!-- Tarjetas de posiciones -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        @for (position of rankingPositions(); track position.category) {
+          <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ position.category }}</h3>
+              <div class="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300 rounded-full">
+                {{ position.total_participants }} usuarios
+              </div>
+            </div>
+            
+            <div class="flex items-center justify-center mb-6">
+              <div class="relative">
+                <svg class="w-32 h-32" viewBox="0 0 36 36">
+                  <path d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    stroke="#e5e7eb"
+                    stroke-width="3"
+                    stroke-dasharray="100, 100"/>
+                  <path d="M18 2.0845
+                    a 15.9155 15.9155 0 0 1 0 31.831
+                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                    fill="none"
+                    [attr.stroke]="getPositionColor(position.category)"
+                    stroke-width="3"
+                    [attr.stroke-dasharray]="position.percentile + ', 100'"/>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    #{{ position.position }}
+                  </span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400">Posición</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="text-center">
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                Mejor que el 
+                <span class="font-medium" [class]="getPercentileColor(position.percentile)">
+                  {{ position.percentile }}%
+                </span> 
+                de usuarios
+              </p>
+              <div class="inline-flex items-center px-3 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 text-sm rounded-full">
+                {{ position.formatted_value }}
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Percentiles -->
+      @if (rankingsData()?.percentile) {
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Tus Percentiles en Detalle</h3>
+          
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="text-center">
+              <div class="text-3xl font-bold mb-2" [class]="getPercentileColor(rankingsData()!.percentile.tests_completed)">
+                {{ rankingsData()!.percentile.tests_completed.toFixed(0) }}<span class="text-lg">%</span>
+              </div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">Tests Completados</div>
+            </div>
+            
+            <div class="text-center">
+              <div class="text-3xl font-bold mb-2" [class]="getPercentileColor(rankingsData()!.percentile.time_per_question_all)">
+                {{ rankingsData()!.percentile.time_per_question_all.toFixed(0) }}<span class="text-lg">%</span>
+              </div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">Velocidad</div>
+            </div>
+            
+            <div class="text-center">
+              <div class="text-3xl font-bold mb-2" [class]="getPercentileColor(rankingsData()!.percentile.time_per_question_first)">
+                {{ rankingsData()!.percentile.time_per_question_first.toFixed(0) }}<span class="text-lg">%</span>
+              </div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">Primer Intento</div>
+            </div>
+            
+            <div class="text-center">
+              <div class="text-3xl font-bold mb-2" [class]="getPercentileColor(rankingsData()!.percentile.accuracy_all)">
+                {{ rankingsData()!.percentile.accuracy_all.toFixed(0) }}<span class="text-lg">%</span>
+              </div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">Precisión</div>
+            </div>
+            
+            <div class="text-center">
+              <div class="text-3xl font-bold mb-2" [class]="getPercentileColor(rankingsData()!.percentile.accuracy_first)">
+                {{ rankingsData()!.percentile.accuracy_first.toFixed(0) }}<span class="text-lg">%</span>
+              </div>
+              <div class="text-sm text-gray-600 dark:text-gray-400">Precisión 1º</div>
+            </div>
+          </div>
+          
+          <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <div class="text-sm text-gray-500 dark:text-gray-400">
+              <p class="font-medium mb-2">Interpretación de percentiles:</p>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="flex items-center">
+                  <div class="w-3 h-3 rounded-full bg-emerald-500 mr-2"></div>
+                  <span class="text-xs">≥90%: Excelente</span>
+                </div>
+                <div class="flex items-center">
+                  <div class="w-3 h-3 rounded-full bg-blue-500 mr-2"></div>
+                  <span class="text-xs">75-89%: Muy bueno</span>
+                </div>
+                <div class="flex items-center">
+                  <div class="w-3 h-3 rounded-full bg-amber-500 mr-2"></div>
+                  <span class="text-xs">50-74%: Bueno</span>
+                </div>
+                <div class="flex items-center">
+                  <div class="w-3 h-3 rounded-full bg-gray-400 mr-2"></div>
+                  <span class="text-xs">&lt;50%: Mejorable</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       }
 
-      <!-- Error state -->
-      @if (error() && !dashboardData()) {
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
-          <div class="w-20 h-20 text-red-300 dark:text-red-600 mx-auto mb-4">
-            <svg fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-            </svg>
+      <!-- Rankings detallados (condicional) -->
+      @if (showRankings()) {
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Rankings Detallados</h3>
+            <button (click)="showRankings.set(false)"
+                    class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
+              Ocultar
+            </button>
           </div>
-          <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Error al cargar el dashboard</h3>
-          <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
-            {{ error() }}
-          </p>
-          <button (click)="loadDashboardData(true)"
-                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
-            Intentar de nuevo
-          </button>
+
+          @if (rankingsLoading()) {
+            <div class="flex flex-col items-center justify-center py-12">
+              <div class="w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p class="text-gray-600 dark:text-gray-400">Cargando rankings detallados...</p>
+            </div>
+          }
+
+          @if (rankingsData() && !rankingsLoading()) {
+            <!-- Aquí puedes añadir los rankings detallados si los necesitas -->
+            <div class="text-center py-8">
+              <p class="text-gray-500 dark:text-gray-400">Los rankings detallados se cargaron correctamente.</p>
+              <p class="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                Datos disponibles para {{ rankingsData()!.top_by_tests.length }} usuarios
+              </p>
+            </div>
+          }
         </div>
       }
     </div>
+
+    <!-- Acciones Rápidas -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <a routerLink="/tests/not-started"
+         class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-gray-900/30 transition-all text-center group">
+        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
+          <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Nuevo Test</h4>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Realiza un nuevo desafío</p>
+      </a>
+      
+      <a routerLink="/tests/completed"
+         class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-gray-900/30 transition-all text-center group">
+        <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-emerald-200 dark:group-hover:bg-emerald-900/50 transition-colors">
+          <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Ver Resultados</h4>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Revisa tests completados</p>
+      </a>
+      
+      <a routerLink="/tests/in-progress"
+         class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-gray-900/30 transition-all text-center group">
+        <div class="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-lg flex items-center justify-center mx-auto mb-3 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50 transition-colors">
+          <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+        <h4 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">Continuar Tests</h4>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Termina tests en progreso</p>
+      </a>
+    </div>
+  }
+
+  <!-- Error state -->
+  @if (error() && !dashboardData()) {
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
+      <div class="w-20 h-20 text-red-300 dark:text-red-600 mx-auto mb-4">
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Error al cargar el dashboard</h3>
+      <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
+        {{ error() }}
+      </p>
+      <button (click)="loadDashboardData(true)"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+        Intentar de nuevo
+      </button>
+    </div>
+  }
+</div>

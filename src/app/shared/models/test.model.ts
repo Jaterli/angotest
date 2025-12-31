@@ -217,6 +217,7 @@ export interface CompletedTestResponse {
 export interface CompletedTestsResponse {
   test_results: CompletedTestResponse[];
   total_tests: number;
+  total_tests_with_filters: number;
   total_pages: number;
   current_page: number;
   page_size: number;
@@ -279,6 +280,7 @@ export interface InProgressTestResponse {
 export interface InProgressTestsResponse {
   results: InProgressTestResponse[];
   total_tests: number;
+  total_tests_with_filters: number;
   total_pages: number;
   current_page: number;
   page_size: number;

@@ -1,9 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, throwError } from 'rxjs';
-import { DashboardSummary, DashboardData, RankingsData, PersonalStats, TimeStats, AccuracyStats, RankingStats, RankingPosition, ProgressData } from '../models/user-dashboard.model';
-
-
+import { DashboardStats, RankingsResponse, PersonalStats, TimeStats, AccuracyStats, RankingStats, RankingPosition, LevelStats } from '../models/user-dashboard.model';
 
 @Injectable({
   providedIn: 'root'
@@ -12,15 +10,16 @@ export class DashboardService {
   private http = inject(HttpClient);
   private readonly apiUrl = 'http://localhost:8080/api/dashboard';
 
-  private cachedDashboardData: DashboardSummary | null = null;
+  private cachedDashboardData: DashboardStats | null = null;
+  private cachedRankingsData: RankingsResponse | null = null;
   private cacheTimestamp: number = 0;
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutos en milisegundos
 
   /**
    * Obtiene todas las estadísticas del dashboard
    */
-  getDashboardStats(): Observable<DashboardData> {
-    return this.http.get<DashboardData>(`${this.apiUrl}/stats`).pipe(
+  getDashboardStats(): Observable<DashboardStats> {
+    return this.http.get<DashboardStats>(`${this.apiUrl}/stats`).pipe(
       catchError(this.handleError)
     );
   }
@@ -29,8 +28,8 @@ export class DashboardService {
    * Obtiene los rankings completos
    * @param limit Número máximo de resultados por ranking (por defecto 10)
    */
-  getRankings(limit: number = 10): Observable<RankingsData> {
-    return this.http.get<RankingsData>(`${this.apiUrl}/rankings?limit=${limit}`).pipe(
+  getRankings(limit: number = 10): Observable<RankingsResponse> {
+    return this.http.get<RankingsResponse>(`${this.apiUrl}/rankings?limit=${limit}`).pipe(
       catchError(this.handleError)
     );
   }
@@ -38,7 +37,7 @@ export class DashboardService {
   /**
    * Obtiene datos del dashboard con caché
    */
-  getDashboardWithCache(forceRefresh: boolean = false): Observable<DashboardSummary> {
+  getDashboardWithCache(forceRefresh: boolean = false): Observable<DashboardStats> {
     const now = Date.now();
     
     // Si hay caché válido y no se fuerza refresco
@@ -53,16 +52,43 @@ export class DashboardService {
 
     return new Observable(observer => {
       this.getDashboardStats().subscribe({
-        next: (dashboardData) => {
-          const summary: DashboardSummary = {
-            ...dashboardData,
-            last_updated: new Date()
-          };
-          
-          this.cachedDashboardData = summary;
+        next: (data) => {
+          this.cachedDashboardData = data;
           this.cacheTimestamp = now;
           
-          observer.next(summary);
+          observer.next(data);
+          observer.complete();
+        },
+        error: (err) => {
+          observer.error(err);
+        }
+      });
+    });
+  }
+
+  /**
+   * Obtiene rankings con caché
+   */
+  getRankingsWithCache(limit: number = 10, forceRefresh: boolean = false): Observable<RankingsResponse> {
+    const now = Date.now();
+    
+    // Si hay caché válido y no se fuerza refresco
+    if (!forceRefresh && 
+        this.cachedRankingsData && 
+        (now - this.cacheTimestamp) < this.CACHE_DURATION) {
+      return new Observable(observer => {
+        observer.next(this.cachedRankingsData!);
+        observer.complete();
+      });
+    }
+
+    return new Observable(observer => {
+      this.getRankings(limit).subscribe({
+        next: (data) => {
+          this.cachedRankingsData = data;
+          this.cacheTimestamp = now;
+          
+          observer.next(data);
           observer.complete();
         },
         error: (err) => {
@@ -76,11 +102,9 @@ export class DashboardService {
    * Obtiene estadísticas de tiempo formateadas
    */
   getFormattedTimeStats(personalStats: PersonalStats): TimeStats {
-    const totalTests = personalStats.tests_completed;
-    
     return {
-      average_time_per_test: this.formatTime(personalStats.average_time),
-      average_time_first_attempt: this.formatTime(personalStats.average_time_first),
+      average_time_per_question: this.formatTime(personalStats.average_time_per_question),
+      average_time_first_attempt: this.formatTime(personalStats.average_time_per_question_first_attempt),
       total_time_invested: this.formatTime(personalStats.total_time),
       efficiency_score: this.calculateEfficiencyScore(personalStats)
     };
@@ -90,60 +114,115 @@ export class DashboardService {
    * Obtiene estadísticas de precisión
    */
   getAccuracyStats(personalStats: PersonalStats): AccuracyStats {
-    const totalAnswers = personalStats.total_correct + personalStats.total_incorrect;
+    const totalCorrectAll = personalStats.total_correct.all_attempts;
+    const totalIncorrectAll = personalStats.total_incorrect.all_attempts;
+    const totalAnswers = totalCorrectAll + totalIncorrectAll;
     const accuracy = totalAnswers > 0 
-      ? (personalStats.total_correct / totalAnswers) * 100 
+      ? (totalCorrectAll / totalAnswers) * 100 
       : 0;
 
     return {
       accuracy_percentage: accuracy,
       total_answers: totalAnswers,
-      correct_answers: personalStats.total_correct,
-      incorrect_answers: personalStats.total_incorrect
+      correct_answers: totalCorrectAll,
+      incorrect_answers: totalIncorrectAll
     };
+  }
+
+  /**
+   * Obtiene estadísticas de nivel detalladas
+   */
+  getLevelComparisonStats(levelStats: LevelStats, communityLevelStats: any): any {
+    if (!levelStats || !communityLevelStats) return null;
+    
+    const improvement = {
+      time_all: this.calculateImprovement(
+        levelStats.all_attempts.average_time_per_question,
+        communityLevelStats.avg_time_per_question_all,
+        false // menor es mejor para tiempo
+      ),
+      accuracy_all: this.calculateImprovement(
+        levelStats.all_attempts.average_score,
+        communityLevelStats.avg_accuracy_all,
+        true // mayor es mejor para precisión
+      ),
+      tests_count: levelStats.all_attempts.tests_count,
+      community_avg_tests: communityLevelStats.avg_tests_per_user
+    };
+    
+    return improvement;
+  }
+
+  /**
+   * Calcula el porcentaje de mejora vs comunidad
+   */
+  private calculateImprovement(userValue: number, communityValue: number, higherIsBetter: boolean): number {
+    if (!communityValue || communityValue === 0) return 0;
+    
+    if (higherIsBetter) {
+      // Para precisión: (user - community) / community * 100
+      return ((userValue - communityValue) / communityValue) * 100;
+    } else {
+      // Para tiempo: (community - user) / community * 100
+      return ((communityValue - userValue) / communityValue) * 100;
+    }
   }
 
   /**
    * Calcula las posiciones del usuario en los rankings
    */
-  getRankingPositions(rankingStats: RankingStats): RankingPosition[] {
+  getRankingPositions(rankingStats: RankingStats, rankingsResponse?: RankingsResponse): RankingPosition[] {
+    const totalUsers = rankingStats.total_rank_by_avg_time || rankingStats.total_rank_by_tests || 1;
+    
+    // Usar percentiles del endpoint de rankings si están disponibles
+    let timePercentile = this.calculatePercentile(rankingStats.rank_by_avg_time_per_question || 0, totalUsers);
+    let firstAttemptPercentile = this.calculatePercentile(rankingStats.rank_by_avg_time_per_question_first || 0, totalUsers);
+    let testsPercentile = 0;
+    let accuracyPercentile = 0;
+
+    if (rankingsResponse?.percentile) {
+      timePercentile = rankingsResponse.percentile.time_per_question_all || timePercentile;
+      firstAttemptPercentile = rankingsResponse.percentile.time_per_question_first || firstAttemptPercentile;
+      testsPercentile = rankingsResponse.percentile.tests_completed || 0;
+      accuracyPercentile = rankingsResponse.percentile.accuracy_all || 0;
+    }
+
     const positions: RankingPosition[] = [
       {
-        category: 'Tests Completados',
-        position: rankingStats.rank_by_tests,
-        total_participants: rankingStats.total_rank_by_tests,
-        percentile: this.calculatePercentile(rankingStats.rank_by_tests, rankingStats.total_rank_by_tests),
-        value: 0, // Este valor vendría del personal_stats
-        formatted_value: `#${rankingStats.rank_by_tests} de ${rankingStats.total_rank_by_tests}`
-      },
-      {
         category: 'Tiempo Promedio',
-        position: rankingStats.rank_by_avg_time,
-        total_participants: rankingStats.total_rank_by_avg_time,
-        percentile: this.calculatePercentile(rankingStats.rank_by_avg_time, rankingStats.total_rank_by_avg_time),
-        value: 0, // Este valor vendría del personal_stats
-        formatted_value: `#${rankingStats.rank_by_avg_time} de ${rankingStats.total_rank_by_avg_time}`
+        position: rankingStats.rank_by_avg_time_per_question || 0,
+        total_participants: totalUsers,
+        percentile: timePercentile,
+        value: 0,
+        formatted_value: `#${rankingStats.rank_by_avg_time_per_question || 0} de ${totalUsers}`
       },
       {
-        category: 'Primera Versión',
-        position: rankingStats.rank_by_avg_time_first,
-        total_participants: rankingStats.total_rank_by_avg_time, // Mismo que tiempo promedio
-        percentile: this.calculatePercentile(rankingStats.rank_by_avg_time_first, rankingStats.total_rank_by_avg_time),
-        value: 0, // Este valor vendría del personal_stats
-        formatted_value: `#${rankingStats.rank_by_avg_time_first}`
+        category: 'Primer Intento',
+        position: rankingStats.rank_by_avg_time_per_question_first || 0,
+        total_participants: totalUsers,
+        percentile: firstAttemptPercentile,
+        value: 0,
+        formatted_value: `#${rankingStats.rank_by_avg_time_per_question_first || 0} de ${totalUsers}`
+      },
+      {
+        category: 'Tests Completados',
+        position: rankingsResponse?.my_position?.tests || 0,
+        total_participants: rankingStats.total_users || 1,
+        percentile: testsPercentile,
+        value: 0,
+        formatted_value: `#${rankingsResponse?.my_position?.tests || 0} de ${rankingStats.total_users || 1}`
+      },
+      {
+        category: 'Precisión',
+        position: rankingsResponse?.my_position?.accuracy_all || 0,
+        total_participants: totalUsers,
+        percentile: accuracyPercentile,
+        value: 0,
+        formatted_value: `#${rankingsResponse?.my_position?.accuracy_all || 0} de ${totalUsers}`
       }
     ];
 
     return positions;
-  }
-
-  /**
-   * Obtiene datos de progreso del usuario
-   */
-  getProgressData(): Observable<ProgressData> {
-    return this.http.get<ProgressData>(`${this.apiUrl}/progress`).pipe(
-      catchError(this.handleError)
-    );
   }
 
   /**
@@ -166,18 +245,27 @@ export class DashboardService {
   }
 
   /**
+   * Formatea tiempo en segundos a formato mm:ss
+   */
+  formatTimeShort(seconds: number): string {
+    if (!seconds || seconds <= 0) return '0s';
+    
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    
+    if (minutes > 0) {
+      return `${minutes}m ${secs}s`;
+    } else {
+      return `${secs}s`;
+    }
+  }
+
+  /**
    * Calcula el percentil de una posición
    */
   calculatePercentile(position: number, total: number): number {
     if (total === 0 || position === 0) return 0;
     return Math.round(((total - position + 1) / total) * 100);
-  }
-
-  /**
-   * Calcula porcentaje para gráfico circular
-   */
-  getCirclePercentage(position: number, total: number): number {
-    return this.calculatePercentile(position, total);
   }
 
   /**
@@ -187,7 +275,7 @@ export class DashboardService {
     if (personalStats.tests_completed === 0) return 0;
     
     const accuracy = this.getAccuracyStats(personalStats).accuracy_percentage;
-    const avgTime = personalStats.average_time;
+    const avgTime = personalStats.average_time_per_question;
     
     // Puntuación basada en precisión (70%) y tiempo (30%)
     const timeScore = avgTime > 0 ? Math.min(100, (300 / avgTime) * 100) : 0;
@@ -196,40 +284,31 @@ export class DashboardService {
   }
 
   /**
-   * Obtiene la clase CSS para el badge de nivel
+   * Calcula estadísticas comparativas con la comunidad
    */
-  getLevelBadgeClass(level: string): string {
-    switch (level?.toLowerCase()) {
-      case 'principiante':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-      case 'intermedio':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
-      case 'avanzado':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
-    }
+  getCommunityComparison(rankingsResponse: RankingsResponse): any {
+    if (!rankingsResponse) return null;
+
+    return {
+      time_improvement: this.calculateImprovementPercentage(
+        rankingsResponse.my_position.avg_time_per_question_all,
+        rankingsResponse.community_averages.avg_time_per_question_all,
+        false
+      ),
+      accuracy_improvement: this.calculateImprovementPercentage(
+        rankingsResponse.my_position.accuracy_all,
+        rankingsResponse.community_averages.accuracy_all,
+        true
+      ),
+      community_avg_time: rankingsResponse.community_averages.avg_time_per_question_all,
+      community_avg_accuracy: rankingsResponse.community_averages.accuracy_all
+    };
   }
 
-  /**
-   * Obtiene la clase CSS para el color de precisión
-   */
-  getAccuracyColor(accuracy: number): string {
-    if (accuracy >= 90) return 'text-emerald-600 dark:text-emerald-400';
-    if (accuracy >= 70) return 'text-blue-600 dark:text-blue-400';
-    if (accuracy >= 50) return 'text-amber-600 dark:text-amber-400';
-    return 'text-red-600 dark:text-red-400';
-  }
-
-  /**
-   * Obtiene un mensaje según la puntuación
-   */
-  getScoreMessage(score: number): string {
-    if (score >= 95) return '¡Excelente!';
-    if (score >= 85) return 'Muy bien';
-    if (score >= 70) return 'Buen trabajo';
-    if (score >= 60) return 'Puedes mejorar';
-    return 'Sigue practicando';
+  private calculateImprovementPercentage(userPosition: number, communityAvg: number, higherIsBetter: boolean): number {
+    // Esta es una simplificación - en realidad necesitaríamos el valor real del usuario
+    // Por ahora, usamos la posición como proxy
+    return 0;
   }
 
   /**
@@ -237,14 +316,8 @@ export class DashboardService {
    */
   clearCache(): void {
     this.cachedDashboardData = null;
+    this.cachedRankingsData = null;
     this.cacheTimestamp = 0;
-  }
-
-  /**
-   * Verifica si la caché está expirada
-   */
-  isCacheExpired(): boolean {
-    return (Date.now() - this.cacheTimestamp) > this.CACHE_DURATION;
   }
 
   /**

@@ -5,8 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { TestService } from '../../../shared/services/test.service';
 import { 
   TestWithStatus, 
-  NotStartedTestsFilter,
-  NotStartedTestsFullResponse 
+  NotStartedTestsFilter, 
 } from '../../../shared/models/test.model';
 import { AuthService } from '../../../shared/services/auth.service';
 import { User } from '../../../shared/models/user.model';
@@ -35,7 +34,7 @@ export class NotStartedTestsComponent implements OnInit {
   selectedPageSize = signal<number>(10);
   
   mainTopics = signal<string[]>([]);
-  levels = signal<string[]>(['principiante', 'intermedio', 'avanzado']);
+  levels = signal<string[]>(['Principiante', 'Intermedio', 'Avanzado']);
   
   // Paginación
   currentPage = signal(1);
@@ -49,9 +48,9 @@ export class NotStartedTestsComponent implements OnInit {
     total_questions: 0,
     average_questions: 0,
     levels_distribution: {
-      principiante: 0,
-      intermedio: 0,
-      avanzado: 0
+      Principiante: 0,
+      Intermedio: 0,
+      Avanzado: 0
     },
     main_topics_count: 0
   });
@@ -159,7 +158,7 @@ export class NotStartedTestsComponent implements OnInit {
 
   private calculateStats(tests: TestWithStatus[]): void {
     const totalQuestions = tests.reduce((sum, test) => sum + (test.total_questions || 0), 0);
-    const levelsDist = { principiante: 0, intermedio: 0, avanzado: 0 };
+    const levelsDist = { Principiante: 0, Intermedio: 0, Avanzado: 0 };
     const mainTopicsSet = new Set<string>();
     
     tests.forEach(test => {
@@ -170,9 +169,9 @@ export class NotStartedTestsComponent implements OnInit {
       
       // Contar distribución de niveles
       const level = test.level?.toLowerCase() || '';
-      if (level.includes('principiante')) levelsDist.principiante++;
-      else if (level.includes('intermedio')) levelsDist.intermedio++;
-      else if (level.includes('avanzado')) levelsDist.avanzado++;
+      if (level.includes('Principiante')) levelsDist.Principiante++;
+      else if (level.includes('Intermedio')) levelsDist.Intermedio++;
+      else if (level.includes('Avanzado')) levelsDist.Avanzado++;
     });
     
     this.stats.set({
@@ -291,13 +290,13 @@ export class NotStartedTestsComponent implements OnInit {
     return avg === 0 ? 'N/A' : avg.toFixed(1);
   }
 
-  getLevelPercentage(level: 'principiante' | 'intermedio' | 'avanzado'): number {
-    const total = this.stats().total_tests;
-    if (total === 0) return 0;
+  // getLevelPercentage(level: 'Principiante' | 'Intermedio' | 'Avanzado'): number {
+  //   const total = this.stats().total_tests;
+  //   if (total === 0) return 0;
     
-    const count = this.stats().levels_distribution[level];
-    return Math.round((count / total) * 100);
-  }
+  //   const count = this.stats().levels_distribution[level];
+  //   return Math.round((count / total) * 100);
+  // }
 
   formatDate(dateString: string): string {
     return this.sharedUtilsService.sharedFormatDate(dateString);

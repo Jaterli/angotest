@@ -32,13 +32,14 @@ export class CompletedTestsComponent implements OnInit {
   selectedSortBy = signal<CompletedTestsFilter["sort_by"]>('result_updated_at');
   selectedSortOrder = signal<'asc' | 'desc'>('desc');
   selectedPageSize = signal<number>(10);
-  
+  levelOptions = this.sharedUtilsService.getSharedPredefinedLevels();
+
   mainTopics = signal<string[]>([]);
-  levels = signal<string[]>([]);
-  
+
   // Paginación
   currentPage = signal(1);
   totalTests = signal(0);
+  totalTestsWithFilters = signal(0);
   totalPages = signal(0);
   hasMore = signal(false);
   
@@ -122,14 +123,14 @@ export class CompletedTestsComponent implements OnInit {
       next: (res) => {
         this.completedTestsData.set(res.data.test_results);
         this.totalTests.set(res.data.total_tests);
-        this.totalPages.set(res.data.total_pages);
+        this.totalTestsWithFilters.set(res.data.total_tests_with_filters);
+        this.totalPages.set(res.data.total_pages);        
         this.currentPage.set(res.data.current_page);
         this.hasMore.set(res.data.has_more);
         this.stats.set(res.stats);
         
         if (this.currentPage() === 1) {
           this.mainTopics.set(res.data.main_topics);
-          this.levels.set(res.data.levels);
         }
         
         this.loading.set(false);
@@ -280,7 +281,7 @@ export class CompletedTestsComponent implements OnInit {
   }
 
   getEndIndex(): number {
-    return Math.min(this.currentPage() * this.selectedPageSize(), this.totalTests());
+    return Math.min(this.currentPage() * this.selectedPageSize(), this.completedTestsData().length);
   }
 
   getCurrentSortLabel(): string {
