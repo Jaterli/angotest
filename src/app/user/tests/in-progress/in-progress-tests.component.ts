@@ -242,8 +242,8 @@ export class InProgressTestsComponent implements OnInit {
     return this.sharedUtilsService.sharedFormatDateTime(dateString);
   }
 
-  formatOnlyTime(dateString: string): string {
-    return this.sharedUtilsService.sharedFormatOnlyTime(dateString);
+  formatTimeShort(dateString: string): string {
+    return this.sharedUtilsService.sharedFormatTimeShort(dateString);
   }
 
   formatTime(seconds: number): string {

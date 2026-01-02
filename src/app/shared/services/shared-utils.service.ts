@@ -185,7 +185,7 @@ export class SharedUtilsService {
   //   });
   // }
 
-  sharedFormatOnlyTime(dateString: string): string {
+  sharedFormatTimeShort(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleTimeString('es-ES', {
       hour: '2-digit',
@@ -205,10 +205,9 @@ export class SharedUtilsService {
     } else if (minutes > 0) {
       return `${minutes}m ${secs}s`;
     } else {
-      return `${secs}s`;
+      return `${secs.toFixed(1)}s`;
     }
   }
-
 
   getSharedPageNumbers(totalPages: number, currentPage: number): number[] {
     const pages: number[] = [];
