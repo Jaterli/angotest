@@ -1,5 +1,15 @@
 import { catchError, Observable, of, throwError } from "rxjs";
-import { AccuracyStats, CommunityComparison, DashboardStats, LevelComparison, LevelProgress, LevelStatsMap, PersonalStats, RankingItem, RankingsResponse, TimeStats } from "../models/user-dashboard.model";
+import { 
+  CommunityComparison, 
+  DashboardStats, 
+  LevelComparison, 
+  LevelProgress, 
+  LevelStatsMap, 
+  PersonalStats, 
+  RankingItem, 
+  RankingsResponse, 
+  TimeStats 
+} from "../models/user-dashboard.model";
 import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 
@@ -9,8 +19,7 @@ import { HttpClient } from "@angular/common/http";
 export class DashboardService {
   private http = inject(HttpClient);
   
-  // URLs según la nueva estructura
-  private readonly baseUrl = 'http://localhost:8080/api/dashboard'; // Ajusta según tu backend
+  private readonly baseUrl = 'http://localhost:8080/api/dashboard';
   
   private cachedDashboardData: DashboardStats | null = null;
   private cachedRankingsData: RankingsResponse | null = null;
@@ -91,48 +100,29 @@ export class DashboardService {
    * Obtiene estadísticas de tiempo formateadas
    */
   getFormattedTimeStats(personalStats: PersonalStats): TimeStats {
+    if (!personalStats) {
+      return {
+        average_time_per_question: '0s',
+        average_time_first_attempt: '0s',
+        total_time_invested: '0s',
+        efficiency_score_first_attempt: 0,
+        efficiency_score_all_attempts: 0
+      };
+    }
+    
     return {
-      average_time_per_question: this.formatTimeSince(personalStats.average_time_per_question),
-      average_time_first_attempt: this.formatTimeSince(personalStats.average_time_per_question_first_attempt),
-      total_time_invested: this.formatTimeSince(personalStats.total_time),
-      efficiency_score: this.calculateEfficiencyScore(personalStats)
+      average_time_per_question: this.formatTimeSince(personalStats.average_time_taken_per_question_all_attempts),
+      average_time_first_attempt: this.formatTimeSince(personalStats.average_time_taken_per_question_first_attempt),
+      total_time_invested: this.formatTimeSince(personalStats.total_time_taken_all_attempts),
+      efficiency_score_first_attempt: this.calculateEfficiencyScoreFirstAttempt(personalStats),
+      efficiency_score_all_attempts: this.calculateEfficiencyScoreAllAttempts(personalStats)
     };
   }
 
   /**
-   * Obtiene estadísticas de precisión detalladas
+   * Calcula las posiciones del usuario en los rankings
    */
-  getAccuracyStats(personalStats: PersonalStats): AccuracyStats {
-    const totalCorrectAll = personalStats.total_correct.all_attempts;
-    const totalIncorrectAll = personalStats.total_incorrect.all_attempts;
-    const totalAnswers = totalCorrectAll + totalIncorrectAll;
-    const accuracy = totalAnswers > 0 
-      ? (totalCorrectAll / totalAnswers) * 100 
-      : 0;
-
-    const firstAttemptTotal = personalStats.total_questions_first_attempt;
-    const firstAttemptCorrect = personalStats.total_correct.first_attempt;
-    const firstAttemptIncorrect = personalStats.total_incorrect.first_attempt;
-    const firstAttemptAccuracy = firstAttemptTotal > 0 
-      ? (firstAttemptCorrect / firstAttemptTotal) * 100 
-      : 0;
-
-    return {
-      accuracy_percentage: accuracy,
-      total_answers: totalAnswers,
-      correct_answers: totalCorrectAll,
-      incorrect_answers: totalIncorrectAll,
-      first_attempt_accuracy: firstAttemptAccuracy,
-      first_attempt_correct: firstAttemptCorrect,
-      first_attempt_incorrect: firstAttemptIncorrect,
-      first_attempt_total: firstAttemptTotal
-    };
-  }
-
-  /**
-   * Calcula las posiciones del usuario en los rankings - ACTUALIZADO
-   */
-  getRankingPositions(rankingsResponse: RankingsResponse): any[] {
+  getUserRankingPositions(rankingsResponse: RankingsResponse): any[] {
     if (!rankingsResponse?.current_user?.position) return [];
 
     const positions = [];
@@ -140,60 +130,56 @@ export class DashboardService {
     const totalActiveUsers = rankingsResponse.current_user.position.total_active_users || 1;
 
     // Tests Completados
-    if (position.tests > 0) {
+    if (position.completed_tests > 0) {
       positions.push({
         category: 'Tests Completados',
-        position: position.tests,
+        position: position.completed_tests,
         total_active_users: totalActiveUsers,
-        formatted_value: `#${position.tests} de ${totalActiveUsers}`,
+        percentile: this.calculatePercentile(position.completed_tests, totalActiveUsers, false),
         icon: '📊'
       });
     }
 
     // Tiempo Promedio (Todos los intentos)
-    if (position.avg_time_per_question_all > 0) {
+    if (position.avg_time_per_question_all_attempts > 0) {
       positions.push({
         category: 'Tiempo Promedio',
-        position: position.avg_time_per_question_all,
-        total_participants: totalActiveUsers,
-        percentile: this.calculatePercentile(position.avg_time_per_question_all, totalActiveUsers, false),
-        formatted_value: `#${position.avg_time_per_question_all} de ${totalActiveUsers}`,
+        position: position.avg_time_per_question_all_attempts,
+        total_active_users: totalActiveUsers,
+        percentile: this.calculatePercentile(position.avg_time_per_question_all_attempts, totalActiveUsers, false),
         icon: '⏱️'
       });
     }
 
     // Tiempo 1er Intento
-    if (position.avg_time_per_question_first > 0) {
+    if (position.avg_time_per_question_first_attempt > 0) {
       positions.push({
         category: 'Tiempo 1er Intento',
-        position: position.avg_time_per_question_first,
-        total_participants: totalActiveUsers,
-        percentile: this.calculatePercentile(position.avg_time_per_question_first, totalActiveUsers, false),
-        formatted_value: `#${position.avg_time_per_question_first} de ${totalActiveUsers}`,
+        position: position.avg_time_per_question_first_attempt,
+        total_active_users: totalActiveUsers,
+        percentile: this.calculatePercentile(position.avg_time_per_question_first_attempt, totalActiveUsers, false),
         icon: '🚀'
       });
     }
 
     // Precisión General
-    if (position.accuracy_all > 0) {
+    if (position.accuracy_all_attempts > 0) {
       positions.push({
         category: 'Precisión General',
-        position: position.accuracy_all,
-        total_participants: totalActiveUsers,
-        percentile: this.calculatePercentile(position.accuracy_all, totalActiveUsers),
-        formatted_value: `#${position.accuracy_all} de ${totalActiveUsers}`,
+        position: position.accuracy_all_attempts,
+        total_active_users: totalActiveUsers,
+        percentile: this.calculatePercentile(position.accuracy_all_attempts, totalActiveUsers),
         icon: '🎯'
       });
     }
 
     // Precisión 1er Intento
-    if (position.accuracy_first > 0) {
+    if (position.accuracy_first_attempt > 0) {
       positions.push({
         category: 'Precisión 1er Intento',
-        position: position.accuracy_first,
-        total_participants: totalActiveUsers,
-        percentile: this.calculatePercentile(position.accuracy_first, totalActiveUsers),
-        formatted_value: `#${position.accuracy_first} de ${totalActiveUsers}`,
+        position: position.accuracy_first_attempt,
+        total_active_users: totalActiveUsers,
+        percentile: this.calculatePercentile(position.accuracy_first_attempt, totalActiveUsers),
         icon: '⭐'
       });
     }
@@ -202,38 +188,37 @@ export class DashboardService {
   }
 
   /**
-   * Calcula estadísticas comparativas con la comunidad - ACTUALIZADO
+   * Calcula estadísticas comparativas con la comunidad
    */
   getCommunityComparison(personalStats: PersonalStats, rankingsResponse: RankingsResponse): CommunityComparison | null {
     if (!personalStats || !rankingsResponse?.community_averages) return null;
 
     const community = rankingsResponse.community_averages;
-    const userTimeAll = personalStats.average_time_per_question;
-    const userTimeFirst = personalStats.average_time_per_question_first_attempt;
+    const userTimeAll = personalStats.average_time_taken_per_question_all_attempts;
+    const userTimeFirst = personalStats.average_time_taken_per_question_first_attempt;
     
-    // Calcular precisión del usuario
-    const userAccuracyAll = personalStats.average_score;
+    const userAccuracyAll = personalStats.average_score_all_attempts;
     const userAccuracyFirst = personalStats.average_score_first_attempt;
 
     return {
       time_all_improvement: this.calculateImprovement(
         userTimeAll,
-        community.avg_time_per_question_all,
+        community.avg_time_per_question_all_attempts,
         false // menor es mejor para tiempo
       ),
       time_first_improvement: this.calculateImprovement(
         userTimeFirst,
-        community.avg_time_per_question_first,
+        community.avg_time_per_question_first_attempt,
         false
       ),
       accuracy_all_improvement: this.calculateImprovement(
         userAccuracyAll,
-        community.accuracy_all,
+        community.accuracy_all_attempts,
         true // mayor es mejor para precisión
       ),
       accuracy_first_improvement: this.calculateImprovement(
         userAccuracyFirst,
-        community.accuracy_first,
+        community.accuracy_first_attempt,
         true
       ),
       questions_per_user_improvement: this.calculateImprovement(
@@ -241,16 +226,16 @@ export class DashboardService {
         community.avg_questions_per_user,
         true
       ),
-      community_avg_time_all: community.avg_time_per_question_all,
-      community_avg_time_first: community.avg_time_per_question_first,
-      community_avg_accuracy_all: community.accuracy_all,
-      community_avg_accuracy_first: community.accuracy_first,
+      community_avg_time_all_attempts: community.avg_time_per_question_all_attempts,
+      community_avg_time_first_attempt: community.avg_time_per_question_first_attempt,
+      community_avg_accuracy_all_attempts: community.accuracy_all_attempts,
+      community_avg_accuracy_first_attempt: community.accuracy_first_attempt,
       community_avg_questions_per_user: community.avg_questions_per_user
     };
   }
 
   /**
-   * Calcula comparativas por nivel - NUEVO MÉTODO PARA TU ESTRUCTURA
+   * Calcula comparativas por nivel
    */
   getLevelComparisons(levelStats: LevelStatsMap, communityLevelStats: any): LevelComparison | null {
     if (!levelStats || !communityLevelStats) return null;
@@ -264,7 +249,7 @@ export class DashboardService {
       if (userStats && communityStats) {
         comparisons[level] = {
           time_improvement: this.calculateImprovement(
-            userStats.all_attempts.average_time_per_question,
+            userStats.all_attempts.average_time_taken_per_question,
             communityStats.avg_time_per_question_all,
             false
           ),
@@ -274,7 +259,7 @@ export class DashboardService {
             true
           ),
           time_first_improvement: this.calculateImprovement(
-            userStats.first_attempt.average_time_per_question,
+            userStats.first_attempt.average_time_taken_per_question,
             communityStats.avg_time_per_question_first,
             false
           ),
@@ -295,8 +280,8 @@ export class DashboardService {
           ),
           community_avg_time: communityStats.avg_time_per_question_all,
           community_avg_accuracy: communityStats.avg_accuracy_all,
-          community_avg_time_first: communityStats.avg_time_per_question_first,
-          community_avg_accuracy_first: communityStats.avg_accuracy_first,
+          community_avg_time_first_attempt: communityStats.avg_time_per_question_first,
+          community_avg_accuracy_first_attempt: communityStats.avg_accuracy_first,
           community_avg_tests: communityStats.avg_tests_per_user || 0,
           community_avg_questions: communityStats.avg_questions_per_user || 0,
           total_users: communityStats.total_users_with_level || 0
@@ -308,31 +293,29 @@ export class DashboardService {
   }
 
   /**
-   * Obtiene estadísticas de progreso por nivel - ACTUALIZADO
+   * Obtiene estadísticas de progreso por nivel
    */
   getLevelProgress(levelStats: LevelStatsMap, personalStats: PersonalStats): LevelProgress[] {
     if (!levelStats || !personalStats) return [];
     
     const progress: LevelProgress[] = [];
+    const totalLevelTests = 50; // Esto debería ser configurable o venir de los datos
     
     Object.keys(levelStats).forEach(level => {
       const stats = levelStats[level];
       const levelTests = stats.all_attempts.tests_count;
-      const totalLevelTests = 50; // Puedes ajustar esto según tu lógica de negocio
       
       const accuracy = stats.all_attempts.average_score;
-      const avgTime = stats.all_attempts.average_time_per_question;
+      const avgTime = stats.all_attempts.average_time_taken_per_question;
       const completionPercentage = totalLevelTests > 0 ? (levelTests / totalLevelTests) * 100 : 0;
       
       progress.push({
         level,
-        tests_completed: levelTests,
+        completed_tests: levelTests,
         total_tests: totalLevelTests,
         completion_percentage: completionPercentage,
         accuracy,
         average_time: avgTime,
-        color: this.getLevelColor(level),
-        icon: this.getLevelIcon(level)
       });
     });
     
@@ -343,7 +326,7 @@ export class DashboardService {
   }
 
   /**
-   * Obtiene estadísticas detalladas por nivel para UI - ACTUALIZADO
+   * Obtiene estadísticas detalladas por nivel para UI
    */
   getLevelDetails(levelStats: LevelStatsMap): any[] {
     if (!levelStats) return [];
@@ -355,27 +338,25 @@ export class DashboardService {
       
       return {
         level,
-        color: this.getLevelColor(level),
-        icon: this.getLevelIcon(level),
         first_attempt: {
           tests: firstAttempt.tests_count,
           questions: firstAttempt.questions_count,
           accuracy: firstAttempt.average_score,
-          time: firstAttempt.average_time_per_question,
+          time: firstAttempt.average_time_taken_per_question,
           correct: firstAttempt.total_correct,
-          incorrect: firstAttempt.total_incorrect
+          incorrect: firstAttempt.total_wrong
         },
         all_attempts: {
           tests: allAttempts.tests_count,
           questions: allAttempts.questions_count,
           accuracy: allAttempts.average_score,
-          time: allAttempts.average_time_per_question,
+          time: allAttempts.average_time_taken_per_question,
           correct: allAttempts.total_correct,
-          incorrect: allAttempts.total_incorrect
+          incorrect: allAttempts.total_wrong
         },
         improvement_rate: {
           accuracy: allAttempts.average_score - firstAttempt.average_score,
-          time: allAttempts.average_time_per_question - firstAttempt.average_time_per_question,
+          time: allAttempts.average_time_taken_per_question - firstAttempt.average_time_taken_per_question,
           questions: allAttempts.questions_count - firstAttempt.questions_count
         }
       };
@@ -383,7 +364,7 @@ export class DashboardService {
   }
 
   /**
-   * Obtiene información de ranking por nivel del usuario - SIMPLIFICADO
+   * Obtiene información de ranking por nivel del usuario
    */
   getLevelRankingInfo(rankingsResponse: RankingsResponse): any[] {
     if (!rankingsResponse?.current_user?.position?.accuracy_by_level_first) return [];
@@ -411,7 +392,7 @@ export class DashboardService {
   }
 
   /**
-   * Obtiene comparativas de nivel vs comunidad - SIMPLIFICADO
+   * Obtiene comparativas de nivel vs comunidad
    */
   getLevelCommunityComparison(levelStats: LevelStatsMap, rankingsResponse: RankingsResponse): any[] {
     if (!levelStats || !rankingsResponse?.community_averages?.levels) return [];
@@ -429,52 +410,50 @@ export class DashboardService {
       
       return {
         level,
-        color: this.getLevelColor(level),
-        icon: this.getLevelIcon(level),
         comparisons: {
           accuracy_all: {
             user: allAttempts.average_score,
-            community: communityStats.avg_accuracy_all,
+            community: communityStats.avg_accuracy_all_attempts,
             improvement: this.calculateImprovement(
               allAttempts.average_score,
-              communityStats.avg_accuracy_all,
+              communityStats.avg_accuracy_all_attempts,
               true
             ),
-            is_better: allAttempts.average_score > communityStats.avg_accuracy_all
+            is_better: allAttempts.average_score > communityStats.avg_accuracy_all_attempts
           },
           time_all: {
-            user: allAttempts.average_time_per_question,
-            community: communityStats.avg_time_per_question_all,
+            user: allAttempts.average_time_taken_per_question,
+            community: communityStats.avg_time_per_question_all_attempts,
             improvement: this.calculateImprovement(
-              allAttempts.average_time_per_question,
-              communityStats.avg_time_per_question_all,
+              allAttempts.average_time_taken_per_question,
+              communityStats.avg_time_per_question_all_attempts,
               false
             ),
-            is_better: allAttempts.average_time_per_question < communityStats.avg_time_per_question_all
+            is_better: allAttempts.average_time_taken_per_question < communityStats.avg_time_per_question_all_attempts
           },
           accuracy_first: {
             user: firstAttempt.average_score,
-            community: communityStats.avg_accuracy_first,
+            community: communityStats.avg_accuracy_first_attempt,
             improvement: this.calculateImprovement(
               firstAttempt.average_score,
-              communityStats.avg_accuracy_first,
+              communityStats.avg_accuracy_first_attempt,
               true
             ),
-            is_better: firstAttempt.average_score > communityStats.avg_accuracy_first
+            is_better: firstAttempt.average_score > communityStats.avg_accuracy_first_attempt
           },
           time_first: {
-            user: firstAttempt.average_time_per_question,
-            community: communityStats.avg_time_per_question_first,
+            user: firstAttempt.average_time_taken_per_question,
+            community: communityStats.avg_time_per_question_first_attempt,
             improvement: this.calculateImprovement(
-              firstAttempt.average_time_per_question,
-              communityStats.avg_time_per_question_first,
+              firstAttempt.average_time_taken_per_question,
+              communityStats.avg_time_per_question_first_attempt,
               false
             ),
-            is_better: firstAttempt.average_time_per_question < communityStats.avg_time_per_question_first
+            is_better: firstAttempt.average_time_taken_per_question < communityStats.avg_time_per_question_first_attempt
           }
         }
       };
-    }).filter(Boolean);
+    }).filter(Boolean) as any[];
   }
 
   /**
@@ -485,10 +464,10 @@ export class DashboardService {
     
     switch(type) {
       case 'tests': return rankingsResponse.top_by_tests || [];
-      case 'time_all': return rankingsResponse.top_by_avg_time_per_question_all || [];
-      case 'time_first': return rankingsResponse.top_by_avg_time_per_question_first || [];
-      case 'accuracy_all': return rankingsResponse.top_by_accuracy_all || [];
-      case 'accuracy_first': return rankingsResponse.top_by_accuracy_first || [];
+      case 'time_all': return rankingsResponse.top_by_avg_time_per_question_all_attempts || [];
+      case 'time_first': return rankingsResponse.top_by_avg_time_per_question_first_attempt || [];
+      case 'accuracy_all': return rankingsResponse.top_by_accuracy_all_attempts || [];
+      case 'accuracy_first': return rankingsResponse.top_by_accuracy_first_attempt || [];
       case 'questions': return rankingsResponse.top_by_questions_answered || [];
       default: return [];
     }
@@ -503,26 +482,33 @@ export class DashboardService {
   }
 
   /**
+   * Obtiene rankings por nivel Acurracy
+   */
+  getRankingsByLevelAccuracy(rankingsResponse: RankingsResponse, level: string): RankingItem[] {
+    if (!rankingsResponse?.top_by_levels_accuracy) return [];
+    return rankingsResponse.top_by_levels_accuracy[level] || [];
+  }
+
+  /**
    * Obtiene distribución de tests por nivel
    */
   getLevelDistribution(levelStats: LevelStatsMap, totalTests: number): any[] {
     if (!levelStats || totalTests === 0) return [];
     
     return Object.keys(levelStats).map(level => {
-      const levelTests = levelStats[level].all_attempts.tests_count;
+      const levelTests = levelStats[level].first_attempt.tests_count;
       return {
         level,
         tests: levelTests,
         percentage: (levelTests / totalTests) * 100,
-        color: this.getLevelColor(level)
       };
     }).sort((a, b) => b.percentage - a.percentage);
   }
 
   /**
-   * Helper: Calcula percentil - MEJORADO
+   * Helper: Calcula percentil
    */
-  calculatePercentile(position: number, total: number, higherIsBetter: boolean = true): number {
+  private calculatePercentile(position: number, total: number, higherIsBetter: boolean = true): number {
     if (total === 0 || position === 0) return 0;
     
     if (higherIsBetter) {
@@ -537,7 +523,7 @@ export class DashboardService {
   /**
    * Helper: Calcula porcentaje de mejora
    */
-  calculateImprovement(userValue: number, communityValue: number, higherIsBetter: boolean): number {
+  private calculateImprovement(userValue: number, communityValue: number, higherIsBetter: boolean): number {
     if (!communityValue || communityValue === 0) return 0;
     
     if (higherIsBetter) {
@@ -550,11 +536,11 @@ export class DashboardService {
   /**
    * Helper: Calcula score de eficiencia
    */
-  private calculateEfficiencyScore(personalStats: PersonalStats): number {
-    if (personalStats.tests_completed === 0) return 0;
+  private calculateEfficiencyScoreFirstAttempt(personalStats: PersonalStats): number {
+    if (personalStats.completed_tests_first_attempt === 0) return 0;
     
-    const accuracy = personalStats.average_score;
-    const avgTime = personalStats.average_time_per_question;
+    const accuracy = personalStats.average_score_first_attempt;
+    const avgTime = personalStats.average_time_taken_per_question_first_attempt;
     
     // Puntuación basada en precisión (70%) y tiempo (30%)
     const timeScore = avgTime > 0 ? Math.min(100, (300 / avgTime) * 100) : 0;
@@ -564,35 +550,17 @@ export class DashboardService {
   }
 
 
-  /**
-   * Helper: Obtiene icono para nivel
-   */
-  getLevelIcon(level: string): string {
-    const normalizedLevel = level.toLowerCase();
-    if (normalizedLevel.includes('principiante')) return '🟦';
-    if (normalizedLevel.includes('intermedio')) return '🟩';
-    if (normalizedLevel.includes('avanzado')) return '🟪';
-    return '📊';
-  }
-
-  /**
-   * Helper: Obtiene color para nivel
-   */
-  getLevelColor(level: string): string {
-    const normalizedLevel = level.toLowerCase();
-    if (normalizedLevel.includes('principiante')) return '#3b82f6';
-    if (normalizedLevel.includes('intermedio')) return '#10b981';
-    if (normalizedLevel.includes('avanzado')) return '#8b5cf6';
-    return '#6b7280';
-  }
-
-  /**
-   * Obtiene el nombre del nivel basado en el porcentaje de precisión
-   */
-  getLevelByAccuracy(accuracy: number): string {
-    if (accuracy >= 80) return 'Avanzado';
-    if (accuracy >= 60) return 'Intermedio';
-    return 'Principiante';
+  private calculateEfficiencyScoreAllAttempts(personalStats: PersonalStats): number {
+    if (personalStats.completed_tests_all_attempts === 0) return 0;
+    
+    const accuracy = personalStats.average_score_all_attempts;
+    const avgTime = personalStats.average_time_taken_per_question_all_attempts;
+    
+    // Puntuación basada en precisión (70%) y tiempo (30%)
+    const timeScore = avgTime > 0 ? Math.min(100, (300 / avgTime) * 100) : 0;
+    const accuracyScore = accuracy || 0;
+    
+    return Math.round((accuracyScore * 0.7) + (timeScore * 0.3));
   }
 
   /**
@@ -601,7 +569,6 @@ export class DashboardService {
   calculateUserLevel(personalStats: PersonalStats, levelStats: LevelStatsMap): string {
     if (!personalStats || !levelStats) return 'Principiante';
     
-    // Calcular promedio ponderado de precisión por nivel
     let totalWeightedAccuracy = 0;
     let totalTests = 0;
     
@@ -619,6 +586,15 @@ export class DashboardService {
   }
 
   /**
+   * Obtiene el nombre del nivel basado en el porcentaje de precisión
+   */
+  private getLevelByAccuracy(accuracy: number): string {
+    if (accuracy >= 80) return 'Avanzado';
+    if (accuracy >= 60) return 'Intermedio';
+    return 'Principiante';
+  }
+
+  /**
    * Limpia toda la caché
    */
   clearCache(): void {
@@ -633,7 +609,7 @@ export class DashboardService {
    */
   getTimeSinceDashboardUpdate(): string {
     if (!this.dashboardCacheTimestamp) return 'Nunca';
-    return this.formatTimeSince(this.dashboardCacheTimestamp);
+    return this.formatTimeSince(Date.now() - this.dashboardCacheTimestamp);
   }
 
   /**
@@ -641,18 +617,18 @@ export class DashboardService {
    */
   getTimeSinceRankingsUpdate(): string {
     if (!this.rankingsCacheTimestamp) return 'Nunca';
-    return this.formatTimeSince(this.rankingsCacheTimestamp);
+    return this.formatTimeSince(Date.now() - this.rankingsCacheTimestamp);
   }
 
   /**
-   * Helper: Formatea tiempo desde timestamp
+   * Helper: Formatea tiempo desde timestamp (en milisegundos)
    */
-  private formatTimeSince(timestamp: number): string {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const minutes = Math.floor(diff / (1000 * 60));
+  private formatTimeSince(timestampMs: number): string {
+    const seconds = Math.floor(timestampMs / 1000);
     
-    if (minutes < 1) return 'Hace unos segundos';
+    if (seconds < 60) return 'Hace unos segundos';
+    
+    const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `Hace ${minutes} minuto${minutes !== 1 ? 's' : ''}`;
     
     const hours = Math.floor(minutes / 60);
@@ -662,62 +638,6 @@ export class DashboardService {
     return `Hace ${days} día${days !== 1 ? 's' : ''}`;
   }
 
-  /**
-   * Formatea valores de mejora para mostrar en UI
-   */
-  formatImprovement(improvement: number, type: 'accuracy' | 'time' | 'tests' | 'general' = 'general'): string {
-    if (improvement === 0) return 'Igual';
-    
-    const absImprovement = Math.abs(improvement);
-    const sign = improvement > 0 ? '+' : '-';
-    
-    switch(type) {
-      case 'accuracy':
-        return `${sign}${absImprovement.toFixed(1)}% ${improvement > 0 ? 'mejor' : 'peor'}`;
-      case 'time':
-        return `${sign}${absImprovement.toFixed(1)}% ${improvement > 0 ? 'más rápido' : 'más lento'}`;
-      case 'tests':
-        return `${sign}${absImprovement.toFixed(1)}% ${improvement > 0 ? 'más tests' : 'menos tests'}`;
-      default:
-        return `${sign}${absImprovement.toFixed(1)}%`;
-    }
-  }
-
-  /**
-   * Determina si una mejora es positiva o negativa
-   */
-  isImprovementPositive(improvement: number, higherIsBetter: boolean = true): boolean {
-    if (higherIsBetter) {
-      return improvement > 0;
-    } else {
-      return improvement > 0; // Para tiempo, positivo significa más rápido (mejor)
-    }
-  }
-
-  /**
-   * Obtiene clase CSS para una mejora
-   */
-  getImprovementClass(improvement: number, higherIsBetter: boolean = true): string {
-    const isPositive = this.isImprovementPositive(improvement, higherIsBetter);
-    
-    if (isPositive) {
-      return 'text-emerald-600 dark:text-emerald-400';
-    } else if (improvement === 0) {
-      return 'text-gray-600 dark:text-gray-400';
-    } else {
-      return 'text-red-600 dark:text-red-400';
-    }
-  }
-
-  /**
-   * Obtiene icono para una mejora
-   */
-  getImprovementIcon(improvement: number, higherIsBetter: boolean = true): string {
-    const isPositive = this.isImprovementPositive(improvement, higherIsBetter);
-    
-    if (improvement === 0) return '➡️';
-    return isPositive ? '⬆️' : '⬇️';
-  }
 
   /**
    * Manejo de errores HTTP

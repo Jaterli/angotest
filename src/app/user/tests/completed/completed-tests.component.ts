@@ -39,7 +39,6 @@ export class CompletedTestsComponent implements OnInit {
   // Paginación
   currentPage = signal(1);
   totalTests = signal(0);
-  totalTestsWithFilters = signal(0);
   totalPages = signal(0);
   hasMore = signal(false);
   
@@ -121,16 +120,15 @@ export class CompletedTestsComponent implements OnInit {
 
     this.testService.getMyCompletedTests(filter).subscribe({
       next: (res) => {
-        this.completedTestsData.set(res.data.test_results);
-        this.totalTests.set(res.data.total_tests);
-        this.totalTestsWithFilters.set(res.data.total_tests_with_filters);
-        this.totalPages.set(res.data.total_pages);        
-        this.currentPage.set(res.data.current_page);
-        this.hasMore.set(res.data.has_more);
+        this.completedTestsData.set(res.test_results);
+        this.totalTests.set(res.total_tests);
+        this.totalPages.set(res.total_pages);        
+        this.currentPage.set(res.current_page);
+        this.hasMore.set(res.has_more);
         this.stats.set(res.stats);
         
         if (this.currentPage() === 1) {
-          this.mainTopics.set(res.data.main_topics);
+          this.mainTopics.set(res.main_topics);
         }
         
         this.loading.set(false);
@@ -267,13 +265,6 @@ export class CompletedTestsComponent implements OnInit {
 
   getSortOrderLabel(): string {
     return this.selectedSortOrder() === 'asc' ? 'Ascendente' : 'Descendente';
-  }
-
-  getAverageTimePerTest(): string {
-    const stats = this.stats();
-    if (!stats || stats.total_tests === 0) return 'N/A';
-    const avgTime = stats.total_time_spent / stats.total_tests;
-    return this.formatTime(Math.round(avgTime));
   }
 
   getStartIndex(): number {

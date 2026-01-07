@@ -214,26 +214,23 @@ export interface CompletedTestResponse {
   completion_time?: string;
 }
 
+
+export interface CompletedTestsStats {
+  average_score: number;
+  total_time_spent: number;
+  total_tests_with_filters: number;
+  total_questions_answered: number;
+}
+
 export interface CompletedTestsResponse {
   test_results: CompletedTestResponse[];
   total_tests: number;
-  total_tests_with_filters: number;
   total_pages: number;
   current_page: number;
   page_size: number;
   has_more: boolean;
   main_topics: string[];
-  levels: string[];
-}
-
-export interface CompletedTestsStats {
-  average_score: number;
-  total_time_spent: number;
-  total_tests: number;
-}
-
-export interface CompletedTestsFullResponse {
-  data: CompletedTestsResponse;
+  levels: string[];  
   stats: CompletedTestsStats;
 }
 
@@ -280,7 +277,6 @@ export interface InProgressTestResponse {
 export interface InProgressTestsResponse {
   results: InProgressTestResponse[];
   total_tests: number;
-  total_tests_with_filters: number;
   total_pages: number;
   current_page: number;
   page_size: number;
@@ -290,9 +286,10 @@ export interface InProgressTestsResponse {
 }
 
 export interface InProgressTestsStats {
-  total_in_progress: number;
+  total_tests_with_filters: number;
   average_progress: number;
   total_questions_answered: number;
+  total_time_spent: number;
 }
 
 export interface InProgressTestsFullResponse {

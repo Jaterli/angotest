@@ -9,19 +9,20 @@ export interface DashboardStats {
 }
 
 export interface PersonalStats {
-  tests_completed: number;
-  tests_in_progress: number;
-  tests_abandoned: number;
-  average_score: number;
-  average_time_per_question: number;
-  total_questions_answered: number;
-  total_time: number;
+  completed_tests_all_attempts: number;
+  completed_tests_first_attempt: number;
+  in_progress_tests: number;
+  abandoned_tests: number;
+  average_score_all_attempts: number;
+  average_time_taken_per_question_all_attempts: number;
+  total_questions_answered_all_attempts: number;
+  total_time_taken_all_attempts: number;
   average_score_first_attempt: number;
-  average_time_per_question_first_attempt: number;
-  total_questions_first_attempt: number;
-  total_time_first: number;
+  average_time_taken_per_question_first_attempt: number;
+  total_questions_answered_first_attempt: number;
+  total_time_taken_first_attempt: number;
   total_correct: AttemptStats;
-  total_incorrect: AttemptStats;
+  total_wrong: AttemptStats;
 }
 
 export interface AttemptStats {
@@ -39,13 +40,13 @@ export interface LevelStats {
 }
 
 export interface LevelAttemptStats {
-  average_time_per_question: number;
+  average_time_taken_per_question: number;
   average_score: number;
   tests_count: number;
   questions_count: number;
   total_correct: number;
-  total_incorrect: number;
-  total_time: number;
+  total_wrong: number;
+  total_time_taken: number;
 }
 
 // ============ RANKINGS ENDPOINT ============
@@ -53,22 +54,24 @@ export interface LevelAttemptStats {
 export interface RankingsResponse {
   // Top rankings (comunidad) - Actualizados según tu JSON
   top_by_tests: RankingItem[];
-  top_by_avg_time_per_question_all: RankingItem[];
-  top_by_avg_time_per_question_first: RankingItem[];
-  top_by_accuracy_all: RankingItem[];
-  top_by_accuracy_first: RankingItem[];
+  top_by_avg_time_per_question_all_attempts: RankingItem[];
+  top_by_avg_time_per_question_first_attempt: RankingItem[];
+  top_by_accuracy_all_attempts: RankingItem[];
+  top_by_accuracy_first_attempt: RankingItem[];
   top_by_questions_answered: RankingItem[];
   top_by_levels: { [key: string]: RankingItem[] };
+  top_by_levels_accuracy: { [key: string]: RankingItem[] };  
+  min_tests_for_ranking: number;
   
   // Datos del usuario actual - Actualizados según tu JSON
   current_user?: {
     position: {
       total_active_users: number;
-      tests: number;
-      avg_time_per_question_all: number;
-      avg_time_per_question_first: number;
-      accuracy_all: number;
-      accuracy_first: number;
+      completed_tests: number;
+      avg_time_per_question_all_attempts: number;
+      avg_time_per_question_first_attempt: number;
+      accuracy_all_attempts: number;
+      accuracy_first_attempt: number;
       questions_answered: number;
       accuracy_by_level_first?: {
         [key: string]: number;
@@ -78,17 +81,17 @@ export interface RankingsResponse {
   
   // Promedios de comunidad - Actualizados según tu JSON
   community_averages: {
-    avg_time_per_question_all: number;
-    avg_time_per_question_first: number;
-    accuracy_all: number;
-    accuracy_first: number;
+    avg_time_per_question_all_attempts: number;
+    avg_time_per_question_first_attempt: number;
+    accuracy_all_attempts: number;
+    accuracy_first_attempt: number;
     avg_questions_per_user: number;
     levels: {
       [key: string]: {
-        avg_time_per_question_all: number;
-        avg_time_per_question_first: number;
-        avg_accuracy_all: number;
-        avg_accuracy_first: number;
+        avg_time_per_question_all_attempts: number;
+        avg_time_per_question_first_attempt: number;
+        avg_accuracy_all_attempts: number;
+        avg_accuracy_first_attempt: number;
         avg_questions_per_user: number;
       };
     };
@@ -113,10 +116,10 @@ export interface LevelPosition {
 }
 
 export interface LevelCommunityStats {
-  avg_time_per_question_all: number;
-  avg_time_per_question_first: number;
-  avg_accuracy_all: number;
-  avg_accuracy_first: number;
+  avg_time_per_question_all_attempts: number;
+  avg_time_per_question_first_attempt: number;
+  avg_accuracy_all_attempts: number;
+  avg_accuracy_first_attempt: number;
   avg_tests_per_user: number;
   avg_questions_per_user?: number;
   total_users_with_level: number;
@@ -128,17 +131,18 @@ export interface TimeStats {
   average_time_per_question: string;
   average_time_first_attempt: string;
   total_time_invested: string;
-  efficiency_score: number;
+  efficiency_score_first_attempt: number;
+  efficiency_score_all_attempts: number;
 }
 
 export interface AccuracyStats {
   accuracy_percentage: number;
   total_answers: number;
   correct_answers: number;
-  incorrect_answers: number;
+  wrong_answers: number;
   first_attempt_accuracy: number;
   first_attempt_correct: number;
-  first_attempt_incorrect: number;
+  first_attempt_wrong: number;
   first_attempt_total: number;
 }
 
@@ -158,10 +162,10 @@ export interface CommunityComparison {
   accuracy_all_improvement: number;
   accuracy_first_improvement: number;
   questions_per_user_improvement: number;
-  community_avg_time_all: number;
-  community_avg_time_first: number;
-  community_avg_accuracy_all: number;
-  community_avg_accuracy_first: number;
+  community_avg_time_all_attempts: number;
+  community_avg_time_first_attempt: number;
+  community_avg_accuracy_all_attempts: number;
+  community_avg_accuracy_first_attempt: number;
   community_avg_questions_per_user: number;
 }
 
@@ -175,8 +179,8 @@ export interface LevelComparison {
     questions_improvement: number;
     community_avg_time: number;
     community_avg_accuracy: number;
-    community_avg_time_first: number;
-    community_avg_accuracy_first: number;
+    community_avg_time_first_attempt: number;
+    community_avg_accuracy_first_attempt: number;
     community_avg_tests: number;
     community_avg_questions: number;
     total_users: number;
@@ -185,13 +189,11 @@ export interface LevelComparison {
 
 export interface LevelProgress {
   level: string;
-  tests_completed: number;
+  completed_tests: number;
   total_tests: number;
   completion_percentage: number;
   accuracy: number;
   average_time: number;
-  color: string;
-  icon: string;
 }
 
 export interface LevelRankingInfo {
@@ -213,19 +215,19 @@ export interface LevelDetails {
     accuracy: number;
     time: number;
     correct: number;
-    incorrect: number;
+    wrong: number;
   };
   all_attempts: {
     tests: number;
     questions: number;
     accuracy: number;
-    time: number;
+    time_taken: number;
     correct: number;
-    incorrect: number;
+    wrong: number;
   };
   improvement_rate: {
     accuracy: number;
-    time: number;
+    time_taken: number;
     questions: number;
   };
 }
@@ -235,10 +237,10 @@ export interface LevelCommunityComparison {
   color: string;
   icon: string;
   comparisons: {
-    accuracy_all: ComparisonItem;
-    time_all: ComparisonItem;
-    accuracy_first: ComparisonItem;
-    time_first: ComparisonItem;
+    accuracy_all_attempts: ComparisonItem;
+    time_taken_all_attempts: ComparisonItem;
+    accuracy_first_attempt: ComparisonItem;
+    time_taken_first_attempt: ComparisonItem;
     tests: ComparisonItem;
   };
 }
@@ -408,7 +410,7 @@ export interface TimeSeriesData {
   date: Date;
   accuracy: number;
   time_per_question: number;
-  tests_completed: number;
+  completed_tests: number;
   level: LevelType;
 }
 
@@ -516,7 +518,7 @@ export interface PerformanceHistory {
   level: LevelType;
   accuracy: number;
   time_per_question: number;
-  tests_completed: number;
+  completed_tests: number;
   streak_days: number;
 }
 

@@ -40,7 +40,6 @@ export class InProgressTestsComponent implements OnInit {
   // Paginación
   currentPage = signal(1);
   totalTests = signal(0);
-  totalTestsWithFilters = signal(0)
   totalPages = signal(0);  
   hasMore = signal(false);
   
@@ -114,7 +113,6 @@ export class InProgressTestsComponent implements OnInit {
         this.inProgressTestsData.set(res.data.results);
         this.totalTests.set(res.data.total_tests);
         this.totalPages.set(res.data.total_pages);
-        this.totalTestsWithFilters.set(res.data.total_tests_with_filters);
         this.currentPage.set(res.data.current_page);
         this.hasMore.set(res.data.has_more);
         this.stats.set(res.stats);
@@ -282,7 +280,7 @@ export class InProgressTestsComponent implements OnInit {
 
   getAverageProgress(): number {
     const stats = this.stats();
-    if (!stats || stats.total_in_progress === 0) return 0;
+    if (!stats || stats.total_tests_with_filters === 0) return 0;
     
     return Math.round((stats.total_questions_answered / 50) * 100);//stats.total_questions) * 100);
   }
