@@ -9,25 +9,21 @@ export interface DashboardStats {
 }
 
 export interface PersonalStats {
-  completed_tests_all_attempts: number;
-  completed_tests_first_attempt: number;
+  completed_tests: number;
   in_progress_tests: number;
   abandoned_tests: number;
-  average_score_all_attempts: number;
-  average_time_taken_per_question_all_attempts: number;
-  total_questions_answered_all_attempts: number;
-  total_time_taken_all_attempts: number;
-  average_score_first_attempt: number;
-  average_time_taken_per_question_first_attempt: number;
-  total_questions_answered_first_attempt: number;
-  total_time_taken_first_attempt: number;
-  total_correct: AttemptStats;
-  total_wrong: AttemptStats;
+  first_attempt: AttemptStatsCategory;
+  all_attempts: AttemptStatsCategory;
 }
 
-export interface AttemptStats {
-  first_attempt: number;
-  all_attempts: number;
+export interface AttemptStatsCategory {
+  tests_count: number;
+  average_score: number;
+  average_time_taken_per_question: number;
+  total_questions_answered: number;
+  total_time_taken: number;
+  total_correct: number;
+  total_wrong: number;
 }
 
 export interface LevelStatsMap {
@@ -52,77 +48,67 @@ export interface LevelAttemptStats {
 // ============ RANKINGS ENDPOINT ============
 
 export interface RankingsResponse {
-  // Top rankings (comunidad) - Actualizados según tu JSON
+  // Top rankings (comunidad)
   top_by_tests: RankingItem[];
-  top_by_avg_time_per_question_all_attempts: RankingItem[];
-  top_by_avg_time_per_question_first_attempt: RankingItem[];
-  top_by_accuracy_all_attempts: RankingItem[];
-  top_by_accuracy_first_attempt: RankingItem[];
-  top_by_questions_answered: RankingItem[];
+  top_by_avg_time_taken_per_question: AttemptRankings;
+  top_by_accuracy: AttemptRankings;
+  top_by_questions_answered: AttemptRankings;
   top_by_levels: { [key: string]: RankingItem[] };
-  top_by_levels_accuracy: { [key: string]: RankingItem[] };  
+  top_by_levels_accuracy: { [key: string]: RankingItem[] };
   min_tests_for_ranking: number;
   
-  // Datos del usuario actual - Actualizados según tu JSON
-  current_user?: {
-    position: {
-      total_active_users: number;
-      completed_tests: number;
-      avg_time_per_question_all_attempts: number;
-      avg_time_per_question_first_attempt: number;
-      accuracy_all_attempts: number;
-      accuracy_first_attempt: number;
-      questions_answered: number;
-      accuracy_by_level_first?: {
-        [key: string]: number;
-      };
-    };
-  };
+  // Datos del usuario actual (NUEVA ESTRUCTURA)
+  current_user_position: UserPosition;
   
-  // Promedios de comunidad - Actualizados según tu JSON
-  community_averages: {
-    avg_time_per_question_all_attempts: number;
-    avg_time_per_question_first_attempt: number;
-    accuracy_all_attempts: number;
-    accuracy_first_attempt: number;
-    avg_questions_per_user: number;
-    levels: {
-      [key: string]: {
-        avg_time_per_question_all_attempts: number;
-        avg_time_per_question_first_attempt: number;
-        avg_accuracy_all_attempts: number;
-        avg_accuracy_first_attempt: number;
-        avg_questions_per_user: number;
-      };
-    };
-  };
+  // Promedios de comunidad (NUEVA ESTRUCTURA)
+  community_averages: CommunityAveragesResponse;
 }
 
+export interface AttemptRankings {
+  all_attempts: RankingItem[];
+  first_attempt: RankingItem[];
+}
+
+export interface UserPosition {
+  total_active_users: number;
+  completed_tests: number;
+  all_attempts: PositionStats;
+  first_attempt: PositionStats;
+  levels: { [key: string]: LevelPosition };
+}
+
+export interface PositionStats {
+  avg_time_taken_per_question: number;
+  accuracy: number;
+  questions_answered: number;
+}
+
+export interface LevelPosition {
+  first_attempt: number;
+}
+
+export interface CommunityAveragesResponse {
+  all_attempts: CommunityStats;
+  first_attempt: CommunityStats;
+  levels: { [key: string]: CommunityLevelStats };
+}
+
+export interface CommunityStats {
+  avg_time_taken_per_question: number;
+  avg_accuracy: number;
+  avg_questions_per_user: number;
+}
+
+export interface CommunityLevelStats {
+  all_attempts: CommunityStats;
+  first_attempt: CommunityStats;
+}
 
 export interface RankingItem {
   user_id: number;
   username: string;
   value: number;
   rank: number;
-}
-
-export interface LevelPosition {
-  avg_time_per_question_all?: number;
-  avg_time_per_question_first?: number;
-  accuracy_all?: number;
-  accuracy_first?: number;
-  tests_count?: number;
-  questions_count?: number;
-}
-
-export interface LevelCommunityStats {
-  avg_time_per_question_all_attempts: number;
-  avg_time_per_question_first_attempt: number;
-  avg_accuracy_all_attempts: number;
-  avg_accuracy_first_attempt: number;
-  avg_tests_per_user: number;
-  avg_questions_per_user?: number;
-  total_users_with_level: number;
 }
 
 // ============ MODELOS PARA UI ============
@@ -311,14 +297,17 @@ export type LevelType = typeof LEVELS[number];
 
 export const RANKING_CATEGORIES = [
   'top_by_tests',
-  'top_by_avg_time_per_question_all',
-  'top_by_avg_time_per_question_first',
-  'top_by_accuracy_all',
-  'top_by_accuracy_first',
-  'top_by_questions_answered'
+  'top_by_avg_time_taken_per_question',
+  'top_by_accuracy',
+  'top_by_questions_answered',
+  'top_by_levels',
+  'top_by_levels_accuracy'
 ] as const;
 
 export type RankingCategory = typeof RANKING_CATEGORIES[number];
+
+export const ATTEMPT_TYPES = ['all_attempts', 'first_attempt'] as const;
+export type AttemptType = typeof ATTEMPT_TYPES[number];
 
 export const LEVEL_COLORS: Record<LevelType, string> = {
   'Principiante': '#3b82f6', // blue-500
@@ -344,31 +333,31 @@ export const LEVEL_DESCRIPTIONS: Record<LevelType, string> = {
   'Avanzado': 'Nivel experto - Dominio completo del tema'
 };
 
-export const RANKING_CATEGORY_LABELS: Record<RankingCategory, string> = {
+export const RANKING_CATEGORY_LABELS: Record<string, string> = {
   'top_by_tests': 'Tests Completados',
-  'top_by_avg_time_per_question_all': 'Tiempo Promedio',
-  'top_by_avg_time_per_question_first': 'Tiempo 1er Intento',
-  'top_by_accuracy_all': 'Precisión General',
-  'top_by_accuracy_first': 'Precisión 1er Intento',
-  'top_by_questions_answered': 'Preguntas Respondidas'
+  'top_by_avg_time_taken_per_question': 'Tiempo Promedio',
+  'top_by_accuracy': 'Precisión',
+  'top_by_questions_answered': 'Preguntas Respondidas',
+  'top_by_levels': 'Tests por Nivel',
+  'top_by_levels_accuracy': 'Precisión por Nivel'
 };
 
-export const RANKING_CATEGORY_ICONS: Record<RankingCategory, string> = {
+export const RANKING_CATEGORY_ICONS: Record<string, string> = {
   'top_by_tests': '📊',
-  'top_by_avg_time_per_question_all': '⏱️',
-  'top_by_avg_time_per_question_first': '🚀',
-  'top_by_accuracy_all': '🎯',
-  'top_by_accuracy_first': '⭐',
-  'top_by_questions_answered': '❓'
+  'top_by_avg_time_taken_per_question': '⏱️',
+  'top_by_accuracy': '🎯',
+  'top_by_questions_answered': '❓',
+  'top_by_levels': '📈',
+  'top_by_levels_accuracy': '⭐'
 };
 
-export const RANKING_CATEGORY_COLORS: Record<RankingCategory, string> = {
+export const RANKING_CATEGORY_COLORS: Record<string, string> = {
   'top_by_tests': '#3b82f6', // blue
-  'top_by_avg_time_per_question_all': '#10b981', // emerald
-  'top_by_avg_time_per_question_first': '#f59e0b', // amber
-  'top_by_accuracy_all': '#8b5cf6', // purple
-  'top_by_accuracy_first': '#ec4899', // pink
-  'top_by_questions_answered': '#06b6d4' // cyan
+  'top_by_avg_time_taken_per_question': '#10b981', // emerald
+  'top_by_accuracy': '#8b5cf6', // purple
+  'top_by_questions_answered': '#06b6d4', // cyan
+  'top_by_levels': '#f59e0b', // amber
+  'top_by_levels_accuracy': '#ec4899' // pink
 };
 
 // ============ TIPOS PARA EVENTOS Y NOTIFICACIONES ============

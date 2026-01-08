@@ -56,14 +56,14 @@ export class DashboardComponent implements OnInit {
   levelStats = computed(() => this.dashboardData()?.level_stats);
   
   // Estadísticas del usuario actual (desde rankings)
-  currentUserPosition = computed(() => this.rankingsData()?.current_user?.position);
+  currentUserPosition = computed(() => this.rankingsData()?.current_user_position);
   communityAverages = computed(() => this.rankingsData()?.community_averages);
   
   // Nueva computed para total de usuarios activos
   totalActiveUsers = computed(() => this.dashboardData()?.total_active_users || 0);
 
   // Estadísticas de respuestas correctas/incorrectas
-  accuracyStats = computed(() => {
+  accuracyPersonalStats = computed(() => {
     const stats = this.personalStats();
     if (!stats) return {
       correct_answers: 0,
@@ -72,8 +72,8 @@ export class DashboardComponent implements OnInit {
       accuracy_percentage: 0
     };
     
-    const correct = stats.total_correct?.all_attempts || 0;
-    const wrong = stats.total_wrong?.all_attempts || 0;
+    const correct = stats.all_attempts.total_correct || 0;
+    const wrong = stats.all_attempts.total_wrong || 0;
     const total = correct + wrong;
     
     return {
@@ -85,7 +85,7 @@ export class DashboardComponent implements OnInit {
   });
 
   // Estadísticas de tiempo formateadas
-  timeStats = computed(() => {
+  timePersonalStats = computed(() => {
     const stats = this.personalStats();
     return stats ? this.dashboardService.getFormattedTimeStats(stats) : {
       average_time_per_question: '0s',
@@ -102,19 +102,19 @@ export class DashboardComponent implements OnInit {
   totalTests = computed(() => {
     const stats = this.personalStats();
     if (!stats) return 0;
-    return stats.completed_tests_all_attempts + stats.in_progress_tests + stats.abandoned_tests;
+    return stats.all_attempts.tests_count + stats.in_progress_tests + stats.abandoned_tests;
   });
 
   completionPercentage = computed(() => {
     const stats = this.personalStats();
     if (!stats || this.totalTests() === 0) return 0;
-    return (stats.completed_tests_all_attempts / this.totalTests()) * 100;
+    return (stats.all_attempts.tests_count / this.totalTests()) * 100;
   });
 
   timeDifference = computed(() => {
     const stats = this.personalStats();
     if (!stats) return 0;
-    return stats.average_time_taken_per_question_first_attempt - stats.average_time_taken_per_question_all_attempts;
+    return stats.first_attempt.average_time_taken_per_question - stats.all_attempts.average_time_taken_per_question;
   });
 
   // Estadísticas de mejora entre intentos
@@ -126,10 +126,10 @@ export class DashboardComponent implements OnInit {
       questions_improvement: 0
     };
     
-    const accuracyImprovement = stats.average_score_all_attempts - stats.average_score_first_attempt;
-    const timeImprovement = stats.average_time_taken_per_question_first_attempt - stats.average_time_taken_per_question_all_attempts;
-    const questionsImprovement = stats.total_questions_answered_all_attempts - stats.total_questions_answered_first_attempt;
-    
+    const accuracyImprovement = stats.all_attempts.average_score - stats.first_attempt.average_score;
+    const timeImprovement = stats.first_attempt.average_time_taken_per_question - stats.all_attempts.average_time_taken_per_question;
+    const questionsImprovement = stats.all_attempts.total_questions_answered - stats.first_attempt.total_questions_answered;
+
     return {
       accuracy_improvement: accuracyImprovement,
       time_improvement: timeImprovement,
@@ -141,10 +141,10 @@ export class DashboardComponent implements OnInit {
   communityComparison = computed(() => {
     if (!this.showCommunityComparison()) return null;
     const personal = this.personalStats();
-    const rankings = this.rankingsData();
-    if (!personal || !rankings) return null;
+    const community_averages = this.rankingsData()?.community_averages;
+    if (!personal || !community_averages) return null;
     
-    return this.dashboardService.getCommunityComparison(personal, rankings);
+    return this.dashboardService.getCommunityComparison(personal, community_averages);
   });
 
   // Estadísticas por nivel
@@ -164,7 +164,7 @@ export class DashboardComponent implements OnInit {
   // Distribución de tests por nivel
   levelDistribution = computed(() => {
     const stats = this.levelStats();
-    const total = this.personalStats()?.completed_tests_first_attempt || 0;
+    const total = this.personalStats()?.first_attempt?.tests_count || 0;
     
     if (!stats || total === 0) return [];
     
@@ -212,10 +212,10 @@ export class DashboardComponent implements OnInit {
   });
 
   // Posiciones en rankings - Solo disponible si hay rankings cargados
-  rankingPositions = computed(() => {
+  rankingUserPositions = computed(() => {
     if (!this.showCommunityComparison()) return [];
-    const rankings = this.rankingsData();
-    return rankings ? this.dashboardService.getUserRankingPositions(rankings) : [];
+    const rankingsUserPosition = this.rankingsData()?.current_user_position;
+    return rankingsUserPosition ? this.dashboardService.getUserRankingPositions(rankingsUserPosition) : [];
   });
 
   // Rankings actuales según tab activo
@@ -388,7 +388,7 @@ export class DashboardComponent implements OnInit {
 
   getMyLevelPosition(level: string): number | null {
     const data = this.rankingsData();
-    return data?.current_user?.position?.accuracy_by_level_first?.[level] || null;
+    return data?.current_user_position?.levels[level].first_attempt || null;
   }
 
   formatRankingValue(value: number, category: string): string {
@@ -424,7 +424,7 @@ export class DashboardComponent implements OnInit {
   // Calcular porcentaje de participación en niveles
   getLevelParticipationPercentage(level: string): number {
     const levelStats = this.levelStats();
-    const totalTests = this.personalStats()?.completed_tests_all_attempts;
+    const totalTests = this.personalStats()?.all_attempts.tests_count || 0;
     
     if (!levelStats || !totalTests || totalTests === 0) return 0;
     
