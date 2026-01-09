@@ -8,11 +8,6 @@
         {{ currentUser?.first_name || currentUser?.username }}, 
         aquí puedes ver tu progreso y compararte con otros usuarios
       </p>
-      @if (dashboardData() && lastUpdated()) {
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Actualizado {{ lastUpdated() }}
-        </p>
-      }
     </div>
 
     <!-- Botón para refrescar -->
@@ -39,22 +34,35 @@
 
   <!-- Contenido principal -->
   @if (dashboardData() && !loading()) {    
-    <!-- Sección: Resumen General -->
+    <!-- Sección: Estadísticas del Usuario -->
     <div class="mb-12">
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Resumen General</h2>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Tus Estadísticas</h2>
+        
+        <!-- Selector de intentos -->
         <div class="flex items-center gap-2">
-          <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-          <span class="text-sm text-gray-500 dark:text-gray-400">
-            Puntuación de eficiencia: {{ timePersonalStats().efficiency_score_all_attempts }}%, {{ timePersonalStats().efficiency_score_first_attempt }}% primero
-          </span>
+          <span class="text-sm text-gray-600 dark:text-gray-400 mr-2">Mostrar:</span>
+          <div class="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+            <button (click)="setAttemptType('first_attempt')"
+                    [class]="attemptType() === 'first_attempt' 
+                      ? 'px-3 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-gray-700 shadow-sm' 
+                      : 'px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'">
+              Primer Intento
+            </button>
+            <button (click)="setAttemptType('all_attempts')"
+                    [class]="attemptType() === 'all_attempts' 
+                      ? 'px-3 py-1.5 text-sm font-medium rounded-md bg-white dark:bg-gray-700 shadow-sm' 
+                      : 'px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'">
+              Todos los Intentos
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Estadísticas principales en 2x2 -->
+      <!-- Cards de estadísticas principales -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         
-        <!-- Tests y Estado -->
+        <!-- Tests Completados -->
         <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
           <div class="flex items-center mb-4">
             <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg mr-4">
@@ -64,42 +72,29 @@
             </div>
             <div class="flex-1">
               <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {{ personalStats()!.completed_tests_all_attempts }}
+                {{ personalData()!.completed_tests }}
               </div>
               <div class="text-xs text-gray-500 dark:text-gray-400">Tests completados</div>
             </div>
-            <div class="text-right">
-              <div class="text-lg font-semibold text-blue-600 dark:text-blue-400">
-                {{ personalStats()!.completed_tests_first_attempt }}
-              </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">Primer intento</div>
-            </div>
           </div>
           
-          <div class="grid grid-cols-3 gap-2">
-
+          <div class="grid grid-cols-2 gap-2">
             <div class="text-center p-2 bg-gray-50 dark:bg-gray-900/50 rounded">
               <div class="text-lg font-semibold text-blue-600 dark:text-blue-400">
-                {{ personalStats()!.in_progress_tests }}
+                {{ personalData()!.in_progress_tests }}
               </div>
               <div class="text-xs text-gray-500 dark:text-gray-400">En progreso</div>
             </div>
             <div class="text-center p-2 bg-gray-50 dark:bg-gray-900/50 rounded">
-              <div class="text-lg font-semibold text-amber-600 dark:text-amber-400">
-                {{ personalStats()!.abandoned_tests }}
-              </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">Abandonados</div>
-            </div>
-            <div class="text-center p-2 bg-gray-50 dark:bg-gray-900/50 rounded">
               <div class="text-lg font-semibold text-gray-700 dark:text-gray-300">
-                {{ totalTests() }}
+                {{ totalUserTests() }}
               </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">Iniciados</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Total tests</div>
             </div>
           </div>
         </div>
 
-        <!-- Puntuación -->
+        <!-- Precisión -->
         <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
           <div class="flex items-center mb-4">
             <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-4">
@@ -109,29 +104,28 @@
             </div>
             <div>
               <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {{ personalStats()!.average_score_all_attempts | number:'1.0-2' }}%
+                {{ currentAccuracy() | number:'1.0-2' }}%
               </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">Puntuación promedio</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Precisión {{ attemptType() === 'first_attempt' ? '1er intento' : 'general' }}</div>
             </div>
           </div>
           <div class="space-y-2">
             <div class="flex justify-between items-center text-sm">
-              <span class="text-gray-600 dark:text-gray-400">Primer intento:</span>
+              <span class="text-gray-600 dark:text-gray-400">Preguntas:</span>
               <span class="font-medium text-emerald-600 dark:text-emerald-400">
-                {{ personalStats()!.average_score_first_attempt | number:'1.0-2' }}%
+                {{ currentAttemptData()?.total_questions_answered || 0 }}
               </span>
             </div>
             <div class="flex justify-between items-center text-sm">
-              <span class="text-gray-600 dark:text-gray-400">Mejora:</span>
-              <span class="font-medium" [class]="getImprovementColor(improvementStats().accuracy_improvement, true)">
-                {{ getImprovementSymbol(improvementStats().accuracy_improvement, 'accuracy') }}
-                {{ abs(improvementStats().accuracy_improvement).toFixed(2) }}%
+              <span class="text-gray-600 dark:text-gray-400">Correctas:</span>
+              <span class="font-medium text-emerald-600 dark:text-emerald-400">
+                {{ currentAttemptData()?.total_correct || 0 }}
               </span>
             </div>
           </div>
         </div>
 
-        <!-- Tiempos -->
+        <!-- Tiempo -->
         <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
           <div class="flex items-center mb-4">
             <div class="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg mr-4">
@@ -141,32 +135,30 @@
             </div>
             <div>
               <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {{ formatTimeShort(personalStats()!.average_time_taken_per_question_all_attempts) }}
+                {{ formatTimeShort(currentAverageTimePerQuestion()) }}
               </div>
               <div class="text-xs text-gray-500 dark:text-gray-400">Tiempo/pregunta</div>
             </div>
           </div>
           <div class="space-y-2">
             <div class="flex justify-between items-center text-sm">
-              <span class="text-gray-600 dark:text-gray-400">Primer intento:</span>
-              <span class="font-medium text-emerald-600 dark:text-emerald-400">
-                {{ formatTimeShort(personalStats()!.average_time_taken_per_question_first_attempt) }}
+              <span class="text-gray-600 dark:text-gray-400">Total tiempo:</span>
+              <span class="font-medium text-blue-600 dark:text-blue-400">
+                {{ formatTime(currentAttemptData()?.total_time_taken || 0) }}
               </span>
             </div>
             <div class="flex justify-between items-center text-sm">
-              <span class="text-gray-600 dark:text-gray-400">Mejora:</span>
-              <span class="font-medium" [class]="getImprovementColor(improvementStats().time_improvement, false)">
-                {{ getImprovementSymbol(improvementStats().time_improvement, 'time') }}
-                {{ abs(improvementStats().time_improvement).toFixed(1) }}s
+              <span class="text-gray-600 dark:text-gray-400">Tests realizados:</span>
+              <span class="font-medium text-blue-600 dark:text-blue-400">
+                {{ currentAttemptData()?.tests_count || 0 }}
               </span>
             </div>
           </div>
         </div>
 
-      <!-- Respuestas -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center">
+        <!-- Rendimiento -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div class="flex items-center mb-4">
             <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg mr-4">
               <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
@@ -174,396 +166,130 @@
             </div>
             <div>
               <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {{ personalStats()!.total_correct?.all_attempts || 0 }}
+                {{ currentAttemptData()?.total_correct || 0 }}
               </div>
               <div class="text-xs text-gray-500 dark:text-gray-400">Respuestas correctas</div>
             </div>
           </div>
-          <div class="text-right">
-            <div class="text-sm text-gray-500 dark:text-gray-400">Primer intento</div>
-            <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-              {{ personalStats()!.total_correct?.first_attempt || 0 }}
-            </div>
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <!-- Precisión -->
-          <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3">
-            <div class="flex justify-between items-center mb-1">
-              <span class="text-xs text-gray-600 dark:text-gray-400">Precisión</span>
-              <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                {{ personalStats()!.average_score_all_attempts | number:'1.0-2' }}%
-              </span>
-            </div>
-            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-              <div class="bg-emerald-500 h-1.5 rounded-full" 
-                  [style.width.%]="personalStats()!.average_score_all_attempts"></div>
-            </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {{ personalStats()!.average_score_first_attempt | number:'1.0-2' }}% primero
-            </div>
-          </div>
           
-          <!-- Total preguntas -->
-          <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-            <div class="flex justify-between items-center mb-1">
-              <span class="text-xs text-gray-600 dark:text-gray-400">Preguntas</span>
-              <span class="text-xs font-medium text-blue-600 dark:text-blue-400">
-                {{ personalStats()!.total_questions_all_attempts }}
-              </span>
-            </div>
-            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-              <div class="bg-blue-500 h-1.5 rounded-full" 
-                  [style.width.%]="personalStats()!.total_questions_first_attempt > 0 ? 
-                  (personalStats()!.total_questions_first_attempt / personalStats()!.total_questions_all_attempts) * 100 : 0"></div>
-            </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {{ personalStats()!.total_questions_first_attempt }} primero
-            </div>
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-3">
-          <!-- Respuestas correctas detalladas -->
-          <div class="text-center p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded">
-            <div class="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
-              {{ personalStats()!.total_correct?.all_attempts || 0 }}
-            </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">
-              Correctas
-              <span class="block text-emerald-600 dark:text-emerald-400 font-medium">
-                {{ personalStats()!.total_correct?.first_attempt || 0 }} primero
-              </span>
-            </div>
-          </div>
-          
-          <!-- Respuestas incorrectas detalladas -->
-          <div class="text-center p-2 bg-red-50 dark:bg-red-900/20 rounded">
-            <div class="text-sm font-semibold text-red-700 dark:text-red-400">
-              {{ personalStats()!.total_wrong?.all_attempts || 0 }}
-            </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">
-              Incorrectas
-              <span class="block text-red-600 dark:text-red-400 font-medium">
-                {{ personalStats()!.total_wrong?.first_attempt || 0 }} primero
-              </span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Eficiencia de primer intento -->
-        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <div class="flex justify-between items-center">
-            <span class="text-xs text-gray-600 dark:text-gray-400">Eficiencia primer intento:</span>
-            <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-              {{ personalStats()!.total_questions_first_attempt > 0 ? 
-                ((personalStats()!.total_correct?.first_attempt || 0) / personalStats()!.total_questions_first_attempt * 100).toFixed(1) : 0 }}%
-            </span>
-          </div>
-          <div class="flex justify-between items-center mt-1">
-            <span class="text-xs text-gray-600 dark:text-gray-400">Respuestas adicionales:</span>
-            <span class="text-xs font-medium text-blue-600 dark:text-blue-400">
-              {{ (personalStats()!.total_questions_all_attempts - personalStats()!.total_questions_first_attempt) }} 
-              (+{{ personalStats()!.total_questions_all_attempts > 0 ? 
-                  ((personalStats()!.total_questions_all_attempts - personalStats()!.total_questions_first_attempt) / personalStats()!.total_questions_all_attempts * 100).toFixed(0) : 0 }}%)
-            </span>
-          </div>
-        </div>
-      </div>
-              
-      </div>
-
-      <!-- Estadísticas detalladas en 2 columnas -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        
-        <!-- Actividad Resumida -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Resumen de Actividad</h3>
-          <div class="space-y-4">
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <span class="text-gray-600 dark:text-gray-400">Tasa de finalización:</span>
-                <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ completionPercentage() | number:'1.0-2' }}%</span>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="text-center p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded">
+              <div class="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                {{ currentAttemptData()?.total_correct || 0 }}
               </div>
-              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div class="bg-emerald-500 h-2 rounded-full" 
-                    [style.width.%]="completionPercentage()"></div>
-              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Correctas</div>
             </div>
             
-            <div class="grid grid-cols-3 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <div class="text-center">
-                <div class="text-xl font-bold text-blue-600 dark:text-blue-400">{{ personalStats()!.total_questions_answered_all_attempts }}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">Total preguntas</div>
+            <div class="text-center p-2 bg-red-50 dark:bg-red-900/20 rounded">
+              <div class="text-sm font-semibold text-red-700 dark:text-red-400">
+                {{ currentAttemptData()?.total_wrong || 0 }}
               </div>
-              <div class="text-center">
-                <div class="text-xl font-bold text-emerald-600 dark:text-emerald-400">{{ personalStats()!.total_questions_first_attempt }}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">Primer intento</div>
-              </div>
-              <div class="text-center">
-                <div class="text-xl font-bold text-purple-600 dark:text-purple-400">{{ improvementStats().questions_improvement }}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">Preguntas extras</div>
-              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Incorrectas</div>
             </div>
+          </div>
+          
+        </div>
+      </div>
 
-            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-              <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                Distribución de respuestas:
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-sm text-gray-600 dark:text-gray-400">Primer intento:</span>
-                    <span class="text-sm font-medium">
-                      {{ personalStats()!.total_correct.first_attempt || 0 }}/{{ personalStats()!.total_questions_first_attempt }}
-                    </span>
-                  </div>
-                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                    <div class="bg-emerald-500 h-1.5 rounded-full" 
-                        [style.width.%]="personalStats()!.total_questions_first_attempt > 0 ? 
-                        ((personalStats()!.total_correct.first_attempt || 0) / personalStats()!.total_questions_first_attempt) * 100 : 0">
-                    </div>
-                  </div>
+      <!-- Sección: Mejoras entre intentos -->
+      @if (improvementData()) {
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-8">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Mejoras con Repetición</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="text-center p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+            <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+              {{ improvementData()!.accuracy_improvement >= 0 ? '+' : '' }}{{ improvementData()!.accuracy_improvement.toFixed(2) }}%
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">Mejora en precisión</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ getImprovementSymbol(improvementData()!.accuracy_improvement, 'accuracy') }}
+              {{ getImprovementText(improvementData()!.accuracy_improvement, 'accuracy') }}
+            </div>
+          </div>
+          
+          <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              {{ improvementData()!.time_improvement >= 0 ? '+' : '' }}{{ improvementData()!.time_improvement.toFixed(1) }}s
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">Mejora en tiempo/pregunta</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ getImprovementSymbol(improvementData()!.time_improvement, 'time') }}
+              {{ getImprovementText(improvementData()!.time_improvement, 'time') }}
+            </div>
+          </div>
+          
+          <div class="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+            <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              +{{ improvementData()!.questions_improvement }}
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-400 mt-2">Preguntas adicionales</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              Con repetición para mejorar
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+
+      <!-- Sección: Niveles -->
+      @if (levelStatsByAttempt().length > 0) {
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Desempeño por Nivel</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          @for (level of levelStatsByAttempt(); track level.level) {
+          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center mr-3" 
+                    [style.backgroundColor]="getLevelColor(level.level) + '20'">
+                  <span class="text-sm">{{ getLevelIcon(level.level) }}</span>
                 </div>
                 <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <span class="text-sm text-gray-600 dark:text-gray-400">Todos los intentos:</span>
-                    <span class="text-sm font-medium">
-                      {{ personalStats()!.total_correct.all_attempts || 0 }}/{{ personalStats()!.total_questions_answered_all_attempts }}
-                    </span>
-                  </div>
-                  <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
-                    <div class="bg-blue-500 h-1.5 rounded-full" 
-                        [style.width.%]="personalStats()!.total_questions_answered_all_attempts > 0 ? 
-                        ((personalStats()!.total_correct.all_attempts || 0) / personalStats()!.total_questions_answered_all_attempts) * 100 : 0">
-                    </div>
-                  </div>
+                  <h4 class="font-semibold text-gray-900 dark:text-gray-100">{{ level.level }}</h4>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ level.tests_count }} tests</p>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tiempos Totales y Mejoras -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Inversión de Tiempo y Mejoras</h3>
-          <div class="space-y-4">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <div class="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                <span class="text-gray-700 dark:text-gray-300">Total invertido:</span>
-              </div>
-              <span class="font-bold text-gray-900 dark:text-gray-100">
-                {{ formatTime(personalStats()!.total_time_taken_all_attempts) }}
-              </span>
-            </div>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center">
-                <div class="w-3 h-3 bg-emerald-500 rounded-full mr-3"></div>
-                <span class="text-gray-700 dark:text-gray-300">Solo primer intento:</span>
-              </div>
-              <span class="font-bold text-gray-900 dark:text-gray-100">
-                {{ formatTime(personalStats()!.total_time_taken_first_attempt) }}
-              </span>
-            </div>
-            
-            <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-              <div class="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                Eficiencia entre intentos:
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div class="text-center p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-                  <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                    {{ abs(improvementStats().time_improvement).toFixed(1) }}s
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Mejora en tiempo</div>
+              <div class="text-right">
+                <div class="text-lg font-bold" [style.color]="getLevelColor(level.level)">
+                  {{ level.accuracy.toFixed(2) }}%
                 </div>
-                <div class="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div class="text-lg font-bold text-blue-600 dark:text-blue-400">
-                    {{ abs(improvementStats().accuracy_improvement).toFixed(2) }}%
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Mejora en precisión</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sección: Distribución por Niveles -->
-    @if (levelDistribution().length > 0) {
-    <div class="mb-12">
-      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Distribución por Niveles</h2>
-      
-      <!-- Tarjetas de resumen por nivel -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        @for (distribution of levelDistribution(); track distribution.level; let i = $index) {
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <!-- Encabezado con nivel y estadísticas principales -->
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center">
-              <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-4" 
-                  [style.backgroundColor]="getLevelColor(distribution.level) + '20'">
-                <span class="text-xl">{{ getLevelIcon(distribution.level) }}</span>
-              </div>
-              <div>
-                <h3 class="font-semibold text-gray-900 dark:text-gray-100">{{ distribution.level }}</h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  {{ distribution.tests }} tests ({{ distribution.percentage | number:'1.0-2' }}%)
-                </p>
-              </div>
-            </div>
-            <!-- Métricas clave resumidas -->
-            <div class="text-right">
-              <div class="text-lg font-bold" [style.color]="getLevelColor(distribution.level)">
-                {{ distribution.accuracy_all_attempts | number:'1.0-2' }}%
-              </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400">Precisión total</div>
-            </div>
-          </div>
-          
-          <!-- Barra de progreso -->
-          <div class="mb-6">
-            <div class="flex justify-between text-sm mb-1">
-              <span>Progreso de tests</span>
-              <span class="font-medium" [style.color]="getLevelColor(distribution.level)">
-                {{ distribution.percentage | number:'1.0-2' }}%
-              </span>
-            </div>
-            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div class="h-2 rounded-full" 
-                  [style.backgroundColor]="getLevelColor(distribution.level)"
-                  [style.width.%]="distribution.percentage"></div>
-            </div>
-          </div>
-          
-          <!-- Grid de métricas principales -->
-          <div class="grid grid-cols-2 gap-3 mb-6">
-            <!-- Tiempo por pregunta -->
-            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
-              <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Tiempo/pregunta</div>
-              <div class="text-sm font-medium" [style.color]="getLevelColor(distribution.level)">
-                {{ formatTimeShort(distribution.time_taken_all_attempts) }}
-              </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {{ formatTimeShort(distribution.time_taken_first_attempt) }} primero
+                <div class="text-xs text-gray-500 dark:text-gray-400">Precisión</div>
               </div>
             </div>
             
-            <!-- Preguntas respondidas -->
-            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
-              <div class="text-xs text-gray-500 dark:text-gray-400 mb-1">Preguntas</div>
-              <div class="text-sm font-medium" [style.color]="getLevelColor(distribution.level)">
-                {{ distribution.total_questions_all_attempts }}
-              </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {{ distribution.total_questions_first_attempt }} primero
-              </div>
-            </div>
-          </div>
-          
-          <!-- Estadísticas de respuestas -->
-          <div class="mb-6">
-            <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">Distribución de respuestas:</div>
-            <div class="grid grid-cols-2 gap-3">
-              <!-- Respuestas correctas -->
-              <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <div class="text-xs text-emerald-700 dark:text-emerald-400 font-medium">Correctas</div>
-                    <div class="text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                      {{ distribution.total_correct_all_attempts }}
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ distribution.total_correct_first_attempt }} primero</div>
-                    <div class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                      {{ distribution.total_correct_all_attempts > 0 ? ((distribution.total_correct_first_attempt / distribution.total_correct_all_attempts) * 100).toFixed(0) : 0 }}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Respuestas incorrectas -->
-              <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-3">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <div class="text-xs text-red-700 dark:text-red-400 font-medium">Incorrectas</div>
-                    <div class="text-sm font-bold text-red-600 dark:text-red-400">
-                      {{ distribution.total_wrong_all_attempts }}
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ distribution.total_wrong_first_attempt }} primero</div>
-                    <div class="text-xs text-red-600 dark:text-red-400 font-medium">
-                      {{ distribution.total_wrong_all_attempts > 0 ? ((distribution.total_wrong_first_attempt / distribution.total_wrong_all_attempts) * 100).toFixed(0) : 0 }}%
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Mejoras con repetición -->
-          <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div class="text-xs text-gray-500 dark:text-gray-400 mb-3">Mejoras con repetición:</div>
-            <div class="grid grid-cols-2 gap-3">
-              <!-- Mejora en precisión -->
-              <div class="text-center">
-                <div class="text-lg font-bold" 
-                    [class]="distribution.accuracy_improvement >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'">
-                  {{ distribution.accuracy_improvement >= 0 ? '+' : '' }}{{ distribution.accuracy_improvement.toFixed(1) }}%
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  <div>Precisión</div>
-                  <div class="text-xs">
-                    {{ distribution.accuracy_first_attempt | number:'1.0-1' }}% → {{ distribution.accuracy_all_attempts | number:'1.0-1' }}%
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Mejora en tiempo -->
-              <div class="text-center">
-                <div class="text-lg font-bold" 
-                    [class]="distribution.time_taken_improvement >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'">
-                  {{ distribution.time_taken_improvement >= 0 ? '+' : '' }}{{ distribution.time_taken_improvement.toFixed(0) }}s
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  <div>Tiempo/preg</div>
-                  <div class="text-xs">
-                    {{ formatTimeShort(distribution.time_taken_first_attempt) }} → {{ formatTimeShort(distribution.time_taken_all_attempts) }}
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Resumen de eficiencia -->
-            <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="space-y-2">
               <div class="flex justify-between items-center text-sm">
-                <span class="text-gray-600 dark:text-gray-400">Tasa de acierto:</span>
-                <span class="font-medium" [style.color]="getLevelColor(distribution.level)">
-                  {{ distribution.total_questions_all_attempts > 0 ? ((distribution.total_correct_all_attempts / distribution.total_questions_all_attempts) * 100).toFixed(1) : 0 }}%
+                <span class="text-gray-600 dark:text-gray-400">Preguntas:</span>
+                <span class="font-medium" [style.color]="getLevelColor(level.level)">
+                  {{ level.questions_count }}
                 </span>
               </div>
-              <div class="flex justify-between items-center text-sm mt-1">
-                <span class="text-gray-600 dark:text-gray-400">Aciertos primer intento:</span>
-                <span class="font-medium text-emerald-600 dark:text-emerald-400">
-                  {{ distribution.total_questions_first_attempt > 0 ? 
-                    ((distribution.total_correct_first_attempt / distribution.total_questions_first_attempt) * 100).toFixed(1) : 0 }}%
+              <div class="flex justify-between items-center text-sm">
+                <span class="text-gray-600 dark:text-gray-400">Tiempo/preg:</span>
+                <span class="font-medium" [style.color]="getLevelColor(level.level)">
+                  {{ formatTimeShort(level.avg_time_per_question) }}
                 </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div class="text-center p-1 bg-emerald-50 dark:bg-emerald-900/20 rounded">
+                  <div class="font-medium text-emerald-600 dark:text-emerald-400">{{ level.total_correct }}</div>
+                  <div class="text-gray-500 dark:text-gray-400">Correctas</div>
+                </div>
+                <div class="text-center p-1 bg-red-50 dark:bg-red-900/20 rounded">
+                  <div class="font-medium text-red-600 dark:text-red-400">{{ level.total_wrong }}</div>
+                  <div class="text-gray-500 dark:text-gray-400">Incorrectas</div>
+                </div>
               </div>
             </div>
           </div>
+          }
         </div>
-        }
       </div>
+      }
     </div>
-    }
 
-    <!-- Sección: Comparación con la Comunidad (Opcional) -->
-    @if (!showCommunityComparison()) {
+    <!-- Sección: Rankings (solo se muestra al hacer click) -->
+    @if (!showRankings()) {
     <div class="mb-12">
       <div class="bg-white dark:bg-gray-800 rounded-xl p-8 text-center shadow-sm border border-gray-200 dark:border-gray-700">
         <div class="w-20 h-20 text-blue-300 dark:text-blue-600 mx-auto mb-4">
@@ -573,11 +299,11 @@
         </div>
         <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">Compara tu rendimiento</h3>
         <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-          Descubre cómo te comparas con otros {{ totalActiveUsers() }} usuarios activos en la comunidad. 
+          Descubre cómo te comparas con otros {{ dashboardData()?.total_active_users || 0 }} usuarios activos en la comunidad. 
           Verifica tu posición en los rankings y analiza tu rendimiento frente al promedio.
         </p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <button (click)="loadCommunityComparison()"
+          <button (click)="loadRankings()"
                   [disabled]="rankingsLoading()"
                   class="inline-flex items-center justify-center px-6 py-3 text-base font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             <svg [class]="rankingsLoading() ? 'animate-spin' : ''" 
@@ -586,216 +312,270 @@
                   viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
             </svg>
-            {{ rankingsLoading() ? 'Cargando...' : 'Ver Comparativa' }}
+            {{ rankingsLoading() ? 'Cargando...' : 'Ver Rankings y Posición' }}
           </button>
         </div>
       </div>
     </div>
     }
 
-    <!-- Sección: Posición en la Comunidad y Rankings -->
-    @if (showCommunityComparison() && rankingsData()) {
+    <!-- Sección: Rankings (cuando se muestran) -->
+    @if (showRankings() && rankingsData()) {
     <div class="mb-12">
-
-
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Tu Posición y Rankings en la Comunidad</h2>
-        <button (click)="hideCommunityComparison()"
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Rankings y Posición en la Comunidad</h2>
+        <button (click)="hideRankings()"
                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-          Ocultar
+          Ocultar Rankings
         </button>
       </div>
       
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <!-- Tarjetas de posición -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">📊 Tu Posición Global</h3>
-          
-          <div class="grid grid-cols-2 gap-4 mb-6">
-            @for (position of rankingPositions(); track position.category; let i = $index) {
-            @if (i < 4) {
-            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-              <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ position.category }}</span>
-                <div class="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300 rounded-full">
-                  {{ totalActiveUsers() }} usuarios
-                </div>
-              </div>
-              
-              <div class="flex items-end justify-between">
-                <div>
-                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    #{{ position.position }}
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Posición</div>
-                </div>
-                <div class="text-right">
-                  <div class="text-sm font-medium" [class]="getPercentileColor(position.percentile)">
-                    Top {{ position.percentile }}%
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Percentil</div>
-                </div>
-              </div>
+      <!-- Tu posición global -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">📊 Tu Posición Global comparada con {{ currentUserPositions()?.total_active_users || 0 }} usuarios activos</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+            <div class="mb-2">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Tests Completados</span>
             </div>
-            }
-            }
+            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+              #{{ currentUserPositions()?.completed_tests || '-' }}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ personalData()?.completed_tests || 0 }} tests realizados
+            </div>
           </div>
           
-          <!-- Tu valor actual destacado -->
-          <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div class="text-sm text-gray-500 dark:text-gray-400 mb-3">Tus estadísticas destacadas:</div>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-                <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">Tests Completados</div>
-                <div class="text-lg font-bold text-blue-600 dark:text-blue-400">
-                  {{ personalStats()?.completed_tests_first_attempt ?? 0 }}
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                  Posición #{{ currentUserPosition()?.completed_tests?? '-' }}
-                </div>
+          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+            <div class="mb-2">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Precisión General</span>
+            </div>
+            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+              #{{ currentUserPositions()?.all_attempts?.accuracy || '-' }}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ currentAccuracyAllAttempts() | number:'1.0-1' }}% todos los intentos
+            </div>
+          </div>
+          
+          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+            <div class="mb-2">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Precisión 1er Intento</span>
+            </div>
+            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+              #{{ currentUserPositions()?.first_attempt?.accuracy || '-' }}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ currentAccuracyFirstAttempt() | number:'1.0-1' }}% primer intento
+            </div>
+          </div>
+          
+          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+            <div class="mb-2">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Preguntas Respondidas</span>
+            </div>
+            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+              #{{ currentUserPositions()?.all_attempts?.questions_answered || '-' }}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ personalData()!.all_attempts.total_questions_answered || 0 }} preguntas
+            </div>
+          </div>
+        
+          <!-- Posiciones de tiempo -->
+          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+            <div class="mb-2">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Tiempo/pregunta General</span>
+            </div>
+            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+              #{{ currentUserPositions()?.all_attempts?.avg_time_taken_per_question || '-' }}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ formatTimeShort(currentAverageTimePerQuestionAllAttempts()) }} todos los intentos
+            </div>
+          </div>
+          
+          <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+            <div class="mb-2">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Tiempo/pregunta 1er Intento</span>
+            </div>
+            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+              #{{ currentUserPositions()?.first_attempt?.avg_time_taken_per_question || '-' }}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ formatTimeShort(currentAverageTimePerQuestionFirstAttempt()) }} primer intento
+            </div>
+          </div>
+        </div>
+        
+        <!-- Resumen comparativo -->
+        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="text-center p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+              <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mejora en Precisión</div>
+              @if (improvementData()) {
+              <div class="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                {{ improvementData()!.accuracy_improvement >= 0 ? '+' : '' }}{{ improvementData()!.accuracy_improvement.toFixed(2) }}%
               </div>
-              <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-3">
-                <div class="text-xs text-gray-600 dark:text-gray-400 mb-1">Precisión General</div>
-                <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                  {{ (personalStats()?.average_score_all_attempts ?? 0).toFixed(1) }}%
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                  Posición #{{ currentUserPosition()?.accuracy_all_attempts ?? '-' }}
-                </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                1er intento vs todos los intentos
+              </div>
+              } @else {
+              <div class="text-xl font-bold text-gray-400 dark:text-gray-500">0.0%</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                1er intento vs todos los intentos
+              </div>
+              }
+            </div>
+            
+            <div class="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Mejora en Tiempo</div>
+              @if (improvementData()) {
+              <div class="text-xl font-bold text-blue-600 dark:text-blue-400">
+                {{ improvementData()!.time_improvement >= 0 ? '+' : '' }}{{ improvementData()!.time_improvement.toFixed(2) }}s
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                1er intento vs todos los intentos
+              </div>
+              } @else {
+              <div class="text-xl font-bold text-gray-400 dark:text-gray-500">0.0s</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                1er intento vs todos los intentos
+              </div>
+              }
+            </div>
+          </div>
+        </div>        
+      </div>
+      
+      <!-- Top Rankings -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">🏆 Top Rankings Globales</h3>
+          <div class="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300 rounded-full">
+            Mínimo {{ rankingsData()?.min_tests_for_ranking }} tests para ranking
+          </div>
+        </div>
+        
+        <!-- Tabs de rankings -->
+        <div class="mb-4">
+          <div class="flex flex-wrap gap-2">
+            @for (tab of ['tests', 'time_all', 'time_first', 'accuracy_all', 'accuracy_first', 'questions_all', 'questions_first']; track tab) {
+            <button (click)="setRankingTab(tab)"
+                    [class]="activeRankingTab() === tab 
+                    ? 'px-3 py-1.5 text-xs font-medium rounded-full border' 
+                    : 'px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 bg-gray-100 dark:bg-gray-900/50 hover:bg-gray-200 dark:hover:bg-gray-900/70 rounded-full transition-colors'"
+                    [style.borderColor]="activeRankingTab() === tab ? getRankingTabColor(tab) : 'transparent'"
+                    [style.color]="activeRankingTab() === tab ? getRankingTabColor(tab) : ''">
+              {{ getRankingTabLabel(tab).split(' ')[0] }}
+            </button>
+            }
+          </div>
+        </div>
+        
+        <!-- Indicador de tipo de ranking actual -->
+        <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ getRankingTabLabel(activeRankingTab()) }}</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                {{ getRankingDescription(activeRankingTab()) }}
+              </div>
+            </div>
+            <!-- Tu posición en este ranking -->
+            <div class="text-right">
+              <div class="text-sm font-bold text-blue-600 dark:text-blue-400">
+                Tu posición: #{{ getCurrentUserPosition(activeRankingTab()) || '-' }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                de {{ currentUserPositions()?.total_active_users || 0 }} usuarios
               </div>
             </div>
           </div>
         </div>
         
-        <!-- Rankings top 5 -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">🏆 Top 5 por {{ getRankingTabLabel(activeRankingTab()) }}</h3>
-            <div class="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300 rounded-full">
-              +{{ rankingsData()?.min_tests_for_ranking }} tests
-            </div>
-          </div>
-          
-          <!-- Tabs de rankings -->
-          <div class="mb-4">
-            <div class="flex flex-wrap gap-2">
-              @for (tab of ['tests', 'accuracy_all', 'time_all', 'questions']; track tab) {
-              <button (click)="setRankingTab(tab)"
-                      [class]="activeRankingTab() === tab 
-                      ? 'px-3 py-1.5 text-xs font-medium rounded-full border' 
-                      : 'px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 bg-gray-100 dark:bg-gray-900/50 hover:bg-gray-200 dark:hover:bg-gray-900/70 rounded-full transition-colors'"
-                      [style.borderColor]="activeRankingTab() === tab ? getPositionColor(getRankingTabLabel(tab)) : 'transparent'"
-                      [style.color]="activeRankingTab() === tab ? getPositionColor(getRankingTabLabel(tab)) : ''">
-                {{ getRankingTabLabel(tab).split(' ')[0] }}
-              </button>
-              }
-            </div>
-          </div>
-          
-          <!-- Lista de top 5 -->
-          <div class="space-y-3">
-            @for (item of currentRankings(); track item.user_id; let i = $index) {
-            <div [class]="getRankingItemClass(i, item.user_id)" class="rounded-lg p-3 transition-colors">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                  <div class="w-8 h-8 rounded-full flex items-center justify-center mr-3"
-                      [ngClass]="{
-                        'bg-amber-100 dark:bg-amber-900/30': i === 0,
-                        'bg-gray-100 dark:bg-gray-900/50': i === 1,
-                        'bg-amber-50 dark:bg-amber-900/20': i === 2,
-                        'bg-gray-50 dark:bg-gray-900/30': i > 2
-                      }">
-                    <span [ngClass]="{
-                      'text-amber-600 dark:text-amber-400 font-bold': i === 0,
-                      'text-gray-600 dark:text-gray-400 font-bold': i === 1,
-                      'text-amber-500 dark:text-amber-300 font-bold': i === 2,
-                      'text-gray-500 dark:text-gray-400': i > 2
-                    }">
-                      {{ item.rank }}
-                    </span>
-                  </div>
-                  <div>
-                    <div class="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                      {{ item.username }}
-                    </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                      Top {{ ((item.rank / totalActiveUsers()) * 100).toFixed(1) }}%
-                    </div>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <div class="font-bold text-gray-900 dark:text-gray-100">
-                    {{ formatRankingValue(item.value, getRankingTabLabel(activeRankingTab())) }}
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ getRankingTabLabel(activeRankingTab()).split('/')[0] }}
-                  </div>
-                </div>
-              </div>
-            </div>
-            }
-          </div>
-          
-          <!-- Tu posición en este ranking -->
-          <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+        <!-- Lista de top 5 -->
+        <div class="space-y-3 mb-6">
+          @for (item of currentRankings(); track item.user_id; let i = $index) {
+          <div [class]="getRankingItemClass(i, item.user_id)" class="rounded-lg p-3 transition-colors">
+            <div class="flex items-center justify-between">
               <div class="flex items-center">
-                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3">
-                  <span class="text-blue-600 dark:text-blue-400 font-bold text-sm">
-                    @switch(activeRankingTab()) {
-                      @case ('tests') { #{{ currentUserPosition()!.completed_tests }} }
-                      @case ('time_all') { #{{ currentUserPosition()!.avg_time_per_question_all_attempts }} }
-                      @case ('time_first') { #{{ currentUserPosition()!.avg_time_per_question_first_attempt }} }
-                      @case ('accuracy_all') { #{{ currentUserPosition()!.accuracy_all_attempts }} }
-                      @case ('accuracy_first') { #{{ currentUserPosition()!.accuracy_first_attempt }} }
-                      @case ('questions') { #{{ currentUserPosition()!.questions_answered }} }
-                      @default { #- }
-                    }
+                <div class="w-8 h-8 rounded-full flex items-center justify-center mr-3"
+                    [ngClass]="{
+                      'bg-amber-100 dark:bg-amber-900/30': i === 0,
+                      'bg-gray-100 dark:bg-gray-900/50': i === 1,
+                      'bg-amber-50 dark:bg-amber-900/20': i === 2,
+                      'bg-gray-50 dark:bg-gray-900/30': i > 2
+                    }">
+                  <span [ngClass]="{
+                    'text-amber-600 dark:text-amber-400 font-bold': i === 0,
+                    'text-gray-600 dark:text-gray-400 font-bold': i === 1,
+                    'text-amber-500 dark:text-amber-300 font-bold': i === 2,
+                    'text-gray-500 dark:text-gray-400': i > 2
+                  }">
+                    {{ item.rank }}
                   </span>
                 </div>
                 <div>
-                  <div class="font-medium text-gray-900 dark:text-gray-100 text-sm">{{ currentUser?.username }}</div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Tu posición</div>
+                  <div class="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                    {{ item.username }}
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">
+                    Posición {{ item.rank }} de {{ currentUserPositions()?.total_active_users || 0 }}
+                  </div>
                 </div>
               </div>
               <div class="text-right">
-                <div class="font-bold text-blue-600 dark:text-blue-400">
-                  @switch(activeRankingTab()) {
-                    @case ('tests') { 
-                      {{ personalStats()?.completed_tests_first_attempt ?? 0 }} 
-                    }
-                    @case ('time_all') { 
-                      {{ formatTimeShort(personalStats()?.average_time_taken_per_question_all_attempts ?? 0) }} 
-                    }
-                    @case ('time_first') { 
-                      {{ formatTimeShort(personalStats()?.average_time_taken_per_question_first_attempt ?? 0) }} 
-                    }
-                    @case ('accuracy_all') { 
-                      {{ (personalStats()?.average_score_all_attempts ?? 0).toFixed(1) }}% 
-                    }
-                    @case ('accuracy_first') { 
-                      {{ (personalStats()?.average_score_first_attempt ?? 0).toFixed(1) }}% 
-                    }
-                    @case ('questions') { 
-                      {{ personalStats()?.total_questions_answered_all_attempts ?? 0 }} 
-                    }
-                  }
+                <div class="font-bold text-gray-900 dark:text-gray-100">
+                  {{ formatRankingValue(item.value, getRankingTabLabel(activeRankingTab())) }}
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ getRankingTabLabel(activeRankingTab()).split('/')[0] }}
+                  {{ getRankingUnit(activeRankingTab()) }}
                 </div>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+        
+        <!-- Tu dato actual en este ranking -->
+        <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+            <div class="flex items-center">
+              <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3">
+                <span class="text-blue-600 dark:text-blue-400 font-bold text-sm">
+                  #{{ getCurrentUserPosition(activeRankingTab()) || '-' }}
+                </span>
+              </div>
+              <div>
+                <div class="font-medium text-gray-900 dark:text-gray-100 text-sm">{{ currentUser?.username }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">Tu posición actual</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="font-bold text-blue-600 dark:text-blue-400">
+                {{ getCurrentUserValue(activeRankingTab()) }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                Tu {{ getRankingTabLabel(activeRankingTab()).toLowerCase() }}
               </div>
             </div>
           </div>
         </div>
       </div>
-      
-      <!-- Rankings por Nivel (si existen) -->
+
+      <!-- Rankings por Nivel (Precisión) -->
       @if (getLevelKeys().length > 0) {
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">📈 Rankings por Nivel</h3>
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 mt-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">🎯 Rankings de precisión por Nivel</h3>
+          <div class="text-xs px-3 py-1 bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300 rounded-full">
+            Primer intento por nivel. (Mínimo {{ rankingsData()?.min_tests_for_ranking }} tests para ranking)
+          </div>
+        </div>
         
-        <!-- Tabs de niveles -->
+        <!-- Tabs de niveles (se mantiene el mismo que arriba) -->
         <div class="mb-4">
           <div class="flex flex-wrap gap-2">
             @for (level of getLevelKeys(); track level) {
@@ -811,10 +591,39 @@
           </div>
         </div>
         
+        <!-- Indicador de nivel actual -->
+        <div class="mb-4 p-3 rounded-lg" [style.backgroundColor]="getLevelColor(activeLevelRankingTab()) + '20'">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center mr-3" 
+                  [style.backgroundColor]="getLevelColor(activeLevelRankingTab()) + '30'">
+                <span class="text-sm">{{ getLevelIcon(activeLevelRankingTab()) }}</span>
+              </div>
+              <div>
+                <div class="text-sm font-medium" [style.color]="getLevelColor(activeLevelRankingTab())">
+                  Nivel {{ activeLevelRankingTab() }}
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                  Ranking basado en precisión (primer intento)
+                </div>
+              </div>
+            </div>
+            <!-- Tu posición en precisión para este nivel -->
+            <div class="text-right">
+              <div class="text-sm font-bold" [style.color]="getLevelColor(activeLevelRankingTab())">
+                Tu posición: #{{ getMyLevelAccuracyPosition(activeLevelRankingTab()) || '-' }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                de {{ currentUserPositions()?.total_active_users || 0 }} usuarios
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Top 5 del nivel -->
+          <!-- Top 5 del nivel en precisión -->
           <div>
-            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Top 5 - {{ activeLevelRankingTab() }}</h4>
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Top 5 Precisión - {{ activeLevelRankingTab() }}</h4>
             <div class="space-y-3">
               @for (item of currentLevelRankingsAccuracy(); track item.user_id; let i = $index) {
               <div [class]="getRankingItemClass(i, item.user_id)" class="rounded-lg p-3 transition-colors">
@@ -826,13 +635,18 @@
                         {{ item.rank }}
                       </span>
                     </div>
-                    <div class="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                      {{ item.username }}
+                    <div>
+                      <div class="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                        {{ item.username }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        Posición {{ item.rank }}
+                      </div>
                     </div>
                   </div>
                   <div class="text-right">
-                    <div class="font-bold text-gray-900 dark:text-gray-100">{{ item.value }}</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">Tests</div>
+                    <div class="font-bold text-gray-900 dark:text-gray-100">{{ item.value.toFixed(2) }}%</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">precisión 1er intento</div>
                   </div>
                 </div>
               </div>
@@ -840,45 +654,44 @@
             </div>
           </div>
           
-          <!-- Tu posición en este nivel -->
+          <!-- Tu posición y precisión en este nivel -->
           <div>
-            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Tu Posición en {{ activeLevelRankingTab() }} primero</h4>
+            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Tu precisión en {{ activeLevelRankingTab() }}</h4>
             <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
               <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center">
                   <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3"
                       [style.backgroundColor]="getLevelColor(activeLevelRankingTab()) + '30'">
                     <span class="font-bold" [style.color]="getLevelColor(activeLevelRankingTab())">
-                      #{{ getMyLevelPosition(activeLevelRankingTab()) || '-' }}
+                      #{{ getMyLevelAccuracyPosition(activeLevelRankingTab()) || '-' }}
                     </span>
                   </div>
                   <div>
                     <div class="font-medium text-gray-900 dark:text-gray-100">{{ currentUser?.username }}</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ activeLevelRankingTab() }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">Tu posición en precisión</div>
                   </div>
                 </div>
                 <div class="text-right">
                   <div class="font-bold" [style.color]="getLevelColor(activeLevelRankingTab())">
-                    {{ levelStats()?.[activeLevelRankingTab()]?.first_attempt?.tests_count || 0 }} tests
+                    {{ getLevelAccuracyValue(activeLevelRankingTab()) }}%
                   </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ getLevelParticipationPercentage(activeLevelRankingTab()).toFixed(1) }}% de tus tests
-                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">tu precisión 1er intento</div>
                 </div>
               </div>
               
-              <div class="grid grid-cols-2 gap-3">
+              <!-- Tus estadísticas de precisión -->
+              <div class="grid grid-cols-2 gap-3 mt-4">
                 <div class="text-center p-2 bg-white dark:bg-gray-800 rounded">
                   <div class="text-sm font-medium" [style.color]="getLevelColor(activeLevelRankingTab())">
-                    {{ levelStats()?.[activeLevelRankingTab()]?.first_attempt?.average_score | number:'1.0-2' }}%
+                    {{ getLevelTestCount(activeLevelRankingTab()) }}
                   </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Precisión</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">Tests completados</div>
                 </div>
                 <div class="text-center p-2 bg-white dark:bg-gray-800 rounded">
                   <div class="text-sm font-medium" [style.color]="getLevelColor(activeLevelRankingTab())">
-                    {{ formatTimeShort(levelStats()?.[activeLevelRankingTab()]?.first_attempt?.average_time_taken_per_question || 0) }}
+                    {{ getLevelQuestionsCount(activeLevelRankingTab()) }}
                   </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">Tiempo/preg</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400">Preguntas respondidas</div>
                 </div>
               </div>
             </div>
@@ -886,6 +699,7 @@
         </div>
       </div>
       }
+      
     </div>
     }
 
@@ -938,7 +752,7 @@
       <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
         {{ error() }}
       </p>
-      <button (click)="loadDashboardData(true)"
+      <button (click)="loadDashboardData()"
               class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
         Intentar de nuevo
       </button>
