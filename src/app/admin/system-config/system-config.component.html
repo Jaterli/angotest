@@ -1,0 +1,483 @@
+<div class="container mx-auto p-4 md:p-6 lg:p-8">
+  
+  <!-- Header con título y botones -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Configuraciones del Sistema</h1>
+      <p class="text-gray-600 dark:text-gray-400 mt-2">
+        Gestiona las configuraciones globales de la aplicación
+        <span class="text-sm ml-2 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full">
+          {{ filteredConfigs().length }} configuración{{ filteredConfigs().length !== 1 ? 'es' : '' }}
+        </span>
+      </p>
+    </div>
+    
+    <!-- Botones de acción -->
+    <div class="flex flex-wrap items-center gap-3">
+      <button (click)="openCreateModal()"
+        class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+        </svg>
+        Nueva Configuración
+      </button>
+      
+      <button (click)="openBulkModal()"
+        class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-800/50 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"/>
+        </svg>
+        Actualización Masiva
+      </button>
+
+      <button (click)="loadConfigs()"
+        class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+        </svg>
+        Refrescar
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros y búsqueda -->
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6 mb-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Filtros y Búsqueda</h3>
+        <p class="text-gray-600 dark:text-gray-400 text-sm">Filtra y ordena las configuraciones</p>
+      </div>
+      
+      <button (click)="searchTerm.set(''); filterOptions.set({showImportantOnly: false, sortBy: 'key', sortOrder: 'asc'}); applyFilters()"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+        </svg>
+        Limpiar Filtros
+      </button>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- Búsqueda -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Buscar
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+          placeholder="Buscar por clave, valor..."
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+        >
+      </div>
+      
+      <!-- Filtro por importancia -->
+      <div class="flex items-end">
+        <label class="flex items-center cursor-pointer">
+          <input type="checkbox" [(ngModel)]="filterOptions().showImportantOnly" 
+                 (ngModelChange)="onFilterChange()"
+                 class="sr-only peer">
+          <div class="relative w-11 h-6 bg-gray-200 dark:bg-gray-700 peer-focus:outline-hidden peer-focus:ring-2 peer-focus:ring-blue-500 dark:peer-focus:ring-blue-400 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 dark:peer-checked:bg-blue-500"></div>
+          <span class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+            Solo importantes
+          </span>
+        </label>
+      </div>
+      
+      <!-- Ordenación -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Ordenar por
+        </label>
+        <select
+          [(ngModel)]="filterOptions().sortBy"
+          (ngModelChange)="onFilterChange()"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+        >
+          <option value="key">Clave</option>
+          <option value="value">Valor</option>
+          <option value="updated_at">Fecha actualización</option>
+          <option value="created_at">Fecha creación</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Dirección
+        </label>
+        <select
+          [(ngModel)]="filterOptions().sortOrder"
+          (ngModelChange)="onFilterChange()"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+        >
+          <option value="asc">Ascendente</option>
+          <option value="desc">Descendente</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado de carga -->
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-gray-600 dark:text-gray-400 text-lg">Cargando configuraciones...</p>
+    </div>
+  }
+
+  <!-- Sin resultados -->
+  @if (!loading() && filteredConfigs().length === 0) {
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
+      <div class="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4">
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
+        @if (searchTerm() || filterOptions().showImportantOnly) {
+          No se encontraron configuraciones
+        } @else {
+          No hay configuraciones
+        }
+      </h3>
+      <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
+        @if (searchTerm() || filterOptions().showImportantOnly) {
+          No hay configuraciones que coincidan con los filtros aplicados.
+        } @else {
+          No hay configuraciones disponibles en el sistema. ¡Crea tu primera configuración!
+        }
+      </p>
+      <button (click)="openCreateModal()"
+              class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-all">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+        </svg>
+        Crear Primera Configuración
+      </button>
+    </div>
+  }
+
+  <!-- Lista de configuraciones -->
+  @if (!loading() && filteredConfigs().length > 0) {
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      @for (config of filteredConfigs(); track config.id) {
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl dark:hover:shadow-gray-900/50 transition-all duration-200"
+             [class]="getImportantClass(config.key)">
+          <div class="p-6">
+            <!-- Header de la tarjeta -->
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {{ config.key }}
+                  </h3>
+                  @if (isImportantKey(config.key)) {
+                    <span class="px-2 py-0.5 text-xs font-medium bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 rounded-full">
+                      Importante
+                    </span>
+                  }
+                </div>
+                @if (config.description) {
+                  <p class="text-gray-600 dark:text-gray-400 text-sm mb-2">
+                    {{ config.description }}
+                  </p>
+                }
+              </div>
+              
+              <!-- Indicador de fecha -->
+              <div class="text-right">
+                <div class="text-xs text-gray-500 dark:text-gray-400">
+                  Actualizado
+                </div>
+                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {{ config.updated_at | date:'dd/MM/yyyy' }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Valor de la configuración -->
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Valor
+              </label>
+              <div class="relative group">
+                <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 font-mono text-sm text-gray-800 dark:text-gray-200 break-all border border-gray-200 dark:border-gray-700">
+                  {{ config.value }}
+                </div>
+                <button (click)="copyToClipboard(config.value)"
+                        class="absolute top-2 right-2 p-1.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z"></path>
+                    <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
+              <div class="flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                </svg>
+                Creado: {{ config.created_at | date:'dd/MM/yyyy' }}
+              </div>
+              <div class="flex items-center">
+                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                </svg>
+                ID: {{ config.id }}
+              </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <button (click)="copyToClipboard(config.value)"
+                      class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-hidden focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z"></path>
+                  <path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z"></path>
+                </svg>
+                Copiar
+              </button>
+              
+              <button (click)="openEditModal(config)"
+                      class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                </svg>
+                Editar
+              </button>
+              
+              <button (click)="openDeleteModal(config)"
+                      class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                <svg class="w-3.5 h-3.5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Modal para crear configuración -->
+  <app-modal 
+    [isOpen]="showCreateModal()"
+    title="Nueva Configuración"
+    icon="info"
+    confirmText="Crear"
+    cancelText="Cancelar"
+    size="lg"
+    [customContent]="true"
+    (confirm)="createConfig()"
+    (cancel)="showCreateModal.set(false)">
+    
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Clave *
+        </label>
+        <input type="text" [(ngModel)]="newConfig().key"
+               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+               placeholder="app.name, api.url, etc.">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          Identificador único para la configuración (no se podrá cambiar)
+        </p>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Valor *
+        </label>
+        <textarea [(ngModel)]="newConfig().value"
+                  rows="3"
+                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+                  placeholder="Valor de la configuración"></textarea>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Descripción
+        </label>
+        <textarea [(ngModel)]="newConfig().description"
+                  rows="2"
+                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+                  placeholder="Descripción opcional de la configuración"></textarea>
+      </div>
+    </div>
+  </app-modal>
+
+  <!-- Modal para editar configuración -->
+  <app-modal 
+    [isOpen]="showEditModal()"
+    title="Editar Configuración"
+    [icon]="isImportantKey(currentConfig()?.key || '') ? 'warning' : 'info'"
+    confirmText="Guardar Cambios"
+    cancelText="Cancelar"
+    size="lg"
+    [customContent]="true"
+    (confirm)="updateConfig()"
+    (cancel)="showEditModal.set(false)">
+    
+    <div class="space-y-4">
+      @if (currentConfig()) {
+        <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+          <div class="text-sm text-gray-600 dark:text-gray-400">Clave actual:</div>
+          <div class="font-mono text-lg font-semibold text-gray-900 dark:text-gray-100">{{ currentConfig()!.key }}</div>
+        </div>
+      }
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Nueva Clave
+        </label>
+        <input type="text" [(ngModel)]="editConfig().key"
+               class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+               placeholder="Dejar vacío para no cambiar">
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          Cambiar la clave puede afectar al funcionamiento de la aplicación
+        </p>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Valor
+        </label>
+        <textarea [(ngModel)]="editConfig().value"
+                  rows="4"
+                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+                  placeholder="Nuevo valor"></textarea>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Descripción
+        </label>
+        <textarea [(ngModel)]="editConfig().description"
+                  rows="3"
+                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+                  placeholder="Nueva descripción"></textarea>
+      </div>
+    </div>
+  </app-modal>
+
+  <!-- Modal para eliminación -->
+  <app-modal 
+    [isOpen]="showDeleteModal()"
+    title="¿Eliminar Configuración?"
+    [message]="'¿Estás seguro de que quieres eliminar la configuración \'' + (configToDelete()?.key || '') + '\'? Esta acción no se puede deshacer.'"
+    icon="warning"
+    confirmText="Eliminar"
+    cancelText="Cancelar"
+    (confirm)="deleteConfig()"
+    (cancel)="showDeleteModal.set(false)">
+    
+    <div class="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <div class="text-sm text-red-700 dark:text-red-300">
+          @if (isImportantKey(configToDelete()?.key || '')) {
+            <p class="font-medium">¡Configuración importante!</p>
+            <p class="mt-1">Esta configuración parece ser crítica para el funcionamiento de la aplicación.</p>
+          } @else {
+            <p class="font-medium">¡Atención!</p>
+            <p class="mt-1">Esta acción eliminará permanentemente la configuración del sistema.</p>
+          }
+        </div>
+      </div>
+    </div>
+  </app-modal>
+
+  <!-- Modal para actualización masiva -->
+  <app-modal 
+    [isOpen]="showBulkModal()"
+    title="Actualización Masiva"
+    icon="navigation"
+    confirmText="Actualizar Todo"
+    cancelText="Cancelar"
+    size="lg"
+    [customContent]="true"
+    (confirm)="bulkUpdate()"
+    (cancel)="showBulkModal.set(false)">
+    
+    <div class="space-y-4">
+      <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+        Actualiza múltiples configuraciones a la vez. Las configuraciones se actualizarán si la clave existe.
+      </p>
+      
+      <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
+        @for (config of bulkConfigs(); track $index; let i = $index) {
+          <div class="p-4 bg-gray-50 dark:bg-gray-900/30 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Configuración #{{ i + 1 }}
+              </span>
+              @if (bulkConfigs().length > 2) {
+                <button (click)="removeBulkRow(i)" class="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                  </svg>
+                </button>
+              }
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  Clave
+                </label>
+                <input type="text" [(ngModel)]="bulkConfigs()[i].key"
+                       class="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+                       placeholder="api.key">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                  Valor
+                </label>
+                <input type="text" [(ngModel)]="bulkConfigs()[i].value"
+                       class="w-full px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+                       placeholder="nuevo.valor">
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+      
+      <button (click)="addBulkRow()"
+              class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/50 border border-blue-200 dark:border-blue-800 transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+        </svg>
+        Agregar Otra Configuración
+      </button>
+    </div>
+  </app-modal>
+
+  <!-- Modal de éxito -->
+  <app-modal 
+    [isOpen]="showSuccessModal()"
+    title="¡Operación Exitosa!"
+    message="La operación se ha completado correctamente."
+    icon="success"
+    confirmText="Continuar"
+    (confirm)="showSuccessModal.set(false)"
+    [showCancelButton]="false">
+  </app-modal>
+
+  <!-- Modal de error -->
+  <app-modal 
+    [isOpen]="showErrorModal()"
+    title="Error"
+    [message]="errorMessage()"
+    icon="error"
+    confirmText="Entendido"
+    (confirm)="showErrorModal.set(false)"
+    [showCancelButton]="false">
+  </app-modal>
+
+</div>

@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { User, UsersStatsFilters, UserStats } from '../../shared/models/user.model';
 import { ModalComponent } from '../../shared/components/modal.component';
 import { UsersManagementService } from '../services/users-management.service';
+import { SharedUtilsService } from '../../shared/services/shared-utils.service';
 
 @Component({
   selector: 'app-users-stats',
@@ -19,6 +20,7 @@ import { UsersManagementService } from '../services/users-management.service';
 })
 export class UsersStatsComponent implements OnInit {
   private usersManagementService = inject(UsersManagementService);
+  private sharedUtilsService = inject(SharedUtilsService);
 
   // Datos
   users = signal<UserStats[]>([]);
@@ -45,6 +47,7 @@ export class UsersStatsComponent implements OnInit {
   // Opciones disponibles
   sortOptions = signal([
     { value: 'created_at', label: 'Fecha de registro' },
+    { value: 'login_at', label: 'Último inicio de sesión' },    
     { value: 'username', label: 'Nombre de usuario' },
     { value: 'email', label: 'Email' },
     { value: 'tests_completed', label: 'Tests completados' },
@@ -198,24 +201,28 @@ export class UsersStatsComponent implements OnInit {
     }
   }
 
+  // getPageNumbers(): number[] {
+  //   const pages: number[] = [];
+  //   const totalPages = this.totalPages();
+    
+  //   // Mostrar máximo 5 páginas
+  //   let startPage = Math.max(1, this.currentPage() - 2);
+  //   let endPage = Math.min(totalPages, startPage + 4);
+    
+  //   // Ajustar si estamos cerca del final
+  //   if (endPage - startPage < 4) {
+  //     startPage = Math.max(1, endPage - 4);
+  //   }
+    
+  //   for (let i = startPage; i <= endPage; i++) {
+  //     pages.push(i);
+  //   }
+    
+  //   return pages;
+  // }
+
   getPageNumbers(): number[] {
-    const pages: number[] = [];
-    const totalPages = this.totalPages();
-    
-    // Mostrar máximo 5 páginas
-    let startPage = Math.max(1, this.currentPage() - 2);
-    let endPage = Math.min(totalPages, startPage + 4);
-    
-    // Ajustar si estamos cerca del final
-    if (endPage - startPage < 4) {
-      startPage = Math.max(1, endPage - 4);
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    
-    return pages;
+    return this.sharedUtilsService.getSharedPageNumbers(this.totalPages(), this.currentPage());
   }
 
   getStartIndex(): number {
@@ -227,27 +234,15 @@ export class UsersStatsComponent implements OnInit {
     return Math.min(end, this.totalUsers());
   }
 
-
   // Método para obtener el color según la puntuación
-  getScoreClasses(score: number): string {
-    if (score >= 80) {
-      return 'text-emerald-600 dark:text-emerald-400 font-bold';
-    } else if (score >= 60) {
-      return 'text-yellow-600 dark:text-yellow-400';
-    } else {
-      return 'text-red-600 dark:text-red-400';
-    }
+  getScoreColor(score: number): string {
+    return this.sharedUtilsService.getSharedScoreColor(score);
   }
 
-  // Método para formatear la fecha
-  formatDate(dateString: string): string {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+  formatDateTime(dateString: string): string {
+    return this.sharedUtilsService.sharedFormatDateTime(dateString);
   }
+
 
   // Método para calcular la edad
   calculateAge(birthDate: string): number {

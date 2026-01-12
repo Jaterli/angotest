@@ -46,6 +46,11 @@
                  routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
                 Estadísticas
               </a>
+              <a routerLink="/admin/system-config" 
+                 class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Configuración
+              </a>
             </div>
           }
 
@@ -248,6 +253,12 @@
                  class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                  routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
                 Estadísticas
+              </a>
+              <a routerLink="/admin/system-config" 
+                 (click)="closeMobileMenu()"
+                 class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                 routerLinkActive="text-blue-600 dark:text-blue-400 font-semibold">
+                Configuración
               </a>
             }
           }

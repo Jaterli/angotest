@@ -40,7 +40,7 @@ export class LoginComponent {
       next: (response) => {
         console.log('Login exitoso');
         this.loading.set(false);
-        if (response.user.role === 'user') {
+        if (response.user.role !== 'admin') {
           this.router.navigate(['/tests/not-started']);
           return;
         }

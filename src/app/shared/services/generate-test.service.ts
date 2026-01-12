@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { AIRequestStatus, GenerateTestRequest, TopicsResponse, UserQuota } from "../models/generate-test.model";
+import { AIRequestStatus, GenerateTestRequest, UserQuota } from "../models/generate-test.model";
 import { HttpClient } from "@angular/common/http";
 import { Observable, of, throwError } from "rxjs";
 import { tap, catchError } from "rxjs/operators"; 

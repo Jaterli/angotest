@@ -306,7 +306,7 @@
                 <!-- Columna Puntuación Media -->
                 <td class="px-6 py-4">
                   <div class="flex flex-col items-center">
-                    <span [class]="getScoreClasses(user.average_score)" class="text-xl font-bold">
+                    <span [class]="getScoreColor(user.average_score)" class="text-xl font-bold">
                       {{ user.average_score | number:'1.0-1' }}%
                     </span>
                     <div class="text-xs text-gray-500 dark:text-gray-400">
@@ -497,7 +497,7 @@
               <div>
                 <label class="text-xs text-gray-500 dark:text-gray-400">Fecha de nacimiento</label>
                 <div class="text-sm text-gray-900 dark:text-gray-100">
-                  {{ formatDate(userProfile()?.birth_date || 'No especificada') }}
+                  {{ formatDateTime(userProfile()?.birth_date || 'No especificada') }}
                 </div>
               </div>
             </div>
@@ -526,7 +526,7 @@
               <div>
                 <label class="text-xs text-gray-500 dark:text-gray-400">Fecha de registro</label>
                 <div class="text-sm text-gray-900 dark:text-gray-100">
-                  {{ formatDate(userProfile()?.created_at || 'No especificada') }}
+                  {{ formatDateTime(userProfile()?.created_at || 'No especificada') }}
                 </div>
               </div>
             </div>
@@ -556,7 +556,7 @@
       <!-- Resumen -->
       <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         <div class="text-xs text-gray-500 dark:text-gray-400">
-          Última actualización: {{ formatDate(userProfile()?.created_at || '') }}
+          Último inicio de sesión: {{ formatDateTime(userProfile()?.login_at || '') }}
         </div>
       </div>
     }

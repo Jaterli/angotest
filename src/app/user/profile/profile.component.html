@@ -53,9 +53,9 @@
               <p class="text-gray-900 dark:text-gray-100 font-medium capitalize">{{ user().role }}</p>
             </div>
             <div>
-              <p class="text-sm text-gray-500 dark:text-gray-400">Fecha de registro</p>
-              <p class="text-gray-900 dark:text-gray-100 font-medium">{{ user().created_at | date:'dd/MM/yyyy' }}</p>
-            </div>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Último inicio de sesión</p>
+              <p class="text-gray-900 dark:text-gray-100 font-medium">{{ user().login_at | date:'dd/MM/yyyy' }}</p>
+            </div>            
           </div>
         } @else if (loading()) {
           <div class="flex items-center justify-center py-8">

@@ -8,8 +8,9 @@ export interface User {
   address?: string;
   country?: string;
   birth_date?: string; // o Date
-  role: string;
+  role?: string;
   created_at: string; // o Date
+  login_at?: string; // o Date
 }
 
 export interface UserStats {

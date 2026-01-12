@@ -196,18 +196,29 @@ export class SharedUtilsService {
   sharedFormatTime(seconds: number): string {
     if (!seconds || seconds === 0) return 'N/A';
     
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
+    // const hours = Math.floor(seconds / 3600);
+    // const minutes = Math.floor((seconds % 3600) / 60);
+    // const secs = seconds % 60;
     
-    if (hours > 0) {
-      return `${hours}h ${minutes}m ${secs}s`;
-    } else if (minutes > 0) {
-      return `${minutes}m ${secs}s`;
+    // if (hours > 0) {
+    //   return `${hours}h ${minutes}m ${secs}s`;
+    // } else if (minutes > 0) {
+    //   return `${minutes}m ${secs}s`;
+    // } else {
+    //   return `${secs.toFixed(1)}s`;
+    // }
+
+    if (seconds < 60) {
+      return `${seconds.toFixed(0)}s`;
+    } else if (seconds < 3600) {
+      return `${Math.floor(seconds / 60)}m ${Math.floor(seconds % 60)}s`;
     } else {
-      return `${secs.toFixed(1)}s`;
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      return `${hours}h ${minutes}m`;
     }
   }
+
 
   getSharedPageNumbers(totalPages: number, currentPage: number): number[] {
     const pages: number[] = [];
