@@ -1,83 +1,131 @@
 // dashboard.models.ts
-export interface DashboardStats {
-  // Totales
+
+// Estructuras principales del dashboard
+export interface DashboardResponse {
+  totals: DashboardTotals;
+  top_tests: TopTestsLists;
+  user_lists: UserLists;
+}
+
+export interface DashboardTotals {
   total_users: number;
   active_users: number;
   total_tests: number;
+  inactive_tests: number;
   completed_tests: number;
   in_progress_tests: number;
   abandoned_tests: number;
-  active_tests: number;
-  advanced_level_tests: number;
+  advanced_tests: number;
   intermediate_tests: number;
   beginner_tests: number;
-
-  // Listados
-  most_completed_tests: TestInfo[];
-  most_incomplete_tests: TestInfo[];
-  most_abandoned_tests: TestInfo[];
-  least_started_oldest_tests: TestInfo[];
-  highest_accuracy_tests: TestAccuracy[];
-  lowest_accuracy_tests: TestAccuracy[];
-  longest_average_time_tests: TestTime[];
-  shortest_average_time_tests: TestTime[];
-  new_users_monthly: MonthlyUsers[];
-  active_users_monthly: MonthlyActiveUsers[];
-  inactive_users: UserInfo[];
-  recently_logged_users: UserInfo[];
-  oldest_logged_users: UserInfo[];
 }
 
-export interface SimpleDashboardStats {
-  total_users: number;
-  total_tests: number;
-  active_tests: number;
-  completed_tests: number;
-  in_progress_tests: number;
-  new_users_today: number;
-  new_users_this_month: number;
-  tests_completed_today: number;
+export interface TopTestsLists {
+  most_completed: TestWithCount[];
+  most_incomplete: TestWithCount[];
+  most_abandoned: TestWithCount[];
+  least_started_oldest: TestWithDate[];
+  highest_accuracy: TestWithRate[];
+  lowest_accuracy: TestWithRate[];
+  highest_avg_time: TestWithTime[];
+  lowest_avg_time: TestWithTime[];
 }
 
-// Estructuras auxiliares
-export interface TestInfo {
+export interface UserLists {
+  new_users_by_month: UserWithCount[];
+  most_active_users: UserWithCount[];
+  least_active_oldest: UserWithDate[];
+  recent_login: UserWithDate[];
+  oldest_login: UserWithDate[];
+}
+
+// Tipos de datos comunes
+export interface TestWithCount {
   id: number;
   title: string;
-  count?: number;
+  count: number;
 }
 
-export interface TestAccuracy {
+export interface TestWithDate {
   id: number;
   title: string;
-  total_results?: number;
-  accuracy: number;
+  date: string;
 }
 
-export interface TestTime {
+export interface TestWithRate {
+  id: number;
+  title: string;
+  accuracy_rate: number;
+}
+
+export interface TestWithTime {
   id: number;
   title: string;
   avg_time: number;
 }
 
-export interface UserInfo {
+export interface UserWithCount {
   id: number;
   username: string;
-  count?: number;
-}
-
-export interface MonthlyUsers {
-  month_year: string;
   count: number;
-  users: UserInfo[];
 }
 
-export interface MonthlyActiveUsers {
-  month_year: string;
-  count: number;
-  users: UserInfo[];
+export interface UserWithDate {
+  id: number;
+  username: string;
+  date: string;
 }
 
-// Filtros para dashboard
+// Filtros para el dashboard
 export interface DashboardFilters {
-  min_tests?: number;
+  months_back?: number;
+  year?: number;
+  use_total?: boolean;
+  limit?: number;
+  active_threshold?: number;
+}
+
+// Estadísticas detalladas de un test
+export interface TestDetailedStats {
+  totalAttempts: number;
+  completedAttempts: number;
+  avgAccuracy: number;
+  avgTime: number;
+  avgQuestions: number;
+  completionRate: number;
+  abandonmentRate: number;
+  difficultyLevel: string;
+  topicHierarchy: {
+    mainTopic: string;
+    subTopic: string;
+    specificTopic: string;
+  };
+}
+
+// Estadísticas detalladas de un usuario
+export interface UserDetailedStats {
+  userInfo: {
+    username: string;
+    email: string;
+    createdAt: string;
+    lastLogin: string;
+    role: string;
+  };
+  testStats: {
+    totalTests: number;
+    completedTests: number;
+    inProgressTests: number;
+    abandonedTests: number;
+    avgAccuracy: number;
+    avgTimePerTest: number;
+    favoriteTopic: string;
+    favoriteLevel: string;
+  };
+  recentActivity: {
+    testTitle: string;
+    status: string;
+    accuracy: number;
+    timeTaken: number;
+    startedAt: string;
+  }[];
 }

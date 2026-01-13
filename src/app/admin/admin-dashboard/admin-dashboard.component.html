@@ -1,0 +1,1073 @@
+<div class="container mx-auto p-4 md:p-6 lg:p-8">
+  
+  <!-- Header con título -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div>
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard de Administración</h2>
+      <p class="text-gray-600 dark:text-gray-400 mt-2">
+        Estadísticas completas del sistema para administradores
+      </p>
+    </div>
+    
+    <!-- Fecha y hora actual -->
+    <div class="text-sm text-gray-500 dark:text-gray-400">
+      {{ getDateAgo(filters().months_back || 6) }} - Actual
+    </div>
+  </div>
+
+  <!-- Filtros y controles -->
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6 mb-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Filtros del Dashboard</h3>
+        <p class="text-gray-600 dark:text-gray-400 text-sm">Configura los parámetros para las métricas</p>
+      </div>
+      
+      <!-- Botón para recargar -->
+      <button (click)="applyFilters()"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+        </svg>
+        Aplicar Filtros
+      </button>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Filtro de meses hacia atrás -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Período de análisis
+        </label>
+        <select
+          [ngModel]="filters().months_back"
+          (ngModelChange)="updateFilters('months_back', $event)"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+        >
+          @for (months of monthsBackOptions; track months) {
+            <option [value]="months">Últimos {{ months }} mes{{ months !== 1 ? 'es' : '' }}</option>
+          }
+        </select>
+      </div>
+      
+      <!-- Filtro de límite de resultados -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Resultados por lista
+        </label>
+        <select
+          [ngModel]="filters().limit"
+          (ngModelChange)="updateFilters('limit', $event)"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+        >
+          @for (limit of limitOptions; track limit) {
+            <option [value]="limit">Top {{ limit }}</option>
+          }
+        </select>
+      </div>
+      
+      <!-- Filtro de umbral para usuario activo -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Tests para usuario activo
+        </label>
+        <select
+          [ngModel]="filters().active_threshold"
+          (ngModelChange)="updateFilters('active_threshold', $event)"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+        >
+          @for (threshold of activeThresholdOptions; track threshold) {
+            <option [value]="threshold">{{ threshold }} test{{ threshold !== 1 ? 's' : '' }}</option>
+          }
+        </select>
+      </div>
+      
+      <!-- Resetear filtros -->
+      <div class="flex items-end">
+        <button (click)="resetFilters()"
+                class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          Restablecer Filtros
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pestañas de navegación -->
+  <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
+    <nav class="flex -mb-px space-x-4">
+      <button (click)="setActiveTab('overview')"
+              [class]="activeTab() === 'overview' 
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-400 inline-flex items-center px-4 py-3 border-b-2 text-sm font-medium'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 inline-flex items-center px-4 py-3 border-b-2 text-sm font-medium transition-colors'">
+        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+        </svg>
+        Totales y Visión General
+      </button>
+      
+      <button (click)="setActiveTab('tests')"
+              [class]="activeTab() === 'tests' 
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-400 inline-flex items-center px-4 py-3 border-b-2 text-sm font-medium'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 inline-flex items-center px-4 py-3 border-b-2 text-sm font-medium transition-colors'">
+        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clip-rule="evenodd"/>
+        </svg>
+        Estadísticas de Tests
+      </button>
+      
+      <button (click)="setActiveTab('users')"
+              [class]="activeTab() === 'users' 
+                ? 'border-blue-500 text-blue-600 dark:text-blue-400 dark:border-blue-400 inline-flex items-center px-4 py-3 border-b-2 text-sm font-medium'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300 inline-flex items-center px-4 py-3 border-b-2 text-sm font-medium transition-colors'">
+        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+        </svg>
+        Estadísticas de Usuarios
+      </button>
+    </nav>
+  </div>
+
+  <!-- Estado de carga -->
+  @if (isLoading()) {
+    <div class="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-gray-600 dark:text-gray-400 text-lg">Cargando estadísticas...</p>
+    </div>
+  }
+
+  <!-- Error en la carga -->
+  @if (!isLoading() && !dashboardData()) {
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
+      <div class="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4">
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+        </svg>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Error al cargar el dashboard</h3>
+      <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+        No se pudieron cargar las estadísticas del dashboard. Por favor, verifica la conexión y vuelve a intentarlo.
+      </p>
+      <button (click)="loadDashboard()"
+              class="mt-4 inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+        Reintentar
+      </button>
+    </div>
+  }
+
+  <!-- Contenido principal -->
+  @if (dashboardData() && !isLoading()) {
+    <!-- Tab: Totales y Visión General -->
+    @if (activeTab() === 'overview') {
+      <div class="space-y-6">
+        <!-- Sección: KPI principales -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- Total Usuarios -->
+          <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-blue-800 dark:text-blue-300">Total Usuarios</h3>
+              <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <div class="text-4xl font-bold text-blue-900 dark:text-blue-200 mb-1">
+                  {{ formatNumber(dashboardData()!.totals.total_users) }}
+                </div>
+                <div class="text-sm text-blue-700 dark:text-blue-400">Registrados en el sistema</div>
+              </div>
+              <div class="pt-3 border-t border-blue-200 dark:border-blue-800">
+                <div class="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+                  {{ formatNumber(dashboardData()!.totals.active_users) }} activos
+                </div>
+                <div class="text-sm text-blue-600 dark:text-blue-400">
+                  ({{ calculatePercentage(dashboardData()!.totals.active_users, dashboardData()!.totals.total_users).toFixed(1) }}%)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Tests -->
+          <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-2xl p-6 border border-emerald-200 dark:border-emerald-800">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-emerald-800 dark:text-emerald-300">Total Tests</h3>
+              <svg class="w-8 h-8 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12 1.586l-4 4v12.828l4-4V1.586zM3.707 3.293A1 1 0 002 4v10a1 1 0 00.293.707L6 18.414V5.586L3.707 3.293zM17.707 5.293L14 1.586v12.828l2.293 2.293A1 1 0 0018 16V6a1 1 0 00-.293-.707z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <div class="text-4xl font-bold text-emerald-900 dark:text-emerald-200 mb-1">
+                  {{ formatNumber(dashboardData()!.totals.total_tests) }}
+                </div>
+                <div class="text-sm text-emerald-700 dark:text-emerald-400">Creados en el sistema</div>
+              </div>
+              <div class="pt-3 border-t border-emerald-200 dark:border-emerald-800">
+                <div class="text-lg font-semibold text-emerald-600 dark:text-emerald-400">
+                  {{ formatNumber(dashboardData()!.totals.completed_tests) }} completados
+                </div>
+                <div class="text-sm text-emerald-600 dark:text-emerald-400">
+                  ({{ calculatePercentage(dashboardData()!.totals.completed_tests, dashboardData()!.totals.total_tests).toFixed(1) }}%)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tests Activos/Inactivos -->
+          <div class="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 rounded-2xl p-6 border border-amber-200 dark:border-amber-800">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-amber-800 dark:text-amber-300">Tests Activos</h3>
+              <svg class="w-8 h-8 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="space-y-3">
+              <div>
+                <div class="text-4xl font-bold text-amber-900 dark:text-amber-200 mb-1">
+                  {{ formatNumber(dashboardData()!.totals.total_tests - dashboardData()!.totals.inactive_tests) }}
+                </div>
+                <div class="text-sm text-amber-700 dark:text-amber-400">Tests disponibles</div>
+              </div>
+              <div class="pt-3 border-t border-amber-200 dark:border-amber-800">
+                <div class="text-lg font-semibold text-gray-600 dark:text-gray-400">
+                  {{ formatNumber(dashboardData()!.totals.inactive_tests) }} inactivos
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-500">
+                  ({{ calculatePercentage(dashboardData()!.totals.inactive_tests, dashboardData()!.totals.total_tests).toFixed(1) }}%)
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tests en Progreso/Abandonados -->
+          <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-800">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-purple-800 dark:text-purple-300">Estado de Tests</h3>
+              <svg class="w-8 h-8 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5 3a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5zm9 4a1 1 0 10-2 0v6a1 1 0 102 0V7zm-3 2a1 1 0 10-2 0v4a1 1 0 102 0V9zm-3 3a1 1 0 10-2 0v1a1 1 0 102 0v-1z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="space-y-3">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                    {{ formatNumber(dashboardData()!.totals.in_progress_tests) }}
+                  </div>
+                  <div class="text-xs text-blue-600 dark:text-blue-400">En progreso</div>
+                </div>
+                <div>
+                  <div class="text-2xl font-bold text-red-600 dark:text-red-400">
+                    {{ formatNumber(dashboardData()!.totals.abandoned_tests) }}
+                  </div>
+                  <div class="text-xs text-red-600 dark:text-red-400">Abandonados</div>
+                </div>
+              </div>
+              <div class="pt-3 border-t border-purple-200 dark:border-purple-800">
+                <div class="text-sm text-purple-700 dark:text-purple-400">
+                  Total: {{ formatNumber(dashboardData()!.totals.in_progress_tests + dashboardData()!.totals.abandoned_tests) }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sección: Tests por Nivel -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-6">Distribución de Tests por Nivel</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Principiante -->
+            <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <span class="text-lg font-semibold text-blue-700 dark:text-blue-400">Principiante</span>
+                  <div class="text-3xl font-bold text-blue-800 dark:text-blue-300 mt-1">
+                    {{ formatNumber(dashboardData()!.totals.beginner_tests) }}
+                  </div>
+                </div>
+                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                  <span class="text-xl font-bold text-blue-600 dark:text-blue-400">
+                    {{ calculatePercentage(dashboardData()!.totals.beginner_tests, dashboardData()!.totals.total_tests).toFixed(0) }}%
+                  </span>
+                </div>
+              </div>
+              <div class="w-full bg-blue-200 dark:bg-blue-800 rounded-full h-3">
+                <div class="bg-blue-500 dark:bg-blue-400 h-3 rounded-full" 
+                     [style.width.%]="calculatePercentage(dashboardData()!.totals.beginner_tests, dashboardData()!.totals.total_tests)">
+                </div>
+              </div>
+            </div>
+            
+            <!-- Intermedio -->
+            <div class="bg-gradient-to-r from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 rounded-xl p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <span class="text-lg font-semibold text-emerald-700 dark:text-emerald-400">Intermedio</span>
+                  <div class="text-3xl font-bold text-emerald-800 dark:text-emerald-300 mt-1">
+                    {{ formatNumber(dashboardData()!.totals.intermediate_tests) }}
+                  </div>
+                </div>
+                <div class="w-16 h-16 bg-emerald-100 dark:bg-emerald-900 rounded-full flex items-center justify-center">
+                  <span class="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+                    {{ calculatePercentage(dashboardData()!.totals.intermediate_tests, dashboardData()!.totals.total_tests).toFixed(0) }}%
+                  </span>
+                </div>
+              </div>
+              <div class="w-full bg-emerald-200 dark:bg-emerald-800 rounded-full h-3">
+                <div class="bg-emerald-500 dark:bg-emerald-400 h-3 rounded-full" 
+                     [style.width.%]="calculatePercentage(dashboardData()!.totals.intermediate_tests, dashboardData()!.totals.total_tests)">
+                </div>
+              </div>
+            </div>
+            
+            <!-- Avanzado -->
+            <div class="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <span class="text-lg font-semibold text-purple-700 dark:text-purple-400">Avanzado</span>
+                  <div class="text-3xl font-bold text-purple-800 dark:text-purple-300 mt-1">
+                    {{ formatNumber(dashboardData()!.totals.advanced_tests) }}
+                  </div>
+                </div>
+                <div class="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                  <span class="text-xl font-bold text-purple-600 dark:text-purple-400">
+                    {{ calculatePercentage(dashboardData()!.totals.advanced_tests, dashboardData()!.totals.total_tests).toFixed(0) }}%
+                  </span>
+                </div>
+              </div>
+              <div class="w-full bg-purple-200 dark:bg-purple-800 rounded-full h-3">
+                <div class="bg-purple-500 dark:bg-purple-400 h-3 rounded-full" 
+                     [style.width.%]="calculatePercentage(dashboardData()!.totals.advanced_tests, dashboardData()!.totals.total_tests)">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Tab: Estadísticas de Tests -->
+    @if (activeTab() === 'tests') {
+      <div class="space-y-8">
+        <!-- Tests más completados e incompletos -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Tests más completados -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Tests Más Completados</h3>
+                <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 rounded-full">
+                  {{ dashboardData()!.top_tests.most_completed.length }} tests
+                </span>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                Tests con mayor número de completaciones exitosas
+              </p>
+            </div>
+            <div class="p-6">
+              <div class="space-y-4">
+                @for (test of dashboardData()!.top_tests.most_completed; track test.id; let i = $index) {
+                  <div class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div class="flex items-center space-x-4 min-w-0">
+                      <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                        <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                          {{ i + 1 }}
+                        </span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {{ test.title }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          ID: {{ test.id }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex-shrink-0 ml-4">
+                      <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                        {{ formatNumber(test.count) }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400 text-right">
+                        completados
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (dashboardData()!.top_tests.most_completed.length === 0) {
+                  <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                    </svg>
+                    <p>No hay datos de tests completados</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Tests más incompletos -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Tests Más Incompletos</h3>
+                <span class="text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-3 py-1 rounded-full">
+                  {{ dashboardData()!.top_tests.most_incomplete.length }} tests
+                </span>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                Tests con mayor número de intentos sin completar
+              </p>
+            </div>
+            <div class="p-6">
+              <div class="space-y-4">
+                @for (test of dashboardData()!.top_tests.most_incomplete; track test.id; let i = $index) {
+                  <div class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div class="flex items-center space-x-4 min-w-0">
+                      <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                        <span class="text-sm font-bold text-amber-600 dark:text-amber-400">
+                          {{ i + 1 }}
+                        </span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {{ test.title }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          ID: {{ test.id }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex-shrink-0 ml-4">
+                      <div class="text-lg font-bold text-amber-600 dark:text-amber-400">
+                        {{ formatNumber(test.count) }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400 text-right">
+                        incompletos
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (dashboardData()!.top_tests.most_incomplete.length === 0) {
+                  <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                    </svg>
+                    <p>No hay datos de tests incompletos</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tests abandonados y menos iniciados -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Tests más abandonados -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Tests Más Abandonados</h3>
+                <span class="text-sm font-medium text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-3 py-1 rounded-full">
+                  > 90 días
+                </span>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                Tests con mayor número de abandonos (última actualización > 90 días)
+              </p>
+            </div>
+            <div class="p-6">
+              <div class="space-y-4">
+                @for (test of dashboardData()!.top_tests.most_abandoned; track test.id; let i = $index) {
+                  <div class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div class="flex items-center space-x-4 min-w-0">
+                      <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                        <span class="text-sm font-bold text-red-600 dark:text-red-400">
+                          {{ i + 1 }}
+                        </span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {{ test.title }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          ID: {{ test.id }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex-shrink-0 ml-4">
+                      <div class="text-lg font-bold text-red-600 dark:text-red-400">
+                        {{ formatNumber(test.count) }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400 text-right">
+                        abandonos
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (dashboardData()!.top_tests.most_abandoned.length === 0) {
+                  <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                    </svg>
+                    <p>No hay tests abandonados (sin actividad > 90 días)</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Tests menos iniciados y más antiguos -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Tests Menos Iniciados</h3>
+                <span class="text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+                  Más antiguos
+                </span>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                Tests con menos intentos y creación más antigua
+              </p>
+            </div>
+            <div class="p-6">
+              <div class="space-y-4">
+                @for (test of dashboardData()!.top_tests.least_started_oldest; track test.id; let i = $index) {
+                  <div class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div class="flex items-center space-x-4 min-w-0">
+                      <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <span class="text-sm font-bold text-gray-600 dark:text-gray-400">
+                          {{ i + 1 }}
+                        </span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {{ test.title }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          ID: {{ test.id }} • {{ test.date | date:'dd/MM/yyyy' }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex-shrink-0 ml-4">
+                      <div class="text-xs text-gray-500 dark:text-gray-400 text-right">
+                        Nunca iniciado
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (dashboardData()!.top_tests.least_started_oldest.length === 0) {
+                  <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+                    </svg>
+                    <p>Todos los tests han sido iniciados</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tasa de aciertos -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Tests con mayor tasa de aciertos -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Mayor Tasa de Aciertos</h3>
+                <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 rounded-full">
+                  Mayor precisión
+                </span>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                Tests con mayor porcentaje de respuestas correctas
+              </p>
+            </div>
+            <div class="p-6">
+              <div class="space-y-4">
+                @for (test of dashboardData()!.top_tests.highest_accuracy; track test.id; let i = $index) {
+                  <div class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div class="flex items-center space-x-4 min-w-0">
+                      <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                        <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                          {{ i + 1 }}
+                        </span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {{ test.title }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          ID: {{ test.id }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex-shrink-0 ml-4 text-right">
+                      <div [class]="getScoreColor(test.accuracy_rate)" class="text-lg font-bold">
+                        {{ formatPercentage(test.accuracy_rate) }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        precisión
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (dashboardData()!.top_tests.highest_accuracy.length === 0) {
+                  <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    <p>No hay datos suficientes para calcular tasas de acierto</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Tests con menor tasa de aciertos -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Menor Tasa de Aciertos</h3>
+                <span class="text-sm font-medium text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-3 py-1 rounded-full">
+                  Menor precisión
+                </span>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                Tests con menor porcentaje de respuestas correctas
+              </p>
+            </div>
+            <div class="p-6">
+              <div class="space-y-4">
+                @for (test of dashboardData()!.top_tests.lowest_accuracy; track test.id; let i = $index) {
+                  <div class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div class="flex items-center space-x-4 min-w-0">
+                      <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                        <span class="text-sm font-bold text-red-600 dark:text-red-400">
+                          {{ i + 1 }}
+                        </span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {{ test.title }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          ID: {{ test.id }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex-shrink-0 ml-4 text-right">
+                      <div [class]="getScoreColor(test.accuracy_rate)" class="text-lg font-bold">
+                        {{ formatPercentage(test.accuracy_rate) }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        precisión
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (dashboardData()!.top_tests.lowest_accuracy.length === 0) {
+                  <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    <p>No hay datos suficientes para calcular tasas de acierto</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tiempo promedio de respuesta -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Tests con mayor tiempo promedio -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Mayor Tiempo Promedio</h3>
+                <span class="text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-3 py-1 rounded-full">
+                  Más tiempo/test
+                </span>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                Tests que toman más tiempo en promedio para completarse
+              </p>
+            </div>
+            <div class="p-6">
+              <div class="space-y-4">
+                @for (test of dashboardData()!.top_tests.highest_avg_time; track test.id; let i = $index) {
+                  <div class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div class="flex items-center space-x-4 min-w-0">
+                      <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                        <span class="text-sm font-bold text-amber-600 dark:text-amber-400">
+                          {{ i + 1 }}
+                        </span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {{ test.title }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          ID: {{ test.id }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex-shrink-0 ml-4 text-right">
+                      <div class="text-lg font-bold text-amber-600 dark:text-amber-400">
+                        {{ formatTime(test.avg_time) }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        promedio
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (dashboardData()!.top_tests.highest_avg_time.length === 0) {
+                  <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                    </svg>
+                    <p>No hay datos suficientes para calcular tiempos promedio</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Tests con menor tiempo promedio -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Menor Tiempo Promedio</h3>
+                <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 rounded-full">
+                  Menos tiempo/test
+                </span>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                Tests que toman menos tiempo en promedio para completarse
+              </p>
+            </div>
+            <div class="p-6">
+              <div class="space-y-4">
+                @for (test of dashboardData()!.top_tests.lowest_avg_time; track test.id; let i = $index) {
+                  <div class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div class="flex items-center space-x-4 min-w-0">
+                      <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                        <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                          {{ i + 1 }}
+                        </span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {{ test.title }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          ID: {{ test.id }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex-shrink-0 ml-4 text-right">
+                      <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                        {{ formatTime(test.avg_time) }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        promedio
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (dashboardData()!.top_tests.lowest_avg_time.length === 0) {
+                  <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                    </svg>
+                    <p>No hay datos suficientes para calcular tiempos promedio</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Tab: Estadísticas de Usuarios -->
+    @if (activeTab() === 'users') {
+      <div class="space-y-8">
+        <!-- Nuevos usuarios y usuarios activos -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Nuevos usuarios por mes -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Nuevos Usuarios por Mes</h3>
+                <span class="text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+                  {{ dashboardData()!.user_lists.new_users_by_month.length }} meses
+                </span>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                Usuarios que se registraron en el período seleccionado
+              </p>
+            </div>
+            <div class="p-6">
+              <div class="space-y-4">
+                @for (month of dashboardData()!.user_lists.new_users_by_month; track month.id; let i = $index) {
+                  <div class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div class="flex items-center space-x-4 min-w-0">
+                      <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                        <span class="text-sm font-bold text-blue-600 dark:text-blue-400">
+                          {{ i + 1 }}
+                        </span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="font-medium text-gray-900 dark:text-gray-100">
+                          {{ month.username }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          ID: {{ month.id }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex-shrink-0 ml-4 text-right">
+                      <div class="text-lg font-bold text-blue-600 dark:text-blue-400">
+                        {{ formatNumber(month.count) }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        este mes
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (dashboardData()!.user_lists.new_users_by_month.length === 0) {
+                  <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                    </svg>
+                    <p>No hay nuevos usuarios en el período seleccionado</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Usuarios más activos -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Usuarios Más Activos</h3>
+                <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 rounded-full">
+                  {{ filters().active_threshold }}+ tests
+                </span>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                Usuarios con mayor número de tests completados
+              </p>
+            </div>
+            <div class="p-6">
+              <div class="space-y-4">
+                @for (user of dashboardData()!.user_lists.most_active_users; track user.id; let i = $index) {
+                  <div class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div class="flex items-center space-x-4 min-w-0">
+                      <div class="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
+                        <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                          {{ user.username.charAt(0).toUpperCase() }}
+                        </span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="font-medium text-gray-900 dark:text-gray-100">
+                          {{ user.username }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          ID: {{ user.id }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex-shrink-0 ml-4 text-right">
+                      <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                        {{ formatNumber(user.count) }}
+                      </div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">
+                        tests completados
+                      </div>
+                    </div>
+                  </div>
+                }
+                @if (dashboardData()!.user_lists.most_active_users.length === 0) {
+                  <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                    </svg>
+                    <p>No hay usuarios con {{ filters().active_threshold }}+ tests completados</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Usuarios menos activos y antiguos -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Usuarios menos activos y más antiguos -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Usuarios Menos Activos</h3>
+                <span class="text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+                  Sin tests completados
+                </span>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                Usuarios más antiguos con menor o ninguna actividad
+              </p>
+            </div>
+            <div class="p-6">
+              <div class="space-y-4">
+                @for (user of dashboardData()!.user_lists.least_active_oldest; track user.id; let i = $index) {
+                  <div class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                    <div class="flex items-center space-x-4 min-w-0">
+                      <div class="flex-shrink-0 w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <span class="text-sm font-bold text-gray-600 dark:text-gray-400">
+                          {{ user.username.charAt(0).toUpperCase() }}
+                        </span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="font-medium text-gray-900 dark:text-gray-100">
+                          {{ user.username }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          ID: {{ user.id }} • Registrado: {{ user.date | date:'dd/MM/yyyy' }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="flex-shrink-0 ml-4">
+                      <span class="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                        Sin actividad
+                      </span>
+                    </div>
+                  </div>
+                }
+                @if (dashboardData()!.user_lists.least_active_oldest.length === 0) {
+                  <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                    </svg>
+                    <p>Todos los usuarios tienen alguna actividad</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Comparativa login reciente/antiguo -->
+          <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Último Login</h3>
+                <div class="flex space-x-2">
+                  <span class="text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 rounded-full">
+                    Recientes
+                  </span>
+                  <span class="text-sm font-medium text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-900/30 px-3 py-1 rounded-full">
+                    Antiguos
+                  </span>
+                </div>
+              </div>
+              <p class="text-gray-600 dark:text-gray-400 text-sm mt-1">
+                Usuarios con login más reciente y más antiguo
+              </p>
+            </div>
+            <div class="p-6">
+              <div class="grid grid-cols-1 gap-6">
+                <!-- Usuarios con login más reciente -->
+                <div>
+                  <h4 class="text-sm font-medium text-emerald-600 dark:text-emerald-400 mb-3 flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                    </svg>
+                    Login Más Reciente
+                  </h4>
+                  <div class="space-y-3">
+                    @for (user of dashboardData()!.user_lists.recent_login; track user.id; let i = $index) {
+                      @if (i < 3) {
+                        <div class="flex items-center justify-between p-3 rounded-lg bg-emerald-50/50 dark:bg-emerald-900/20 hover:bg-emerald-100/50 dark:hover:bg-emerald-900/30 transition-colors">
+                          <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
+                              <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                                {{ user.username.charAt(0).toUpperCase() }}
+                              </span>
+                            </div>
+                            <div>
+                              <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                {{ user.username }}
+                              </div>
+                              <div class="text-xs text-gray-500 dark:text-gray-400">
+                                Último: {{ user.date | date:'dd/MM/yyyy HH:mm' }}
+                              </div>
+                            </div>
+                          </div>
+                          <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                            #{{ i + 1 }}
+                          </span>
+                        </div>
+                      }
+                    }
+                  </div>
+                </div>
+                
+                <!-- Usuarios con login más antiguo -->
+                <div>
+                  <h4 class="text-sm font-medium text-amber-600 dark:text-amber-400 mb-3 flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                    </svg>
+                    Login Más Antiguo
+                  </h4>
+                  <div class="space-y-3">
+                    @for (user of dashboardData()!.user_lists.oldest_login; track user.id; let i = $index) {
+                      @if (i < 3) {
+                        <div class="flex items-center justify-between p-3 rounded-lg bg-amber-50/50 dark:bg-amber-900/20 hover:bg-amber-100/50 dark:hover:bg-amber-900/30 transition-colors">
+                          <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+                              <span class="text-xs font-medium text-amber-600 dark:text-amber-400">
+                                {{ user.username.charAt(0).toUpperCase() }}
+                              </span>
+                            </div>
+                            <div>
+                              <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                {{ user.username }}
+                              </div>
+                              <div class="text-xs text-gray-500 dark:text-gray-400">
+                                Último: {{ user.date | date:'dd/MM/yyyy HH:mm' }}
+                              </div>
+                            </div>
+                          </div>
+                          <span class="text-xs font-medium text-amber-600 dark:text-amber-400">
+                            #{{ i + 1 }}
+                          </span>
+                        </div>
+                      }
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- Modal de error -->
+<app-modal 
+  [isOpen]="showErrorModal()"
+  title="Error en el Dashboard"
+  [message]="errorMessage()"
+  icon="error"
+  confirmText="Entendido"
+  (confirm)="closeErrorModal()"
+  [showCancelButton]="false">
+</app-modal>

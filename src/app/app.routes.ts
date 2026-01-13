@@ -17,7 +17,7 @@ export const APP_ROUTES: Routes = [
   { path: 'admin/users/delete/:id', loadComponent: () => import('./admin/users-stats/users-stats.component').then(m => m.UsersStatsComponent), canActivate: [authGuard, adminGuard] },
   { path: 'admin/users/profile/:id', loadComponent: () => import('./admin/user-profile/user-profile.component').then(m => m.UserDetailsComponent), canActivate: [authGuard, adminGuard] },
   { path: 'admin/users/results/:id', loadComponent: () => import('./admin/user-results/user-results.component').then(m => m.UserResultsComponent), canActivate: [authGuard, adminGuard] },
-  { path: 'admin/dashboard', loadComponent: () => import('./admin/dashboard/dashboard.component').then(m => m.DashboardComponent), canActivate: [authGuard, adminGuard] },  
+  { path: 'admin/dashboard', loadComponent: () => import('./admin/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent), canActivate: [authGuard, adminGuard] },
 
   // Rutas de usuario
   { path: 'tests/:id/start-single', loadComponent: () => import('./user/tests/test-single/test-single.component').then(m => m.TestSingleComponent), canActivate: [authGuard] },
