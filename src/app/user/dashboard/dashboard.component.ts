@@ -283,7 +283,7 @@ export class DashboardComponent implements OnInit {
   }
 
   formatPercentage(value: number): string {
-    return value.toFixed(2) + '%';
+    return `${value % 1 === 0 ? value : value.toFixed(2)}%`;
   }
 
   getLevelIcon(level: string): string {

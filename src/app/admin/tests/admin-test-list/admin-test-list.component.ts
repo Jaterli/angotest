@@ -5,7 +5,7 @@ import { TestWithCount } from '../../../shared/models/test.model';
 import { RouterModule } from '@angular/router';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { TestsManagementService } from '../../services/tests-management.service';
-import { TestsFilterOptions, TestsListFilters } from '../../models/test-admin.models';
+import { TestsFilterOptions, TestsListFilters } from '../../models/admin-tests.models';
 
 @Component({
   selector: 'app-admin-tests-list',

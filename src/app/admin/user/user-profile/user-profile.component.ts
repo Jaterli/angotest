@@ -2,8 +2,8 @@ import { Component, signal, effect, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { DatePipe } from '@angular/common';
-import { ModalComponent } from '../../shared/components/modal.component';
-import { UsersManagementService } from '../services/users-management.service';
+import { ModalComponent } from '../../../shared/components/modal.component';
+import { UsersManagementService } from '../../services/users-management.service';
 
 @Component({
   standalone: true,

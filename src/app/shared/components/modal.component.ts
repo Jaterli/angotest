@@ -20,8 +20,8 @@ import { CommonModule } from '@angular/common';
           <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
           <!-- Contenido del modal -->
-          <div class="inline-block relative align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full"
-               [class]="size === 'sm' ? 'sm:max-w-md' : size === 'lg' ? 'sm:max-w-xl' : 'sm:max-w-lg'">
+          <div class="inline-block relative align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle"
+               [class]="size === 'sm' ? 'sm:max-w-sm' : size === 'md' ? 'sm:max-w-lg' : size === 'lg' ? 'sm:max-w-2xl' : size === 'xl' ? 'sm:max-w-4xl' : 'sm:max-w-lg'">
             
             <!-- Header -->
             <div class="px-6 pt-5 pb-4 sm:p-6 sm:pb-4">
@@ -57,7 +57,7 @@ import { CommonModule } from '@angular/common';
                 }
                 
                 <!-- Contenido -->
-                <div class="ml-4 flex-1">
+                <div class="flex-1 {{icon ? 'ml-4' : ''}}">
                   @if (title) {
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ title }}</h3>
                   }
@@ -99,7 +99,7 @@ export class ModalComponent {
   @Input() title = '';
   @Input() message = '';
   @Input() icon: 'success' | 'error' | 'warning' | 'info' | 'navigation' | null = null; 
-  @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() size: 'sm' | 'md' | 'lg' | 'xl' = 'md';
   @Input() confirmText = 'Aceptar';
   @Input() cancelText = 'Cancelar';
   @Input() showCancelButton = true;

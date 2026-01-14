@@ -1,0 +1,200 @@
+<app-modal
+    [isOpen]="isOpen"
+    [title]="title"
+    [size]="'lg'"
+    [customContent]="true"
+    confirmText="Cerrar"
+    (confirm)="closeModal()"
+    [showCancelButton]="false"
+>
+    <!-- Contenido personalizado -->
+    <div class="space-y-6">
+    <!-- Estado de carga -->
+    @if (isLoading()) {
+        <div class="flex flex-col items-center justify-center py-12">
+        <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-gray-600 dark:text-gray-400 mt-3">Cargando estadísticas del test...</p>
+        </div>
+    }
+
+    <!-- Error -->
+    @if (error && !isLoading()) {
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
+        <div class="flex items-center">
+            <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+            <p class="text-red-700 dark:text-red-300 text-sm">{{ error }}</p>
+        </div>
+        </div>
+    }
+
+    <!-- Estadísticas cargadas -->
+    @if (!isLoading() && stats()) {
+        <!-- Información básica del test -->
+        <div class="bg-gray-50 dark:bg-gray-900/30 rounded-xl p-5">
+        <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Información del Test</h4>
+
+        <!-- Sección 1: Título (ocupa ancho completo) -->
+        <div class="mb-6">
+            <span class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Título</span>
+            <p class="font-medium text-gray-900 dark:text-gray-100 text-sm leading-relaxed break-words">
+            {{ stats()!.test_title }}
+            </p>
+        </div>
+
+        <!-- Sección 2: Temas organizados -->
+        <div class="space-y-6">
+            <!-- Temas jerárquicos -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <span class="text-xs text-gray-500 dark:text-gray-400">Tema Principal</span>
+                    <p class="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                    {{ stats()!.topic_hierarchy.main_topic }}
+                    </p>
+                </div>
+                
+                <div class="space-y-1">
+                    <span class="text-xs text-gray-500 dark:text-gray-400">Subtema</span>
+                    <p class="font-medium text-gray-900 dark:text-gray-100 text-sm break-words">
+                    {{ stats()!.topic_hierarchy.sub_topic }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tema específico (su propia fila) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                <span class="text-xs text-gray-500 dark:text-gray-400">Tema Específico</span>
+                <p class="font-medium text-gray-900 dark:text-gray-100 text-sm break-words">
+                    {{ stats()!.topic_hierarchy.specific_topic }}
+                </p>
+                </div>
+
+                <!-- Dificultad -->
+                <div class="space-y-1">
+                <span class="text-xs text-gray-500 dark:text-gray-400">Nivel de Dificultad</span>
+                <div class="flex items-center">
+                    <span [class]="getLevelBadgeClass(stats()!.difficulty_level)" 
+                        class="font-medium px-3 py-1 rounded-full text-sm">
+                    {{ stats()!.difficulty_level }}
+                    </span>
+                </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- KPIs principales -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Total Intentos -->
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+            <div class="text-center">
+            <div class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                {{ formatNumber(stats()!.total_attempts) }}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Total Intentos</div>
+            </div>
+        </div>
+
+        <!-- Completados -->
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+            <div class="text-center">
+            <div class="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                {{ formatNumber(stats()!.completed_attempts) }}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Completados</div>
+            </div>
+        </div>
+
+        <!-- Tasa de Finalización -->
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+            <div class="text-center">
+            <div [class]="getScoreColor(stats()!.completion_rate)" class="text-2xl font-bold mb-1">
+                {{ formatPercentage(stats()!.completion_rate) }}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Tasa de Finalización</div>
+            </div>
+        </div>
+
+        <!-- Tasa de Abandono -->
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+            <div class="text-center">
+            <div [class]="getScoreColor(100 - abandonmentRate())" class="text-2xl font-bold mb-1">
+                {{ formatPercentage(abandonmentRate()) }}
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Tasa de Abandono</div>
+            </div>
+        </div>
+        </div>
+
+        <!-- Precisión y tiempo -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Precisión promedio -->
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Precisión Promedio</h4>
+            <span [class]="getScoreColor(stats()!.avg_accuracy)" class="text-lg font-bold">
+                {{ formatPercentage(stats()!.avg_accuracy) }}
+            </span>
+            </div>
+            <div class="space-y-2">
+            <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-500 dark:text-gray-400">Precisión</span>
+                <span>{{ formatPercentage(stats()!.avg_accuracy) }}</span>
+            </div>
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div [class]="getProgressColor(stats()!.avg_accuracy)" 
+                    class="h-2 rounded-full transition-all duration-500"
+                    [style.width.%]="stats()!.avg_accuracy">
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <!-- Tiempo promedio -->
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+            <div class="flex items-center justify-between mb-4">
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100">Tiempo Promedio</h4>
+            <span class="text-lg font-bold text-blue-600 dark:text-blue-400">
+                {{ formatTime(stats()!.avg_time) }}
+            </span>
+            </div>
+
+        </div>
+        </div>
+
+        <!-- Distribución de intentos -->
+        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+        <h4 class="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Distribución de Intentos</h4>
+        <div class="space-y-4">
+            <!-- Barra de progreso para completados -->
+            <div>
+            <div class="flex items-center justify-between text-xs mb-1">
+                <span class="text-emerald-600 dark:text-emerald-400 font-medium">Completados</span>
+                <span>{{ stats()!.completed_attempts }} ({{ formatPercentage(stats()!.completion_rate) }})</span>
+            </div>
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                <div class="bg-emerald-500 dark:bg-emerald-400 h-3 rounded-full transition-all duration-500"
+                    [style.width.%]="stats()!.completion_rate">
+                </div>
+            </div>
+            </div>
+
+            <!-- Barra de progreso para abandonados -->
+            <div>
+            <div class="flex items-center justify-between text-xs mb-1">
+                <span class="text-red-600 dark:text-red-400 font-medium">Abandonados</span>
+                <span>{{ abandonedAttempts() }} ({{ formatPercentage(abandonmentRate()) }})</span>
+            </div>
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                <div class="bg-red-500 dark:bg-red-400 h-3 rounded-full transition-all duration-500"
+                    [style.width.%]="abandonmentRate()">
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    }
+    </div>
+</app-modal>

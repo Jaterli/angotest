@@ -50,6 +50,7 @@ export interface TestWithDate {
   id: number;
   title: string;
   date: string;
+  attempt_count: number;
 }
 
 export interface TestWithRate {
@@ -82,50 +83,50 @@ export interface DashboardFilters {
   year?: number;
   use_total?: boolean;
   limit?: number;
-  active_threshold?: number;
 }
 
 // Estadísticas detalladas de un test
 export interface TestDetailedStats {
-  totalAttempts: number;
-  completedAttempts: number;
-  avgAccuracy: number;
-  avgTime: number;
-  avgQuestions: number;
-  completionRate: number;
-  abandonmentRate: number;
-  difficultyLevel: string;
-  topicHierarchy: {
-    mainTopic: string;
-    subTopic: string;
-    specificTopic: string;
+  total_attempts: number;
+  completed_attempts: number;
+  in_progress_attempts: number;
+  avg_accuracy: number;
+  avg_time: number;
+  avg_questions: number;
+  completion_rate: number;
+  difficulty_level: string;
+  test_title: string;
+  topic_hierarchy: {
+    main_topic: string;
+    sub_topic: string;
+    specific_topic: string;
   };
 }
 
 // Estadísticas detalladas de un usuario
 export interface UserDetailedStats {
-  userInfo: {
+  user_info: {
     username: string;
     email: string;
-    createdAt: string;
-    lastLogin: string;
+    created_at: string;
+    last_login: string;
     role: string;
   };
-  testStats: {
-    totalTests: number;
-    completedTests: number;
-    inProgressTests: number;
-    abandonedTests: number;
-    avgAccuracy: number;
-    avgTimePerTest: number;
-    favoriteTopic: string;
-    favoriteLevel: string;
+  test_stats: {
+    total_tests: number;
+    completed_tests: number;
+    in_progress_tests: number;
+    abandoned_tests: number;
+    avg_accuracy: number;
+    avg_time_per_test: number;
+    favorite_topic: string;
+    favorite_level: string;
   };
-  recentActivity: {
-    testTitle: string;
+  recent_activity: {
+    test_title: string;
     status: string;
     accuracy: number;
-    timeTaken: number;
-    startedAt: string;
+    time_taken: number;
+    started_at: string;
   }[];
 }

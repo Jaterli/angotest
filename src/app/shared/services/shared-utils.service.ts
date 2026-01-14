@@ -60,7 +60,7 @@ export class SharedUtilsService {
   }
 
   formatScore(score: number): string {
-    return `${score.toFixed(1)}%`;
+    return `${score % 1 === 0 ? score : score.toFixed(2)}%`;
   }
 
   getSharedSortOrderIcon(selectedSortOrder: string): string {
@@ -75,19 +75,33 @@ export class SharedUtilsService {
   getSharedScoreColor(score: number): string {
     if (score >= 80) return 'text-emerald-600 dark:text-emerald-400';
     if (score >= 60) return 'text-yellow-600 dark:text-yellow-400';
+    if (score >= 40) return 'text-orange-600 dark:text-orange-400';
+    if (score >= 20) return 'text-red-600 dark:text-red-400';
     return 'text-red-600 dark:text-red-400';
   }
 
   getSharedScoreBgColor(score: number): string {
     if (score >= 80) return 'bg-emerald-100 dark:bg-emerald-900/30';
     if (score >= 60) return 'bg-yellow-100 dark:bg-yellow-900/30';
+    if (score >= 40) return 'bg-orange-100 dark:bg-orange-900/30';
+    if (score >= 20) return 'bg-red-100 dark:bg-red-900/30';
     return 'bg-red-100 dark:bg-red-900/30';
   }
 
   getSharedScoreBadgeClass(score: number): string {
     if (score >= 80) return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300';
     if (score >= 60) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+    if (score >= 40) return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
+    if (score >= 20) return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
     return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+  }
+
+  getSharedProgressColor(score: number): string {
+    if (score >= 80) return 'bg-emerald-300 dark:bg-emerald-500';
+    if (score >= 60) return 'bg-yellow-300 dark:bg-yellow-500';
+    if (score >= 40) return 'bg-orange-300 dark:bg-orange-500';
+    if (score >= 20) return 'bg-red-300 dark:bg-red-500';
+    return 'bg-red-300 dark:bg-red-00';
   }
 
   getSharedScoreMessage(score: number): string {
@@ -116,7 +130,7 @@ export class SharedUtilsService {
     }
   }
 
-  getSharedStatusText(status: string): string {
+  getSharedStatusLabel(status: string): string {
     switch (status) {
       case 'completed': return 'Completado';
       case 'in_progress': return 'En Progreso';
@@ -127,14 +141,17 @@ export class SharedUtilsService {
     }
   }
 
-  getSharedStatusBadgeClass(status: string): string {
+
+  getSharedActivityStatusBgColor(status: string): string {
     switch (status) {
+      case 'completed':
+        return 'bg-emerald-100 dark:bg-emerald-900/30';
       case 'in_progress':
-        return 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300';
-      case 'not_started':
-        return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300';
+        return 'bg-amber-100 dark:bg-amber-900/30';
+      case 'abandoned':
+        return 'bg-red-100 dark:bg-red-900/30';
       default:
-        return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
+        return 'bg-gray-100 dark:bg-gray-700';
     }
   }
 
@@ -153,6 +170,20 @@ export class SharedUtilsService {
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
     }
   }
+
+  getSharedStatusBadgeClass(status: string): string {
+    switch(status) {
+      case 'completed':
+        return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300';
+      case 'in_progress':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      case 'abandoned':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+    }
+  }
+
 
   sharedFormatDate(dateString: string | Date): string {
     return new Date(dateString).toLocaleDateString('es-ES', {
@@ -195,19 +226,6 @@ export class SharedUtilsService {
 
   sharedFormatTime(seconds: number): string {
     if (!seconds || seconds === 0) return 'N/A';
-    
-    // const hours = Math.floor(seconds / 3600);
-    // const minutes = Math.floor((seconds % 3600) / 60);
-    // const secs = seconds % 60;
-    
-    // if (hours > 0) {
-    //   return `${hours}h ${minutes}m ${secs}s`;
-    // } else if (minutes > 0) {
-    //   return `${minutes}m ${secs}s`;
-    // } else {
-    //   return `${secs.toFixed(1)}s`;
-    // }
-
     if (seconds < 60) {
       return `${seconds.toFixed(0)}s`;
     } else if (seconds < 3600) {

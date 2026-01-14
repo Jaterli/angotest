@@ -2,10 +2,10 @@ import { Component, signal, inject, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { User, UsersStatsFilters, UserStats } from '../../shared/models/user.model';
-import { ModalComponent } from '../../shared/components/modal.component';
-import { UsersManagementService } from '../services/users-management.service';
-import { SharedUtilsService } from '../../shared/services/shared-utils.service';
+import { User, UsersStatsFilters, UserStats } from '../../../shared/models/user.model';
+import { ModalComponent } from '../../../shared/components/modal.component';
+import { UsersManagementService } from '../../services/users-management.service';
+import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
 
 @Component({
   selector: 'app-users-stats',

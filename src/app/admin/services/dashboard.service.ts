@@ -2,7 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { DashboardResponse, DashboardFilters, TestDetailedStats, UserDetailedStats } from '../models/dashboard.models';
+import { DashboardResponse, DashboardFilters, TestDetailedStats, UserDetailedStats } from '../models/admin-dashboard.models';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
@@ -29,10 +29,6 @@ export class DashboardService {
       params = params.set('limit', filters.limit.toString());
     }
     
-    if (filters?.active_threshold) {
-      params = params.set('active_threshold', filters.active_threshold.toString());
-    }
-
     return this.http.get<DashboardResponse>(`${this.apiUrl}/dashboard`, { params });
   }
 

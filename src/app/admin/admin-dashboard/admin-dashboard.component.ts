@@ -1,21 +1,29 @@
 // admin-dashboard.component.ts
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ModalComponent } from '../../shared/components/modal.component';
 import { SharedUtilsService } from '../../shared/services/shared-utils.service';
 import { DashboardService } from '../services/dashboard.service';
-import { DashboardResponse, DashboardFilters } from '../models/dashboard.models';
+import { DashboardResponse, DashboardFilters } from '../models/admin-dashboard.models';
+import { TestStatsModalComponent } from '../tests/test-stats-modal/test-stats-modal.component';
+import { TestStatsModalService } from '../services/test-stats-modal.service';
+import { IdWithStatsButtonComponent } from '../shared-components/id-with-stats-button.component';
+import { UserStatsModalComponent } from '../user/user-stats-modal/user-stats-modal.component';
+import { UserStatsModalService } from '../services/user-stats-modal.service';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent],
+  imports: [CommonModule, FormsModule, ModalComponent, TestStatsModalComponent, IdWithStatsButtonComponent, UserStatsModalComponent],
   templateUrl: './admin-dashboard.component.html'
 })
 export class AdminDashboardComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private sharedUtilsService = inject(SharedUtilsService);
+
+  constructor(private testStatsModalService: TestStatsModalService, private userStatsModalService: UserStatsModalService) {}
+
 
   // Datos del dashboard
   dashboardData = signal<DashboardResponse | null>(null);
@@ -28,14 +36,18 @@ export class AdminDashboardComponent implements OnInit {
   filters = signal<DashboardFilters>({
     months_back: 6,
     limit: 10,
-    active_threshold: 10
   });
   
   // Opciones de filtro
   monthsBackOptions = [1, 3, 6, 12];
   limitOptions = [5, 10, 20, 50];
-  activeThresholdOptions = [1, 3, 5, 10, 15, 20];
-  
+
+  // Para el modal de estadísticas de test
+  selectedTestId: number | null = null;
+
+  // Para el modal de estadísticas de usuario
+  selectedUserId: number | null = null;
+
   // Manejo de errores
   errorMessage = signal('');
   showErrorModal = signal(false);
@@ -62,6 +74,14 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
+  openTestStats(testId: number): void {
+    this.testStatsModalService.open(testId);
+  }
+
+  openUserStats(userId: number): void {
+    this.userStatsModalService.open(userId);
+  }
+
   // Actualizar filtros
   updateFilters(key: keyof DashboardFilters, value: any): void {
     const currentFilters = this.filters();
@@ -83,7 +103,6 @@ export class AdminDashboardComponent implements OnInit {
     this.filters.set({
       months_back: 6,
       limit: 10,
-      active_threshold: 10
     });
     this.applyFilters();
   }
@@ -94,13 +113,11 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   formatPercentage(value: number): string {
-    return `${value.toFixed(1)}%`;
+    return `${value % 1 === 0 ? value : value.toFixed(2)}%`;
   }
 
   formatTime(seconds: number): string {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return this.sharedUtilsService.sharedFormatTime(seconds);
   }
 
   getDateAgo(months: number): string {
@@ -112,10 +129,6 @@ export class AdminDashboardComponent implements OnInit {
   getScoreColor(score: number): string {
     return this.sharedUtilsService.getSharedScoreColor(score);
   }
-
-  // getScoreBgColor(percentage: number): string {
-  //   return this.sharedUtilsService.getSharedScoreBgColor(percentage);
-  // }
 
   // Cerrar modal de error
   closeErrorModal(): void {
@@ -136,4 +149,5 @@ export class AdminDashboardComponent implements OnInit {
     if (total === 0) return 0;
     return (part / total) * 100;
   }
+
 }

@@ -2,11 +2,11 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ModalComponent } from '../../shared/components/modal.component';
-import { UserResultsService } from '../services/user-results.service';
-import { UsersManagementService } from '../services/users-management.service';
-import { UserResultDetail, UserResultsData, UserResultsFilters } from '../models/user-results.model';
-import { SharedUtilsService } from '../../shared/services/shared-utils.service';
+import { ModalComponent } from '../../../shared/components/modal.component';
+import { UserResultsService } from '../../services/user-results.service';
+import { UsersManagementService } from '../../services/users-management.service';
+import { UserResultDetail, UserResultsData, UserResultsFilters } from '../../models/user-results.model';
+import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
 
 @Component({
   selector: 'app-user-results',
@@ -57,9 +57,9 @@ export class UserResultsComponent implements OnInit {
 
   // Opciones para filtros
   statusOptions = [
-    { value: 'all', label: this.sharedUtilsService.getSharedStatusText('all') },
-    { value: 'completed', label: this.sharedUtilsService.getSharedStatusText('completed') },
-    { value: 'in_progress', label: this.sharedUtilsService.getSharedStatusText('in_progress') }
+    { value: 'all', label: this.sharedUtilsService.getSharedStatusLabel('all') },
+    { value: 'completed', label: this.sharedUtilsService.getSharedStatusLabel('completed') },
+    { value: 'in_progress', label: this.sharedUtilsService.getSharedStatusLabel('in_progress') }
   ];
 
   sortOptions = [
@@ -261,8 +261,8 @@ export class UserResultsComponent implements OnInit {
     return this.sharedUtilsService.getSharedStatusColor(status);
   }
 
-  getStatusText(status: string): string {
-    return this.sharedUtilsService.getSharedStatusText(status);
+  getStatusLabel(status: string): string {
+    return this.sharedUtilsService.getSharedStatusLabel(status);
   }
 
   getStartIndex(): number {
