@@ -73,11 +73,8 @@ export interface AdminResultsFilter {
 
 export interface AdminResultsResponse {
   results: AdminResultResponse[];
-  total_results: number;
-  total_pages: number;
   current_page: number;
   page_size: number;
-  has_more: boolean;
   available_filters?: {
     main_topics: string[];
     levels: string[];
@@ -89,14 +86,13 @@ export interface AdminResultsResponse {
 export interface AdminResultsFullResponse {
   success: boolean;
   data: AdminResultsResponse;
-  meta?: {
-    filters_applied: any;
-    stats: {
-      total_results: number;
-      total_results_with_filters: number;
-    };
+  filters_applied: any;
+  stats: {
+    total_results: number;
+    total_results_with_filters: number;
   };
 }
+
 
 export interface AdminResultsStats {
   total_results: number;

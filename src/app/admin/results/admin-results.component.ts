@@ -55,6 +55,7 @@ export class AdminResultsComponent implements OnInit {
   // Paginación
   currentPage = signal(1);
   totalResults = signal(0);
+  totalResultsWithFilters = signal(0);
   totalPages = signal(0);  
   hasMore = signal(false);
   
@@ -97,10 +98,11 @@ export class AdminResultsComponent implements OnInit {
       next: (res) => {
         if (res.success && res.data) {
           this.adminResultsData.set(res.data.results);
-          this.totalResults.set(res.data.total_results);
-          this.totalPages.set(res.data.total_pages);
-          this.currentPage.set(res.data.current_page);
-          this.hasMore.set(res.data.has_more);
+          this.totalResults.set(res.stats.total_results);
+          this.totalResultsWithFilters.set(res.stats.total_results_with_filters);
+          this.currentPage.set(res.data.current_page);          
+          this.totalPages.set(Math.ceil(res.stats.total_results_with_filters / (this.selectedFilters().page_size || 20)));
+          this.hasMore.set(this.currentPage() < this.totalPages());
           
           // Actualizar filtros disponibles
           if (res.data.available_filters) {
@@ -129,7 +131,14 @@ export class AdminResultsComponent implements OnInit {
   resetFilters(): void {
     this.selectedFilters.set({
       page: 1,
-      page_size: 20
+      page_size: 20,
+      sort_by: 'updated_at',
+      sort_order: 'desc',
+      status: '',
+      test_main_topic: '',
+      test_level: '',
+      user_role: ''
+
     });
     this.currentPage.set(1);
     this.loadResults();
@@ -144,11 +153,7 @@ export class AdminResultsComponent implements OnInit {
   }
 
   removeFilter(key: keyof AdminResultsFilter): void {
-    this.selectedFilters.update(filters => {
-      const newFilters = { ...filters };
-      delete newFilters[key];
-      return newFilters;
-    });
+    this.updateFilter(key, '');
     this.onFilterChange();
   }
 
@@ -190,29 +195,6 @@ export class AdminResultsComponent implements OnInit {
       this.goToPage(newPage);
     }
   }
-
-
-//   getPageNumbers(): number[] {
-//     const total = this.totalPages();
-//     const current = this.currentPage();
-//     const pages: number[] = [];
-    
-//     if (total <= 5) {
-//       for (let i = 1; i <= total; i++) {
-//         pages.push(i);
-//       }
-//     } else {
-//       if (current <= 3) {
-//         pages.push(1, 2, 3, 4, 5);
-//       } else if (current >= total - 2) {
-//         pages.push(total - 4, total - 3, total - 2, total - 1, total);
-//       } else {
-//         pages.push(current - 2, current - 1, current, current + 1, current + 2);
-//       }
-//     }
-    
-//     return pages;
-//   }
 
   getPageNumbers(): number[] {
     return this.sharedUtilsService.getSharedPageNumbers(this.totalPages(), this.currentPage());
@@ -285,8 +267,7 @@ export class AdminResultsComponent implements OnInit {
   }
 
   getEndIndex(): number {
-    console.log('Calculating end index:', this.currentPage(), this.selectedFilters().page_size, this.adminResultsData().length);
-    return Math.min(this.currentPage() * (this.selectedFilters().page_size || 20), this.adminResultsData().length);
+    return Math.min(this.currentPage() * (this.selectedFilters().page_size || 20), this.totalResultsWithFilters());
   }
 
   // Método para exportar resultados (opcional)

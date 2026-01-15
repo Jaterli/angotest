@@ -75,7 +75,7 @@
             (ngModelChange)="onFilterChange()"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
-            <option value="all">Todos los estados</option>
+            <option value="">Todos los estados</option>
             @for (status of availableFilters().statuses; track status) {
               <option [value]="status">{{ getStatusLabel(status) }}</option>
             }
@@ -92,7 +92,7 @@
             (ngModelChange)="onFilterChange()"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
-            <option value="all">Todos los temas</option>
+            <option value="">Todos los temas</option>
             @for (topic of availableFilters().main_topics; track topic) {
               <option [value]="topic">{{ topic }}</option>
             }
@@ -109,7 +109,7 @@
             (ngModelChange)="onFilterChange()"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
-            <option value="all">Todos los niveles</option>
+            <option value="">Todos los niveles</option>
             @for (level of availableFilters().levels; track level) {
               <option [value]="level">{{ level }}</option>
             }
@@ -126,7 +126,7 @@
             (ngModelChange)="onFilterChange()"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
-            <option value="all">Todos los roles</option>
+            <option value="">Todos los roles</option>
             @for (role of availableFilters().roles; track role) {
               <option [value]="role">{{ role === 'admin' ? 'Administrador' : 'Usuario' }}</option>
             }
@@ -443,7 +443,7 @@
         Mostrando 
         <span class="font-medium">{{ getStartIndex() }}</span> a 
         <span class="font-medium">{{ getEndIndex() }}</span> de 
-        <span class="font-medium">{{ totalResults() }}</span> resultado{{ totalResults() !== 1 ? 's' : '' }}
+        <span class="font-medium">{{ totalResultsWithFilters() }}</span> resultado{{ totalResults() !== 1 ? 's' : '' }}
       </div>
       <div>
         Orden: 
@@ -485,9 +485,9 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
-                      <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                        <span class="text-sm font-medium text-blue-800 dark:text-blue-300">
-                          {{ result.user_username.charAt(0).toUpperCase() }}
+                      <div class="text-xs">
+                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium {{ result.user_role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300' }}">
+                          {{ result.user_role === 'admin' ? 'Admin' : 'Usuario' }}
                         </span>
                       </div>
                     </div>
@@ -497,11 +497,6 @@
                       </div>
                       <div class="text-xs text-gray-500 dark:text-gray-400">
                         {{ result.user_email }}
-                      </div>
-                      <div class="text-xs">
-                        <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium {{ result.user_role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300' }}">
-                          {{ result.user_role === 'admin' ? 'Admin' : 'Usuario' }}
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -525,9 +520,6 @@
                       </span>
                     }
                   </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ result.correct_answers }}/{{ result.total_questions }} preguntas
-                  </div>
                 </td>
                 
                 <!-- Columna Resultado -->
@@ -544,19 +536,18 @@
                     <div class="text-xs text-gray-500 dark:text-gray-400">
                       {{ formatTime(result.time_taken) }}
                     </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">
-                      Inició: {{ formatDateTime(result.started_at) }}
-                    </div>
                   </div>
                 </td>
                 
                 <!-- Columna Fecha -->
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900 dark:text-gray-100">
-                    {{ formatDate(result.updated_at) }}
+
+                  <div class="text-xs text-gray-500 dark:text-gray-400">
+                    Inició: {{ formatDateTime(result.started_at) }}
                   </div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ formatTimeShort(result.updated_at) }}
+                    {{ (result.status) == 'completed' ? 'Completado:' : 'Actualizado:' }}
+                    {{ formatDateTime(result.updated_at) }}                    
                   </div>
                 </td>
                 
