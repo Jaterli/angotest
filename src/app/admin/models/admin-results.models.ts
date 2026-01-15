@@ -56,8 +56,6 @@ export interface AdminResultsFilter {
   status?: string;
   min_score?: number;
   max_score?: number;
-  min_time_taken?: number;
-  max_time_taken?: number;
   
   // Fechas
   start_date?: string;

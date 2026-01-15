@@ -69,21 +69,13 @@ export class AdminService {
     if (filter.status && filter.status !== 'all') {
       params = params.set('status', filter.status);
     }
-    
-    if (filter.min_score !== undefined) {
+
+    if (filter.min_score !== undefined && filter.min_score !== null) {
       params = params.set('min_score', filter.min_score.toString());
     }
-    
-    if (filter.max_score !== undefined) {
+
+    if (filter.max_score !== undefined && filter.max_score !== null) {
       params = params.set('max_score', filter.max_score.toString());
-    }
-    
-    if (filter.min_time_taken !== undefined) {
-      params = params.set('min_time_taken', filter.min_time_taken.toString());
-    }
-    
-    if (filter.max_time_taken !== undefined) {
-      params = params.set('max_time_taken', filter.max_time_taken.toString());
     }
     
     // Fechas

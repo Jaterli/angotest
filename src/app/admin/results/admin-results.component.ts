@@ -153,7 +153,7 @@ export class AdminResultsComponent implements OnInit {
   }
 
   removeFilter(key: keyof AdminResultsFilter): void {
-    this.updateFilter(key, '');
+    this.updateFilter(key, undefined);
     this.onFilterChange();
   }
 

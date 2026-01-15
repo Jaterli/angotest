@@ -23,7 +23,7 @@ export class UsersStatsComponent implements OnInit {
   private sharedUtilsService = inject(SharedUtilsService);
 
   // Datos
-  users = signal<UserStats[]>([]);
+  usersData = signal<UserStats[]>([]);
   totalUsers = signal(0);
   totalPages = signal(0);
   hasMore = signal(false);
@@ -35,10 +35,11 @@ export class UsersStatsComponent implements OnInit {
   
   // Paginación
   currentPage = signal(1);
-  pageSize = signal(10);
   
   // Filtros y ordenación
-  filters = signal<UsersStatsFilters>({
+  selectedFilters = signal<UsersStatsFilters>({
+    page: 1,
+    page_size: 10,
     sort_by: 'created_at',
     sort_order: 'desc',
     search: ''
@@ -54,16 +55,20 @@ export class UsersStatsComponent implements OnInit {
     { value: 'average_score', label: 'Puntuación media' }
   ]);
 
+  // Estado de la UI
+  showFilters = signal(true);
+
   // Computed properties para el template
   currentSortLabel = computed(() => {
-    const sortBy = this.filters().sort_by;
+    const sortBy = this.selectedFilters().sort_by;
     const option = this.sortOptions().find(o => o.value === sortBy);
     return option ? option.label : 'Fecha de registro';
   });
 
-  currentSortOrderLabel = computed(() => {
-    return this.filters().sort_order === 'asc' ? 'Ascendente' : 'Descendente';
-  });
+  getSortOrderIcon(): string {
+    const order = this.selectedFilters().sort_order || 'desc';
+    return order === 'asc' ? '↑' : '↓';
+  }
 
   // Modal de confirmación
   showDeleteModal = signal(false);
@@ -84,16 +89,9 @@ export class UsersStatsComponent implements OnInit {
   loadUsers(): void {
     this.loading.set(true);
     
-    const currentFilters = this.filters();
-    const filtersWithPagination: UsersStatsFilters = {
-      ...currentFilters,
-      page: this.currentPage(),
-      page_size: this.pageSize()
-    };
-
-    this.usersManagementService.getUsersStats(filtersWithPagination).subscribe({
+    this.usersManagementService.getUsersStats(this.selectedFilters()).subscribe({
       next: (response) => {
-        this.users.set(response.users);
+        this.usersData.set(response.users);
         this.totalUsers.set(response.total_users);
         this.totalPages.set(response.total_pages);
         this.hasMore.set(response.has_more);
@@ -108,6 +106,95 @@ export class UsersStatsComponent implements OnInit {
     });
   }
 
+  // Métodos para filtros y ordenación
+  onFilterChange(): void {
+    this.selectedFilters.update(filters => ({ ...filters, page: 1 }));
+    this.currentPage.set(1);
+    this.loadUsers();
+  }
+
+  resetFilters(): void {
+    this.selectedFilters.set({
+      page: 1,
+      page_size: 10,
+      sort_by: 'created_at',
+      sort_order: 'desc',
+      search: ''
+    });
+    this.currentPage.set(1);
+    this.loadUsers();
+  }
+
+  updateFilter<T extends keyof UsersStatsFilters>(key: T, value: UsersStatsFilters[T]): void {
+    this.selectedFilters.update(filters => ({ ...filters, [key]: value }));
+    if (key !== 'page') {
+      this.onFilterChange();
+    }
+  }
+
+  removeFilter(key: keyof UsersStatsFilters): void {
+    this.updateFilter(key, '');
+  }
+
+  // Métodos para ordenamiento
+  toggleSortOrder(): void {
+    const currentOrder = this.selectedFilters().sort_order || 'desc';
+    const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+    this.updateFilter('sort_order', newOrder);
+  }
+
+  setSortBy(sortBy: string): void {
+    this.updateFilter('sort_by', sortBy);
+  }
+
+  // Métodos para paginación
+  setPageSize(size: number): void {
+    this.updateFilter('page_size', size);
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages()) return;
+    
+    this.currentPage.set(page);
+    this.selectedFilters.update(filters => ({ ...filters, page }));
+    this.loadUsers();
+  }
+
+  previousPage(): void {
+    if (this.currentPage() > 1) {
+      const newPage = this.currentPage() - 1;
+      this.goToPage(newPage);
+    }
+  }
+
+  nextPage(): void {
+    if (this.hasMore()) {
+      const newPage = this.currentPage() + 1;
+      this.goToPage(newPage);
+    }
+  }
+
+  getPageNumbers(): number[] {
+    return this.sharedUtilsService.getSharedPageNumbers(this.totalPages(), this.currentPage());
+  }
+
+  getStartIndex(): number {
+    return ((this.currentPage() - 1) * (this.selectedFilters().page_size || 10)) + 1;
+  }
+
+  getEndIndex(): number {
+    return Math.min(this.currentPage() * (this.selectedFilters().page_size || 10), this.totalUsers());
+  }
+
+  // Métodos para mostrar filtros activos
+  showFilterIndicators(): boolean {
+    const filters = this.selectedFilters();
+    return !!(filters.search);
+  }
+
+  showPagination(): boolean {
+    return this.totalUsers() > 0 && this.totalPages() > 1;
+  }
 
   // Método para cargar perfil de usuario
   loadUserProfile(userId: number): void {
@@ -129,7 +216,7 @@ export class UsersStatsComponent implements OnInit {
   }
 
   // Método para mostrar perfil
-  showProfile(user: User): void {
+  showProfile(user: UserStats): void {
     this.loadUserProfile(user.id);
   }
 
@@ -140,122 +227,18 @@ export class UsersStatsComponent implements OnInit {
     this.profileError.set(null);
   }
 
-  // Métodos para filtros y ordenación
-  applyFilters(): void {
-    this.currentPage.set(1); // Resetear a primera página
-    this.loadUsers();
+  // Métodos de utilidad
+  formatDateTime(dateString: string): string {
+    return this.sharedUtilsService.sharedFormatDateTime(dateString);
   }
 
-  clearFilters(): void {
-    this.filters.set({
-      sort_by: 'created_at',
-      sort_order: 'desc',
-      search: ''
-    });
-    this.currentPage.set(1);
-    this.loadUsers();
-  }
-
-  onSortChange(sortBy: string): void {
-    const currentFilters = this.filters();
-    const currentSortOrder = currentFilters.sort_order;
-    
-    // Si ya está ordenado por este campo, cambiar el orden
-    if (currentFilters.sort_by === sortBy) {
-      this.filters.set({
-        ...currentFilters,
-        sort_order: currentSortOrder === 'asc' ? 'desc' : 'asc'
-      });
-    } else {
-      // Ordenar por nuevo campo (desc por defecto)
-      this.filters.set({
-        ...currentFilters,
-        sort_by: sortBy,
-        sort_order: 'desc'
-      });
-    }
-    
-    this.applyFilters();
-  }
-
-
-  // Métodos para la paginación
-  previousPage(): void {
-    if (this.currentPage() > 1) {
-      this.currentPage.update(page => page - 1);
-      this.loadUsers();
-    }
-  }
-
-  nextPage(): void {
-    if (this.hasMore()) {
-      this.currentPage.update(page => page + 1);
-      this.loadUsers();
-    }
-  }
-
-  goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages()) {
-      this.currentPage.set(page);
-      this.loadUsers();
-    }
-  }
-
-  // getPageNumbers(): number[] {
-  //   const pages: number[] = [];
-  //   const totalPages = this.totalPages();
-    
-  //   // Mostrar máximo 5 páginas
-  //   let startPage = Math.max(1, this.currentPage() - 2);
-  //   let endPage = Math.min(totalPages, startPage + 4);
-    
-  //   // Ajustar si estamos cerca del final
-  //   if (endPage - startPage < 4) {
-  //     startPage = Math.max(1, endPage - 4);
-  //   }
-    
-  //   for (let i = startPage; i <= endPage; i++) {
-  //     pages.push(i);
-  //   }
-    
-  //   return pages;
-  // }
-
-  getPageNumbers(): number[] {
-    return this.sharedUtilsService.getSharedPageNumbers(this.totalPages(), this.currentPage());
-  }
-
-  getStartIndex(): number {
-    return (this.currentPage() - 1) * this.pageSize() + 1;
-  }
-
-  getEndIndex(): number {
-    const end = this.currentPage() * this.pageSize();
-    return Math.min(end, this.totalUsers());
+  getScoreBadgeClass(score: number): string {
+    return this.sharedUtilsService.getSharedScoreBadgeClass(score);
   }
 
   // Método para obtener el color según la puntuación
   getScoreColor(score: number): string {
     return this.sharedUtilsService.getSharedScoreColor(score);
-  }
-
-  formatDateTime(dateString: string): string {
-    return this.sharedUtilsService.sharedFormatDateTime(dateString);
-  }
-
-
-  // Método para calcular la edad
-  calculateAge(birthDate: string): number {
-    const birth = new Date(birthDate);
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const monthDiff = today.getMonth() - birth.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    
-    return age;
   }
 
   // Métodos para eliminar usuario
@@ -274,8 +257,6 @@ export class UsersStatsComponent implements OnInit {
         this.deleting.set(false);
         this.showDeleteModal.set(false);
         this.showSuccessModal.set(true);
-        
-        // Recargar la lista de usuarios
         this.loadUsers();
       },
       error: (err) => {
