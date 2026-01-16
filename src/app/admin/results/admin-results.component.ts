@@ -2,19 +2,23 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { AdminService } from '../services/results-management.service';
+import { ResultsManagementService } from '../services/results-management.service';
 import { SharedUtilsService } from '../../shared/services/shared-utils.service';
 import { AdminResultResponse, AdminResultsFilter } from '../models/admin-results.models';
+import { ModalComponent } from '../../shared/components/modal.component';
+import { UserResultDetailsModalComponent } from '../user/user-result-details-modal/user-result-details-modal.component';
+import { UserResultDetailsModalService } from '../services/user-result-details-modal.service';
 
 @Component({
   selector: 'app-admin-results',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, ModalComponent, UserResultDetailsModalComponent], 
   templateUrl: './admin-results.component.html',
 })
 export class AdminResultsComponent implements OnInit {
-  private adminService = inject(AdminService);
+  private resultsManagementService = inject(ResultsManagementService);
   private sharedUtilsService = inject(SharedUtilsService);
+  private resultDetailsModalService = inject(UserResultDetailsModalService);
 
   // Resultados y estado
   adminResultsData = signal<AdminResultResponse[]>([]);
@@ -39,6 +43,17 @@ export class AdminResultsComponent implements OnInit {
     roles: ['user', 'admin']
   });
   
+ 
+  // Paginación
+  currentPage = signal(1);
+  totalResults = signal(0);
+  totalPages = signal(0);  
+  hasMore = signal(false);
+  
+  // Estado de la UI
+  showFilters = signal(true);
+  showAdvancedFilters = signal(false);
+
   // Ordenamiento
   sortOptions = [
     { value: 'updated_at', label: 'Última actualización' },
@@ -52,19 +67,33 @@ export class AdminResultsComponent implements OnInit {
     { value: 'test_level', label: 'Nivel del test' }
   ];
   
-  // Paginación
-  currentPage = signal(1);
-  totalResults = signal(0);
-  totalResultsWithFilters = signal(0);
-  totalPages = signal(0);  
-  hasMore = signal(false);
-  
-  // Estado de la UI
-  showFilters = signal(true);
-  showAdvancedFilters = signal(false);
-  
+
   // Memoria de filtros (localStorage)
   private readonly FILTER_STORAGE_KEY = 'admin_results_filters';
+  
+  // --- SEÑALES PARA ELIMINACIÓN MASIVA ---
+  
+  // Resultados seleccionados
+  selectedResults = signal<Set<number>>(new Set());
+  
+  // Estado de selección
+  isAllSelected = signal(false);
+  isIndeterminate = signal(false);
+  
+  // Modales
+  showDeleteModal = signal(false);
+  showBulkDeleteModal = signal(false);
+  deleteInProgress = signal(false);
+  
+  // Resultado individual para eliminar
+  resultToDelete = signal<AdminResultResponse | null>(null);
+  
+  // Contador para resultados seleccionados
+  selectedCount = signal(0);
+  
+  // Mensajes del modal
+  modalTitle = signal('');
+  modalMessage = signal('');
   
   ngOnInit(): void {
     this.loadSavedFilters();
@@ -94,24 +123,25 @@ export class AdminResultsComponent implements OnInit {
   loadResults(): void {
     this.loading.set(true);
     
-    this.adminService.getAdminResults(this.selectedFilters()).subscribe({
+    this.resultsManagementService.getAdminResults(this.selectedFilters()).subscribe({
       next: (res) => {
-        if (res.success && res.data) {
-          this.adminResultsData.set(res.data.results);
-          this.totalResults.set(res.stats.total_results);
-          this.totalResultsWithFilters.set(res.stats.total_results_with_filters);
-          this.currentPage.set(res.data.current_page);          
-          this.totalPages.set(Math.ceil(res.stats.total_results_with_filters / (this.selectedFilters().page_size || 20)));
-          this.hasMore.set(this.currentPage() < this.totalPages());
-          
-          // Actualizar filtros disponibles
-          if (res.data.available_filters) {
-            this.availableFilters.set(res.data.available_filters);
-          }
-          
-          this.loading.set(false);
-          this.saveFilters();
+        this.adminResultsData.set(res.data.results);
+        this.totalResults.set(res.stats.total_results_with_filters);
+        this.currentPage.set(res.data.current_page);          
+        this.totalPages.set(Math.ceil(res.stats.total_results_with_filters / (this.selectedFilters().page_size || 20)));
+        this.hasMore.set(this.currentPage() < this.totalPages());
+        
+        // Actualizar filtros disponibles
+        if (res.data.available_filters) {
+          this.availableFilters.set(res.data.available_filters);
         }
+        
+        this.loading.set(false);
+        this.saveFilters();
+        
+        // Resetear selección después de cargar nuevos resultados
+        this.clearSelection();
+        
       },
       error: (err) => {
         console.error('Error al cargar resultados administrativos:', err);
@@ -138,7 +168,6 @@ export class AdminResultsComponent implements OnInit {
       test_main_topic: '',
       test_level: '',
       user_role: ''
-
     });
     this.currentPage.set(1);
     this.loadResults();
@@ -149,7 +178,6 @@ export class AdminResultsComponent implements OnInit {
     if (key !== 'page') {
       this.onFilterChange();
     }
-    // Nota: cuando key es 'page', se maneja en goToPage()
   }
 
   removeFilter(key: keyof AdminResultsFilter): void {
@@ -168,7 +196,7 @@ export class AdminResultsComponent implements OnInit {
     this.updateFilter('sort_by', sortBy);
   }
 
-  // Métodos para paginación CORREGIDOS
+  // Métodos para paginación
   setPageSize(size: number): void {
     this.updateFilter('page_size', size);
   }
@@ -177,9 +205,8 @@ export class AdminResultsComponent implements OnInit {
     if (page < 1 || page > this.totalPages()) return;
     
     this.currentPage.set(page);
-    // Actualizar filtros y cargar resultados
     this.selectedFilters.update(filters => ({ ...filters, page }));
-    this.loadResults(); // ¡Esta es la línea clave!
+    this.loadResults();
   }
 
   previousPage(): void {
@@ -200,6 +227,166 @@ export class AdminResultsComponent implements OnInit {
     return this.sharedUtilsService.getSharedPageNumbers(this.totalPages(), this.currentPage());
   }
 
+  // Método para mostrar detalles usando el servicio
+  showResultDetails(result: AdminResultResponse): void {
+    if (!result.user_id) return;
+    
+    this.resultDetailsModalService.open(result.user_id, result.id);
+  }
+
+
+  // --- MÉTODOS PARA ELIMINACIÓN MASIVA ---
+
+  // Métodos de selección
+  toggleResultSelection(resultId: number): void {
+    const selected = this.selectedResults();
+    if (selected.has(resultId)) {
+      selected.delete(resultId);
+    } else {
+      selected.add(resultId);
+    }
+    this.selectedResults.set(new Set(selected));
+    this.updateSelectionState();
+  }
+
+  toggleSelectAll(): void {
+    if (this.isAllSelected()) {
+      this.clearSelection();
+    } else {
+      const allIds = this.adminResultsData().map(result => result.id);
+      this.selectedResults.set(new Set(allIds));
+      this.isAllSelected.set(true);
+      this.isIndeterminate.set(false);
+    }
+    this.updateSelectedCount();
+  }
+
+  clearSelection(): void {
+    this.selectedResults.set(new Set());
+    this.isAllSelected.set(false);
+    this.isIndeterminate.set(false);
+    this.updateSelectedCount();
+  }
+
+  updateSelectionState(): void {
+    const totalItems = this.adminResultsData().length;
+    const selectedCount = this.selectedResults().size;
+    
+    if (selectedCount === 0) {
+      this.isAllSelected.set(false);
+      this.isIndeterminate.set(false);
+    } else if (selectedCount === totalItems) {
+      this.isAllSelected.set(true);
+      this.isIndeterminate.set(false);
+    } else {
+      this.isAllSelected.set(false);
+      this.isIndeterminate.set(true);
+    }
+    
+    this.updateSelectedCount();
+  }
+
+  updateSelectedCount(): void {
+    this.selectedCount.set(this.selectedResults().size);
+  }
+
+  // Métodos para eliminar
+  confirmDeleteResult(result: AdminResultResponse): void {
+    this.resultToDelete.set(result);
+    this.modalTitle.set('Confirmar eliminación');
+    this.modalMessage.set(`¿Estás seguro de que deseas eliminar el resultado del usuario "${this.getUserFullName(result)}" en el test "${result.test_title}"? Esta acción no se puede deshacer.`);
+    this.showDeleteModal.set(true);
+  }
+
+  confirmBulkDelete(): void {
+    if (this.selectedCount() === 0) return;
+    
+    this.modalTitle.set('Confirmar eliminación masiva');
+    this.modalMessage.set(`¿Estás seguro de que deseas eliminar ${this.selectedCount()} resultado(s) seleccionado(s)? Esta acción no se puede deshacer.`);
+    this.showBulkDeleteModal.set(true);
+  }
+
+  deleteResult(): void {
+    const result = this.resultToDelete();
+    if (!result) return;
+    
+    this.deleteInProgress.set(true);
+    
+    this.resultsManagementService.deleteResult(result.id).subscribe({
+      next: () => {
+        // Eliminar de la lista local
+        this.adminResultsData.update(results => 
+          results.filter(r => r.id !== result.id)
+        );
+        
+        // Actualizar contadores
+        this.totalResults.update(count => count - 1);
+        
+        // Cerrar modal y resetear estado
+        this.showDeleteModal.set(false);
+        this.resultToDelete.set(null);
+        this.deleteInProgress.set(false);
+        
+        // Mostrar mensaje de éxito
+        this.showSuccessMessage(`Resultado eliminado correctamente.`);
+      },
+      error: (err) => {
+        console.error('Error al eliminar resultado:', err);
+        this.deleteInProgress.set(false);
+        this.showErrorMessage('Error al eliminar el resultado. Por favor, inténtalo de nuevo.');
+      }
+    });
+  }
+
+  deleteSelectedResults(): void {
+    const selectedIds = Array.from(this.selectedResults());
+    if (selectedIds.length === 0) return;
+    
+    this.deleteInProgress.set(true);
+    
+    this.resultsManagementService.deleteResultsBulk(selectedIds).subscribe({
+      next: (response) => {
+        // Eliminar de la lista local
+        this.adminResultsData.update(results => 
+          results.filter(r => !selectedIds.includes(r.id))
+        );
+        
+        // Actualizar contadores
+        this.totalResults.update(count => count - selectedIds.length);
+        
+        // Limpiar selección
+        this.clearSelection();
+        
+        // Cerrar modal
+        this.showBulkDeleteModal.set(false);
+        this.deleteInProgress.set(false);
+        
+        // Mostrar mensaje de éxito
+        this.showSuccessMessage(`${selectedIds.length} resultado(s) eliminado(s) correctamente.`);
+        
+        // Si la página queda vacía y hay páginas anteriores, volver a la anterior
+        if (this.adminResultsData().length === 0 && this.currentPage() > 1) {
+          this.goToPage(this.currentPage() - 1);
+        }
+      },
+      error: (err) => {
+        console.error('Error al eliminar resultados:', err);
+        this.deleteInProgress.set(false);
+        this.showErrorMessage('Error al eliminar los resultados. Por favor, inténtalo de nuevo.');
+      }
+    });
+  }
+
+  // Métodos para mostrar mensajes
+  showSuccessMessage(message: string): void {
+    // Puedes implementar un toast o alert aquí
+    alert(message); // Temporal - considera usar un servicio de notificaciones
+  }
+
+  showErrorMessage(message: string): void {
+    alert(message); // Temporal - considera usar un servicio de notificaciones
+  }
+
   // Métodos de utilidad
   getLevelBadgeClass(level: string): string {
     return this.sharedUtilsService.getSharedLevelBadgeClass(level);
@@ -207,7 +394,7 @@ export class AdminResultsComponent implements OnInit {
 
   getStatusBadgeClass(status: string): string {
     return this.sharedUtilsService.getSharedStatusBadgeClass(status);
-}
+  }
 
   getStatusLabel(status: string): string {
     return this.sharedUtilsService.getSharedStatusLabel(status);
@@ -267,20 +454,17 @@ export class AdminResultsComponent implements OnInit {
   }
 
   getEndIndex(): number {
-    return Math.min(this.currentPage() * (this.selectedFilters().page_size || 20), this.totalResultsWithFilters());
+    return Math.min(this.currentPage() * (this.selectedFilters().page_size || 20), this.totalResults());
   }
 
-  // Método para exportar resultados (opcional)
+  // Método para exportar resultados
   exportResults(): void {
-    // Implementación para exportar a CSV o Excel
     console.log('Exportando resultados...');
-    // this.adminService.exportResults(this.selectedFilters()).subscribe(...);
   }
 
   // Método para ver detalles del resultado
   viewResultDetails(resultId: number): void {
     // Navegar a página de detalles del resultado
-    // this.router.navigate(['/admin/results', resultId]);
   }
 
   // Método para formatear nombre de usuario

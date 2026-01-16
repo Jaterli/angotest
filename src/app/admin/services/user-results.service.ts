@@ -47,4 +47,9 @@ export class UserResultsService {
     );
   }
 
+  // Eliminar resultado individual
+  deleteResult(resultId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/results/${resultId}`);
+  }
+
 }

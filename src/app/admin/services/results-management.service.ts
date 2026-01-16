@@ -6,7 +6,7 @@ import { AdminResultsFilter, AdminResultsFullResponse } from '../models/admin-re
 @Injectable({
   providedIn: 'root'
 })
-export class AdminService {
+export class ResultsManagementService {
   private apiUrl = 'http://localhost:8080/api/admin';
 
   constructor(private http: HttpClient) { }
@@ -105,6 +105,18 @@ export class AdminService {
       `${this.apiUrl}/results`, 
       { params }
     );
+  }
+
+  // Eliminar resultado individual
+  deleteResult(resultId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/results/${resultId}`);
+  }
+
+  // Eliminar múltiples resultados
+  deleteResultsBulk(resultIds: number[]): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/results/bulk`, {
+      body: { ids: resultIds }
+    });
   }
 
 }

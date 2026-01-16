@@ -30,6 +30,45 @@
     </div>
   </div>
 
+  <!-- Barra de acciones masivas (solo visible cuando hay seleccionados) -->
+  @if (selectedCount() > 0) {
+    <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4 mb-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center">
+          <div class="w-8 h-8 flex items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-800 text-indigo-600 dark:text-indigo-300 mr-3">
+            {{ selectedCount() }}
+          </div>
+          <div>
+            <h3 class="font-medium text-gray-900 dark:text-gray-100">
+              {{ selectedCount() }} resultado(s) seleccionado(s)
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Realiza acciones masivas sobre los resultados seleccionados
+            </p>
+          </div>
+        </div>
+        
+        <div class="flex gap-2">
+          <button (click)="clearSelection()"
+                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+            Deseleccionar
+          </button>
+          
+          <button (click)="confirmBulkDelete()"
+                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+            Eliminar {{ selectedCount() }} seleccionado(s)
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Filtros (expandibles) -->
   @if (showFilters()) {
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6 mb-8">
@@ -388,7 +427,7 @@
     </div>
   }
 
-  <!-- Estado de carga -->
+    <!-- Estado de carga -->
   @if (loading()) {
     <div class="flex flex-col items-center justify-center min-h-[400px] space-y-4">
       <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -423,12 +462,27 @@
   <!-- Información de resultados -->
   @if (!loading() && totalResults() > 0) {
     <div class="mb-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-      <div>
-        Mostrando 
-        <span class="font-medium">{{ getStartIndex() }}</span> a 
-        <span class="font-medium">{{ getEndIndex() }}</span> de 
-        <span class="font-medium">{{ totalResultsWithFilters() }}</span> resultado{{ totalResults() !== 1 ? 's' : '' }}
+      <div class="flex items-center gap-4">
+        <div>
+          Mostrando 
+          <span class="font-medium">{{ getStartIndex() }}</span> a 
+          <span class="font-medium">{{ getEndIndex() }}</span> de 
+          <span class="font-medium">{{ totalResults() }}</span> resultado{{ totalResults() !== 1 ? 's' : '' }}
+        </div>
+        
+        <!-- Checkbox para seleccionar todos -->
+        <div class="flex items-center">
+          <input type="checkbox"
+                 [checked]="isAllSelected()"
+                 [indeterminate]="isIndeterminate()"
+                 (change)="toggleSelectAll()"
+                 class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+          <label class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+            {{ isAllSelected() ? 'Deseleccionar todos' : 'Seleccionar todos' }}
+          </label>
+        </div>
       </div>
+      
       <div>
         Orden: 
         <span class="font-medium text-gray-800 dark:text-gray-200">
@@ -445,19 +499,24 @@
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-900">
             <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <!-- Columna de selección -->
+              <th scope="col" class="w-12 px-4 py-3 text-left">
+                <!-- Header checkbox vacío para alineación -->
+              </th>
+              
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Usuario
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Test
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Resultado
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Fecha
               </th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Acciones
               </th>
             </tr>
@@ -466,8 +525,16 @@
           <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
             @for (result of adminResultsData(); track result.id) {
               <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+                <!-- Columna de selección -->
+                <td class="px-4 py-4 whitespace-nowrap">
+                  <input type="checkbox"
+                         [checked]="selectedResults().has(result.id)"
+                         (change)="toggleResultSelection(result.id)"
+                         class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                </td>
+                
                 <!-- Columna Usuario -->
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-4 py-4 whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
                       <div>
@@ -488,7 +555,7 @@
                 </td>
                 
                 <!-- Columna Test -->
-                <td class="px-6 py-4">
+                <td class="px-4 py-4">
                   <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
                     {{ result.test_title }}
                   </div>
@@ -503,7 +570,7 @@
                 </td>
                 
                 <!-- Columna Resultado -->
-                <td class="px-6 py-4">
+                <td class="px-4 py-4">
                   <div class="flex flex-col gap-2">
                     <div class="flex items-center gap-2">
                       <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap {{ getStatusBadgeClass(result.status) }}">
@@ -520,8 +587,7 @@
                 </td>
                 
                 <!-- Columna Fecha -->
-                <td class="px-6 py-4 whitespace-nowrap">
-
+                <td class="px-4 py-4 whitespace-nowrap">
                   <div class="text-xs text-gray-500 dark:text-gray-400">
                     Inició: {{ formatDateTime(result.started_at) }}
                   </div>
@@ -532,10 +598,11 @@
                 </td>
                 
                 <!-- Columna Acciones -->
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <td class="px-4 py-4 whitespace-nowrap text-sm">
                   <div class="flex gap-2">
+                   
                     <button 
-                      (click)="viewResultDetails(result.id)"
+                      (click)="showResultDetails(result)"
                       class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:text-blue-300 dark:bg-blue-900 dark:hover:bg-blue-800 transition-colors"
                     >
                       <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -543,14 +610,16 @@
                         <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
                       </svg>
                       Detalles
-                    </button>
+                    </button>                    
+
                     <button 
-                      class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-emerald-700 bg-emerald-100 hover:bg-emerald-200 dark:text-emerald-300 dark:bg-emerald-900 dark:hover:bg-emerald-800 transition-colors"
+                      (click)="confirmDeleteResult(result)"
+                      class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 dark:text-red-300 dark:bg-red-900 dark:hover:bg-red-800 transition-colors"
                     >
                       <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
                       </svg>
-                      Exportar
+                      Eliminar
                     </button>
                   </div>
                 </td>
@@ -611,3 +680,33 @@
     }
   }
 </div>
+
+<!-- Modal para eliminar resultado individual -->
+<app-modal 
+  [isOpen]="showDeleteModal()"
+  [title]="modalTitle()"
+  [message]="modalMessage()"
+  icon="warning"
+  [confirmText]="deleteInProgress() ? 'Eliminando...' : 'Eliminar'"
+  [showCancelButton]="!deleteInProgress()"
+  (confirm)="deleteResult()"
+  (cancel)="showDeleteModal.set(false)"
+  (closed)="showDeleteModal.set(false)">
+</app-modal>
+
+<!-- Modal para eliminación masiva -->
+<app-modal 
+  [isOpen]="showBulkDeleteModal()"
+  [title]="modalTitle()"
+  [message]="modalMessage()"
+  icon="warning"
+  [confirmText]="deleteInProgress() ? 'Eliminando...' : 'Eliminar seleccionados'"
+  [showCancelButton]="!deleteInProgress()"
+  (confirm)="deleteSelectedResults()"
+  (cancel)="showBulkDeleteModal.set(false)"
+  (closed)="showBulkDeleteModal.set(false)">
+</app-modal>
+
+<!-- Modal de detalles del resultado -->
+<app-user-result-details-modal></app-user-result-details-modal>
+

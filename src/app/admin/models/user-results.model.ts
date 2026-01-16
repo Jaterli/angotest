@@ -71,7 +71,7 @@ export interface UserResultsData {
     first_name?: string;
     last_name?: string;
   };
-  results: UserResultsResponse;
+  data: UserResultsResponse;
 }
 
 export interface QuestionDetail {

@@ -86,15 +86,6 @@ export interface AdminResultsFullResponse {
   data: AdminResultsResponse;
   filters_applied: any;
   stats: {
-    total_results: number;
     total_results_with_filters: number;
   };
-}
-
-
-export interface AdminResultsStats {
-  total_results: number;
-  average_score?: number;
-  total_time_spent?: number;
-  completion_rate?: number;
 }

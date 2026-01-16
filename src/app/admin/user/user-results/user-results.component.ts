@@ -7,11 +7,18 @@ import { UserResultsService } from '../../services/user-results.service';
 import { UsersManagementService } from '../../services/users-management.service';
 import { UserResultDetail, UserResultsData, UserResultsFilters } from '../../models/user-results.model';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
+import { UserResultDetailsModalService } from '../../services/user-result-details-modal.service';
+import { UserResultDetailsModalComponent } from '../user-result-details-modal/user-result-details-modal.component';
 
 @Component({
   selector: 'app-user-results',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ModalComponent,
+    UserResultDetailsModalComponent 
+  ],
   templateUrl: './user-results.component.html',
 })
 export class UserResultsComponent implements OnInit {
@@ -20,13 +27,14 @@ export class UserResultsComponent implements OnInit {
   private userResultsService = inject(UserResultsService);
   private sharedUtilsService = inject(SharedUtilsService);
   private usersManagementService = inject(UsersManagementService);
+  private resultDetailsModalService = inject(UserResultDetailsModalService);
 
   // Señales
   loading = signal(true);
   loadingUser = signal(true);
   userId = signal<number | null>(null);
   user = signal<any>(null);
-  results = signal<UserResultDetail[]>([]);
+  userResults = signal<UserResultDetail[]>([]);
   resultsData = signal<UserResultsData | null>(null);
   
   // Filtros
@@ -38,22 +46,30 @@ export class UserResultsComponent implements OnInit {
     sort_order: 'desc'
   });
 
-  // UI states
-  showFilters = signal(false);
-  showDetailsModal = signal(false);
-  selectedResult = signal<any>(null);
-  resultDetails = signal<any>(null);
-  loadingDetails = signal(false);
-
-  // Computed values
-  totalResults = computed(() => this.resultsData()?.results.total_results || 0);
-  totalPages = computed(() => this.resultsData()?.results.total_pages || 0);
-  currentPage = computed(() => this.resultsData()?.results.current_page || 1);
-  pageSize = computed(() => this.resultsData()?.results.page_size || 20);
-  hasMore = computed(() => this.resultsData()?.results.has_more || false);
+ 
+  // Modales
+  showDeleteModal = signal(false);
+  deleteInProgress = signal(false);
   
-  stats = computed(() => this.resultsData()?.results.stats || null);
-  appliedFilters = computed(() => this.resultsData()?.results.filters || null);
+  // Mensajes del modal
+  modalTitle = signal('');
+  modalMessage = signal('');
+
+  // Resultado individual para eliminar
+  resultToDelete = signal<UserResultDetail | null>(null);
+
+  // UI states - ELIMINAR showDetailsModal y resultDetails
+  showFilters = signal(false);
+  
+  // Computed values
+  totalUserResults = computed(() => this.resultsData()?.data.total_results || 0);
+  totalPages = computed(() => this.resultsData()?.data.total_pages || 0);
+  currentPage = computed(() => this.resultsData()?.data.current_page || 1);
+  pageSize = computed(() => this.resultsData()?.data.page_size || 20);
+  hasMore = computed(() => this.resultsData()?.data.has_more || false);
+  
+  stats = computed(() => this.resultsData()?.data.stats || null);
+  appliedFilters = computed(() => this.resultsData()?.data.filters || null);
 
   // Opciones para filtros
   statusOptions = [
@@ -116,9 +132,9 @@ export class UserResultsComponent implements OnInit {
     
     this.loading.set(true);
     this.userResultsService.getUserResults(this.userId()!, this.filters()).subscribe({
-      next: (data) => {
-        this.resultsData.set(data);
-        this.results.set(data.results.results);
+      next: (res) => {
+        this.resultsData.set(res);
+        this.userResults.set(res.data.results);
         this.loading.set(false);
       },
       error: (error) => {
@@ -168,6 +184,43 @@ export class UserResultsComponent implements OnInit {
     this.loadResults();
   }
 
+  // Métodos para eliminar
+  confirmDeleteResult(result: UserResultDetail): void {
+    this.resultToDelete.set(result);
+    this.modalTitle.set('Confirmar eliminación');
+    this.modalMessage.set(`¿Estás seguro de que deseas eliminar el resultado con id "${result.result_id}" en el test "${result.title}"? Esta acción no se puede deshacer.`);
+    this.showDeleteModal.set(true);
+  }
+
+  deleteResult(): void {
+    const result = this.resultToDelete();
+    if (!result) return;
+    
+    this.deleteInProgress.set(true);
+    
+    this.userResultsService.deleteResult(result.result_id).subscribe({
+      next: () => {
+        // Eliminar de la lista local
+        this.userResults.update(results => 
+          results.filter(r => r.result_id !== result.result_id)
+        );
+        
+        // Cerrar modal y resetear estado
+        this.showDeleteModal.set(false);
+        this.resultToDelete.set(null);
+        this.deleteInProgress.set(false);
+        
+        // Mostrar mensaje de éxito
+        alert(`Resultado eliminado correctamente.`);
+      },
+      error: (err) => {
+        console.error('Error al eliminar resultado:', err);
+        this.deleteInProgress.set(false);
+        alert('Error al eliminar el resultado. Por favor, inténtalo de nuevo.');
+      }
+    });
+  }
+
   // Métodos para paginación
   goToPage(page: number): void {
     this.filters.update(f => ({ ...f, page }));
@@ -208,28 +261,11 @@ export class UserResultsComponent implements OnInit {
     return pages;
   }
 
-  // Métodos para mostrar detalles
+  // Método para mostrar detalles usando el servicio
   showResultDetails(result: UserResultDetail): void {
-    this.selectedResult.set(result);
-    this.loadingDetails.set(true);
-    this.showDetailsModal.set(true);
+    if (!this.userId()) return;
     
-    this.userResultsService.getResultDetails(this.userId()!, result.result_id).subscribe({
-      next: (details) => {
-        this.resultDetails.set(details);
-        this.loadingDetails.set(false);
-      },
-      error: (error) => {
-        console.error('Error loading result details:', error);
-        this.loadingDetails.set(false);
-      }
-    });
-  }
-
-  closeDetailsModal(): void {
-    this.showDetailsModal.set(false);
-    this.selectedResult.set(null);
-    this.resultDetails.set(null);
+    this.resultDetailsModalService.open(this.userId()!, result.result_id);
   }
 
   // Helper methods
@@ -270,41 +306,11 @@ export class UserResultsComponent implements OnInit {
   }
 
   getEndIndex(): number {
-    return Math.min(this.currentPage() * this.pageSize(), this.totalResults());
+    return Math.min(this.currentPage() * this.pageSize(), this.totalUserResults());
   }
 
   goBack(): void {
     this.router.navigate(['/admin/users/stats']);
   }
 
-  // Métodos helper para respuestas
-  getAnswerClasses(answer: any, userAnswerId: number, correctAnswerId: number): string {
-    if (answer.id === correctAnswerId) {
-      return 'answer-correct';
-    }
-    if (answer.id === userAnswerId && answer.id !== correctAnswerId) {
-      return 'answer-incorrect';
-    }
-    if (answer.id === userAnswerId) {
-      return 'answer-selected';
-    }
-    return 'answer-normal';
-  }
-
-  getAnswerTextClasses(answer: any, userAnswerId: number, correctAnswerId: number): string {
-    if (answer.id === correctAnswerId) {
-      return 'text-emerald-700 dark:text-emerald-300 font-medium';
-    }
-    if (answer.id === userAnswerId && answer.id !== correctAnswerId) {
-      return 'text-red-700 dark:text-red-300 font-medium';
-    }
-    return 'text-gray-700 dark:text-gray-300';
-  }
-
-  // Método para obtener respuesta correcta
-  getCorrectAnswerText(question: any): string {
-    if (!question || !question.answers) return '';
-    const correctAnswer = question.answers.find((a: any) => a.id === question.correct_answer_id);
-    return correctAnswer ? correctAnswer.answer_text : '';
-  }
 }

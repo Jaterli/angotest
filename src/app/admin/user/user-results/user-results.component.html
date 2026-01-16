@@ -241,7 +241,7 @@
   }
 
   <!-- Sin resultados -->
-  @if (!loading() && results().length === 0) {
+  @if (!loading() && userResults().length === 0) {
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
       <div class="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4">
         <svg fill="currentColor" viewBox="0 0 20 20">
@@ -266,7 +266,7 @@
   }
 
   <!-- Lista de resultados -->
-  @if (!loading() && results().length > 0) {
+  @if (!loading() && userResults().length > 0) {
     <div class="space-y-4">
       <!-- Información de resultados -->
       <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
@@ -274,7 +274,7 @@
           Mostrando 
           <span class="font-medium">{{ getStartIndex() }}</span> a 
           <span class="font-medium">{{ getEndIndex() }}</span> de 
-          <span class="font-medium">{{ totalResults() }}</span> resultado{{ totalResults() !== 1 ? 's' : '' }}
+          <span class="font-medium">{{ totalUserResults() }}</span> resultado{{ totalUserResults() !== 1 ? 's' : '' }}
         </div>
         <div>
           Ordenado por: 
@@ -291,7 +291,7 @@
 
       <!-- Cards de resultados -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        @for (result of results(); track result.result_id) {
+        @for (result of userResults(); track result.result_id) {
           <div class="bg-white dark:bg-gray-800 rounded-xl shadow dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-5">
             
             <!-- Header de la card -->
@@ -378,15 +378,30 @@
             <!-- Footer -->
             <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <div class="text-xs text-gray-500 dark:text-gray-400">
-                Test ID: #{{ result.test_id }}
+                Test ID: #{{ result.test_id }}, Resultado ID: #{{ result.result_id }}
               </div>
-              <button (click)="showResultDetails(result)"
-                      class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
-                Ver detalles
-                <svg class="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                </svg>
-              </button>
+              <div class="flex gap-2">
+                <button 
+                  (click)="showResultDetails(result)"
+                  class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:text-blue-300 dark:bg-blue-900 dark:hover:bg-blue-800 transition-colors"
+                >
+                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                  </svg>
+                  Detalles
+                </button>
+
+                <button 
+                  (click)="confirmDeleteResult(result)"
+                  class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 dark:text-red-300 dark:bg-red-900 dark:hover:bg-red-800 transition-colors"
+                >
+                  <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                  Eliminar
+                </button>
+              </div>
             </div>
           </div>
         }
@@ -432,165 +447,19 @@
   }
 </div>
 
-<!-- Modal de detalles del resultado -->
-<app-modal 
-  [isOpen]="showDetailsModal()"
-  [title]="selectedResult()?.title || 'Detalles del Resultado'"
-  [showCancelButton]="false"
-  confirmText="Cerrar"
-  (confirm)="closeDetailsModal()"
-  [customContent]="true"
-  [size]="'lg'">
-  
-  <div class="space-y-6 max-h-[70vh] overflow-y-auto">
-    @if (loadingDetails()) {
-      <div class="flex flex-col items-center justify-center py-8">
-        <div class="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <p class="mt-3 text-sm text-gray-600 dark:text-gray-400">Cargando detalles...</p>
-      </div>
-    }
-    
-    @if (resultDetails() && !loadingDetails()) {
-      <!-- Información del test -->
-      <div class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Información del Test</h4>
-            <div class="space-y-2">
-              <div>
-                <span class="text-xs text-gray-500 dark:text-gray-400">Tema Principal:</span>
-                <span class="text-sm font-medium text-gray-900 dark:text-gray-100 ml-2">
-                  {{ resultDetails().test.main_topic }}
-                </span>
-              </div>
-              <div>
-                <span class="text-xs text-gray-500 dark:text-gray-400">Subtema:</span>
-                <span class="text-sm font-medium text-gray-900 dark:text-gray-100 ml-2">
-                  {{ resultDetails().test.sub_topic }}
-                </span>
-              </div>
-              <div>
-                <span class="text-xs text-gray-500 dark:text-gray-400">Nivel:</span>
-                <span class="text-sm font-medium text-gray-900 dark:text-gray-100 ml-2">
-                  {{ resultDetails().test.level }}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <div>
-            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Estadísticas</h4>
-            <div class="space-y-2">
-              <div>
-                <span class="text-xs text-gray-500 dark:text-gray-400">Puntuación:</span>
-                <span [class]="'text-sm font-bold ml-2 ' + getScoreColor(resultDetails().score_details.score_percentage)">
-                  {{ resultDetails().score_details.score_percentage | number:'1.1-1' }}%
-                </span>
-              </div>
-              <div>
-                <span class="text-xs text-gray-500 dark:text-gray-400">Correctas/Incorrectas:</span>
-                <span class="text-sm font-medium text-gray-900 dark:text-gray-100 ml-2">
-                  <span class="text-emerald-600 dark:text-emerald-400">{{ resultDetails().score_details.correct }}</span> /
-                  <span class="text-red-600 dark:text-red-400">{{ resultDetails().score_details.wrong }}</span>
-                </span>
-              </div>
-              <div>
-                <span class="text-xs text-gray-500 dark:text-gray-400">Estado:</span>
-                <span class="text-sm font-medium ml-2" [class]="getStatusColor(resultDetails().result.status)">
-                  {{ getStatusLabel(resultDetails().result.status) }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Preguntas y respuestas -->
-      <div>
-        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-          Preguntas ({{ resultDetails().questions.length }})
-        </h4>
-        
-        <div class="space-y-4">
-          @for (question of resultDetails().questions; track question.id; let i = $index) {
-            <div class="border border-gray-200 dark:border-gray-700 rounded-xl p-4"
-                 [class]="question.is_correct 
-                   ? 'bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-800/30'
-                   : 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800/30'">
-              
-              <!-- Header de la pregunta -->
-              <div class="flex items-start justify-between mb-3">
-                <div class="flex items-center space-x-3">
-                  <div [class]="'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ' + 
-                                (question.is_correct 
-                                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300' 
-                                  : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300')">
-                    {{ i + 1 }}
-                  </div>
-                  <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {{ question.question_text }}
-                  </div>
-                </div>
-                <span [class]="'px-2 py-1 text-xs font-medium rounded-full ' + 
-                              (question.is_correct 
-                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300' 
-                                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300')">
-                  {{ question.is_correct ? 'Correcta' : 'Incorrecta' }}
-                </span>
-              </div>
-              
-              <!-- Respuestas -->
-              <div class="space-y-2">
-                @for (answer of question.answers; track answer.id) {
-                  <div class="flex items-center space-x-3 p-2 rounded-lg"
-                       [class]="getAnswerClasses(answer, question.user_answer_id, question.correct_answer_id)">
-                    
-                    <!-- Indicador de selección -->
-                    @if (answer.id === question.user_answer_id) {
-                      <div class="flex-shrink-0">
-                        <div class="w-4 h-4 rounded-full border-2" [class]="question.is_correct 
-                          ? 'border-emerald-500 bg-emerald-500' 
-                          : 'border-red-500 bg-red-500'">
-                        </div>
-                      </div>
-                    } @else {
-                      <div class="flex-shrink-0">
-                        <div class="w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600"></div>
-                      </div>
-                    }
-                    
-                    <!-- Texto de la respuesta -->
-                    <div class="flex-1">
-                      <span class="text-sm" [class]="getAnswerTextClasses(answer, question.user_answer_id, question.correct_answer_id)">
-                        {{ answer.answer_text }}
-                      </span>
-                    </div>
-                    
-                    <!-- Indicador de correcta -->
-                    @if (answer.is_correct) {
-                      <div class="flex-shrink-0">
-                        <svg class="w-4 h-4 text-emerald-500 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                        </svg>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-              
-              <!-- Explicación -->
-              @if (!question.is_correct) {
-                <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                  <div class="text-xs text-gray-600 dark:text-gray-400">
-                    <span class="font-medium">Respuesta correcta:</span> 
-                    {{ getCorrectAnswerText(question) }}
-                  </div>
-                </div>
-              }
-            </div>
-          }
-        </div>
-      </div>
-    }
-  </div>
+<!-- Modal para eliminar resultado individual -->
+<app-modal 
+  [isOpen]="showDeleteModal()"
+  [title]="modalTitle()"
+  [message]="modalMessage()"
+  icon="warning"
+  [confirmText]="deleteInProgress() ? 'Eliminando...' : 'Eliminar'"
+  [showCancelButton]="!deleteInProgress()"
+  (confirm)="deleteResult()"
+  (cancel)="showDeleteModal.set(false)"
+  (closed)="showDeleteModal.set(false)">
 </app-modal>
+
+<!-- Modal de detalles del resultado -->
+<app-user-result-details-modal></app-user-result-details-modal>

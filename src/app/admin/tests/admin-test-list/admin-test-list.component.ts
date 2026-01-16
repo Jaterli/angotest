@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { TestsManagementService } from '../../services/tests-management.service';
 import { TestsFilterOptions, TestsListFilters } from '../../models/admin-tests.models';
+import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
 
 @Component({
   selector: 'app-admin-tests-list',
@@ -15,6 +16,7 @@ import { TestsFilterOptions, TestsListFilters } from '../../models/admin-tests.m
 })
 export class AdminTestListComponent implements OnInit {
   private testsManagementService = inject(TestsManagementService);
+  private sharedUtilsService = inject(SharedUtilsService);
 
   // Datos
   tests = signal<TestWithCount[]>([]);
@@ -28,7 +30,7 @@ export class AdminTestListComponent implements OnInit {
   deleting = signal(false);
   
   // Filtros y ordenación
-  filters = signal<TestsListFilters>({
+  selectedFilters = signal<TestsListFilters>({
     page: 1,
     page_size: 10,
     sort_by: 'created_at',
@@ -36,7 +38,6 @@ export class AdminTestListComponent implements OnInit {
     main_topic: '',
     sub_topic: '',
     level: '',
-    is_active: true,
     search: ''
   });
 
@@ -54,20 +55,23 @@ export class AdminTestListComponent implements OnInit {
     { value: 'sub_topic', label: 'Subtema' },
     { value: 'created_at', label: 'Fecha de creación' },
     { value: 'updated_at', label: 'Fecha de actualización' },
-    { value: 'level', label: 'Nivel' },   
-    { value: 'is_active', label: 'Activado' },    
+    { value: 'level', label: 'Nivel' },
   ];
+
+  // Estado de la UI
+  showFilters = signal(true);
 
   // Computed properties
   currentSortLabel = computed(() => {
-    const sortBy = this.filters().sort_by;
+    const sortBy = this.selectedFilters().sort_by;
     const option = this.sortOptions.find(o => o.value === sortBy);
     return option ? option.label : 'Fecha de creación';
   });
 
-  currentSortOrderLabel = computed(() => {
-    return this.filters().sort_order === 'asc' ? 'Ascendente' : 'Descendente';
-  });
+  getSortOrderIcon(): string {
+    const order = this.selectedFilters().sort_order || 'desc';
+    return order === 'asc' ? '↑' : '↓';
+  }
 
   // Modal de confirmación
   showDeleteModal = signal(false);
@@ -99,7 +103,7 @@ export class AdminTestListComponent implements OnInit {
 
   loadTests(): void {
     this.loading.set(true);
-    this.testsManagementService.getAllTests(this.filters()).subscribe({
+    this.testsManagementService.getAllTests(this.selectedFilters()).subscribe({
       next: (res) => {
         this.tests.set(res.tests);
         this.totalTests.set(res.total_tests);
@@ -117,16 +121,13 @@ export class AdminTestListComponent implements OnInit {
   }
 
   // Métodos para filtros y ordenación
-  applyFilters(): void {
-    this.filters.update(f => ({
-      ...f,
-      page: 1 // Resetear a primera página
-    }));
+  onFilterChange(): void {
+    this.selectedFilters.update(filters => ({ ...filters, page: 1 }));
     this.loadTests();
   }
 
-  clearFilters(): void {
-    this.filters.set({
+  resetFilters(): void {
+    this.selectedFilters.set({
       page: 1,
       page_size: 10,
       sort_by: 'created_at',
@@ -139,105 +140,86 @@ export class AdminTestListComponent implements OnInit {
     this.loadTests();
   }
 
-  onSortChange(sortBy: string): void {
-    const currentFilters = this.filters();
-    const currentSortOrder = currentFilters.sort_order;
-    
-    // Si ya está ordenado por este campo, cambiar el orden
-    if (currentFilters.sort_by === sortBy) {
-      this.filters.update(f => ({
-        ...f,
-        sort_order: currentSortOrder === 'asc' ? 'desc' : 'asc'
-      }));
-    } else {
-      // Ordenar por nuevo campo (desc por defecto)
-      this.filters.update(f => ({
-        ...f,
-        sort_by: sortBy,
-        sort_order: 'desc'
-      }));
+  updateFilter<T extends keyof TestsListFilters>(key: T, value: TestsListFilters[T]): void {
+    this.selectedFilters.update(filters => ({ ...filters, [key]: value }));
+    if (key !== 'page') {
+      this.onFilterChange();
     }
-    
-    this.applyFilters();
+  }
+
+  removeFilter(key: keyof TestsListFilters): void {
+    const defaultValue = key === 'page_size' ? 10 : '';
+    this.updateFilter(key, defaultValue as any);
+  }
+
+  // Métodos para ordenamiento
+  toggleSortOrder(): void {
+    const currentOrder = this.selectedFilters().sort_order || 'desc';
+    const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+    this.updateFilter('sort_order', newOrder);
+  }
+
+  setSortBy(sortBy: string): void {
+    this.updateFilter('sort_by', sortBy);
   }
 
   // Métodos para paginación
+  setPageSize(size: number): void {
+    this.updateFilter('page_size', size);
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages()) return;
+    
+    this.selectedFilters.update(filters => ({ ...filters, page }));
+    this.loadTests();
+  }
+
   previousPage(): void {
-    if (this.filters().page > 1) {
-      this.filters.update(f => ({
-        ...f,
-        page: f.page - 1
-      }));
-      this.loadTests();
+    if (this.selectedFilters().page > 1) {
+      const newPage = this.selectedFilters().page - 1;
+      this.goToPage(newPage);
     }
   }
 
   nextPage(): void {
     if (this.hasMore()) {
-      this.filters.update(f => ({
-        ...f,
-        page: f.page + 1
-      }));
-      this.loadTests();
-    }
-  }
-
-  goToPage(page: number): void {
-    if (page >= 1 && page <= this.totalPages()) {
-      this.filters.update(f => ({
-        ...f,
-        page: page
-      }));
-      this.loadTests();
+      const newPage = this.selectedFilters().page + 1;
+      this.goToPage(newPage);
     }
   }
 
   getPageNumbers(): number[] {
-    const pages: number[] = [];
-    const totalPages = this.totalPages();
-    
-    // Mostrar máximo 5 páginas
-    let startPage = Math.max(1, this.filters().page - 2);
-    let endPage = Math.min(totalPages, startPage + 4);
-    
-    // Ajustar si estamos cerca del final
-    if (endPage - startPage < 4) {
-      startPage = Math.max(1, endPage - 4);
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-    
-    return pages;
+    return this.sharedUtilsService.getSharedPageNumbers(this.totalPages(), this.selectedFilters().page);
   }
 
   getStartIndex(): number {
-    const filters = this.filters();
-    return (filters.page - 1) * filters.page_size + 1;
+    return ((this.selectedFilters().page - 1) * (this.selectedFilters().page_size || 10)) + 1;
   }
 
   getEndIndex(): number {
-    const filters = this.filters();
-    const end = filters.page * filters.page_size;
-    return Math.min(end, this.totalTests());
+    return Math.min(this.selectedFilters().page * (this.selectedFilters().page_size || 10), this.totalTests());
   }
 
-  // Métodos para la tabla (estilos de nivel)
-  getLevelClasses(level: string): string {
-    switch (level?.toLowerCase()) {
-      case 'principiante':
-        return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300';
-      case 'intermedio':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300';
-      case 'avanzado':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300';
-      default:
-        return 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300';
-    }
+  // Métodos para mostrar filtros activos
+  showFilterIndicators(): boolean {
+    const filters = this.selectedFilters();
+    return !!(filters.search || filters.main_topic || filters.level || filters.sub_topic);
   }
 
-  // Métodos para eliminar tests (se mantienen igual)
+  showPagination(): boolean {
+    return this.totalTests() > 0 && this.totalPages() > 1;
+  }
+
+  getLevelBadgeClass(level: string): string {
+    return this.sharedUtilsService.getSharedLevelBadgeClass(level);
+  }
+
+  formatDate(dateString: string): string {
+    return this.sharedUtilsService.sharedFormatDate(dateString);
+  }
+
+  // Métodos para eliminar tests
   prepareDeleteTest(test: TestWithCount): void {
     this.testToDelete = { id: test.id || null, title: test.title };
     this.showDeleteModal.set(true);
@@ -249,19 +231,17 @@ export class AdminTestListComponent implements OnInit {
     this.deleting.set(true);
     this.testsManagementService.deleteTest(this.testToDelete.id).subscribe({
       next: () => {
-        // Recargar la lista
-        this.loadTests();
-        
+        this.deleting.set(false);
         this.showDeleteModal.set(false);
         this.showSuccessModal.set(true);
-        this.deleting.set(false);
-        this.testToDelete = { id: null, title: null };
+        this.loadTests();
       },
       error: (err) => {
         console.error('Error al eliminar test:', err);
-        this.errorMessage.set(err.error?.error || 'Error al eliminar el test. Inténtalo de nuevo.');
-        this.showErrorModal.set(true);
         this.deleting.set(false);
+        this.showDeleteModal.set(false);
+        this.errorMessage.set(err.error?.message || 'Error al eliminar el test');
+        this.showErrorModal.set(true);
       }
     });
   }
@@ -277,5 +257,21 @@ export class AdminTestListComponent implements OnInit {
 
   closeErrorModal(): void {
     this.showErrorModal.set(false);
+  }
+
+  // Método para obtener el texto de filtros activos
+  getActiveFilterLabel(key: keyof TestsListFilters): string {
+    switch (key) {
+      case 'search':
+        return 'Búsqueda';
+      case 'main_topic':
+        return 'Tema principal';
+      case 'sub_topic':
+        return 'Subtema';
+      case 'level':
+        return 'Nivel';
+      default:
+        return key;
+    }
   }
 }
