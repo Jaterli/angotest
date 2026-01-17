@@ -3,10 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TestService } from '../../../shared/services/test.service';
-import { 
-  TestWithStatus, 
-  NotStartedTestsFilter, 
-} from '../../../shared/models/test.model';
+import { TestWithStatus,  NotStartedTestsFilter, Test, } from '../../../shared/models/test.model';
 import { AuthService } from '../../../shared/services/auth.service';
 import { User } from '../../../shared/models/user.model';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
@@ -23,7 +20,7 @@ export class NotStartedTestsComponent implements OnInit {
   private sharedUtilsService = inject(SharedUtilsService);
 
   // Tests y estado
-  tests = signal<TestWithStatus[]>([]);
+  tests = signal<Test[]>([]);
   loading = signal(true);
   
   // Filtros - usando NotStartedTestsFilter
@@ -34,7 +31,7 @@ export class NotStartedTestsComponent implements OnInit {
   selectedPageSize = signal<number>(10);
   
   mainTopics = signal<string[]>([]);
-  levels = signal<string[]>(['Principiante', 'Intermedio', 'Avanzado']);
+  levelOptions = this.sharedUtilsService.getSharedPredefinedLevels();
   
   // Paginación
   currentPage = signal(1);
@@ -45,16 +42,17 @@ export class NotStartedTestsComponent implements OnInit {
   // Estadísticas
   stats = signal({
     total_tests: 0,
-    total_questions: 0,
-    average_questions: 0,
-    levels_distribution: {
+    total_tests_with_filters: 0,
+    total_by_level: {
       Principiante: 0,
       Intermedio: 0,
       Avanzado: 0
     },
-    main_topics_count: 0
+
   });
   
+  mainTopicsCount = signal(0);
+
   // Usuario
   currentUser: User | null = null;
   
@@ -105,6 +103,7 @@ export class NotStartedTestsComponent implements OnInit {
     localStorage.setItem(this.FILTER_STORAGE_KEY, JSON.stringify(filters));
   }
 
+
   loadTests(): void {
     this.loading.set(true);
 
@@ -119,32 +118,15 @@ export class NotStartedTestsComponent implements OnInit {
 
     // Necesitamos crear un método en TestService para usar NotStartedTestsFilter
     this.testService.getNotStartedTests(filter).subscribe({
-      next: (res: any) => {
+      next: (res) => {
         // Manejar tanto la respuesta antigua como la nueva estructura
-        if (res.data) {
-          // Nueva estructura: { data: ..., stats: ... }
-          this.tests.set(res.data.tests);
-          this.totalTests.set(res.data.total_tests);
-          this.totalPages.set(res.data.total_pages);
-          this.currentPage.set(res.data.current_page);
-          this.hasMore.set(res.data.has_more);
-          this.mainTopics.set(res.data.main_topics);
-          
-          if (res.stats) {
-            this.stats.set(res.stats);
-          } else {
-            this.calculateStats(res.data.tests);
-          }
-        } else {
-          // Estructura antigua (mantener compatibilidad)
-          this.tests.set(res.tests);
-          this.totalTests.set(res.total_tests);
-          this.totalPages.set(res.total_pages);
-          this.currentPage.set(res.current_page);
-          this.hasMore.set(res.has_more);
-          this.mainTopics.set(res.main_topics);
-          this.calculateStats(res.tests);
-        }
+        this.tests.set(res.data.tests);
+        this.totalTests.set(res.data.total_tests);
+        this.totalPages.set(res.data.total_pages);
+        this.currentPage.set(res.data.current_page);
+        this.hasMore.set(res.data.has_more);
+        this.mainTopics.set(res.data.main_topics);
+        this.stats.set(res.stats);   
         
         this.loading.set(false);
         this.saveFilters();
@@ -153,33 +135,6 @@ export class NotStartedTestsComponent implements OnInit {
         console.error('Error al cargar tests:', err);
         this.loading.set(false);
       }
-    });
-  }
-
-  private calculateStats(tests: TestWithStatus[]): void {
-    const totalQuestions = tests.reduce((sum, test) => sum + (test.total_questions || 0), 0);
-    const levelsDist = { Principiante: 0, Intermedio: 0, Avanzado: 0 };
-    const mainTopicsSet = new Set<string>();
-    
-    tests.forEach(test => {
-      // Contar temas principales únicos
-      if (test.main_topic) {
-        mainTopicsSet.add(test.main_topic);
-      }
-      
-      // Contar distribución de niveles
-      const level = test.level?.toLowerCase() || '';
-      if (level.includes('Principiante')) levelsDist.Principiante++;
-      else if (level.includes('Intermedio')) levelsDist.Intermedio++;
-      else if (level.includes('Avanzado')) levelsDist.Avanzado++;
-    });
-    
-    this.stats.set({
-      total_tests: tests.length,
-      total_questions: totalQuestions,
-      average_questions: tests.length > 0 ? Math.round(totalQuestions / tests.length) : 0,
-      levels_distribution: levelsDist,
-      main_topics_count: mainTopicsSet.size
     });
   }
   
@@ -283,20 +238,6 @@ export class NotStartedTestsComponent implements OnInit {
   showPagination(): boolean {
     return this.totalTests() > 0 && this.totalPages() > 1;
   }
-
-  // Nuevos métodos para estadísticas
-  getAverageQuestions(): string {
-    const avg = this.stats().average_questions;
-    return avg === 0 ? 'N/A' : avg.toFixed(1);
-  }
-
-  // getLevelPercentage(level: 'Principiante' | 'Intermedio' | 'Avanzado'): number {
-  //   const total = this.stats().total_tests;
-  //   if (total === 0) return 0;
-    
-  //   const count = this.stats().levels_distribution[level];
-  //   return Math.round((count / total) * 100);
-  // }
 
   formatDate(dateString: string): string {
     return this.sharedUtilsService.sharedFormatDate(dateString);

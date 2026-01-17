@@ -23,6 +23,7 @@ export interface Test {
   created_at: string; 
   updated_at: string;   
   questions?: Question[];
+  total_questions?: number;
   results?: Result[];
 }
 
@@ -143,7 +144,7 @@ export interface NotStartedTestsFilter {
 }
 
 export interface NotStartedTestsResponse {
-  tests: TestWithStatus[];
+  tests: Test[];
   total_tests: number;
   total_pages: number;
   current_page: number;
@@ -155,14 +156,12 @@ export interface NotStartedTestsResponse {
 
 export interface NotStartedTestsStats {
   total_tests: number;
-  total_questions: number;
-  average_questions: number;
-  levels_distribution: {
-    principiante: number;
-    intermedio: number;
-    avanzado: number;
+  total_tests_with_filters: number;
+  total_by_level: {
+    Principiante: number;
+    Intermedio: number;
+    Avanzado: number;
   };
-  main_topics_count: number;
 }
 
 export interface NotStartedTestsFullResponse {
@@ -231,6 +230,11 @@ export interface CompletedTestsResponse {
   has_more: boolean;
   main_topics: string[];
   levels: string[];  
+  //stats: CompletedTestsStats;
+}
+
+export interface CompletedTestsFullResponse {
+  data: CompletedTestsResponse;
   stats: CompletedTestsStats;
 }
 

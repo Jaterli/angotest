@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AdminResultsFilter, AdminResultsFullResponse } from '../models/admin-results.models';
+import { AdminResultsFilter, AdminResultsFullResponse } from '../models/results-list.models';
 
 @Injectable({
   providedIn: 'root'

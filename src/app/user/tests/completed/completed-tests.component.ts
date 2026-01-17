@@ -120,15 +120,15 @@ export class CompletedTestsComponent implements OnInit {
 
     this.testService.getMyCompletedTests(filter).subscribe({
       next: (res) => {
-        this.completedTestsData.set(res.test_results);
-        this.totalTests.set(res.total_tests);
-        this.totalPages.set(res.total_pages);        
-        this.currentPage.set(res.current_page);
-        this.hasMore.set(res.has_more);
+        this.completedTestsData.set(res.data.test_results);
+        this.totalTests.set(res.data.total_tests);
+        this.totalPages.set(res.data.total_pages);        
+        this.currentPage.set(res.data.current_page);
+        this.hasMore.set(res.data.has_more);
         this.stats.set(res.stats);
         
         if (this.currentPage() === 1) {
-          this.mainTopics.set(res.main_topics);
+          this.mainTopics.set(res.data.main_topics);
         }
         
         this.loading.set(false);

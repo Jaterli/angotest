@@ -9,24 +9,53 @@
       </p>
     </div>
 
-    <div class="flex gap-2">
-      <!-- Botón para mostrar/ocultar filtros -->
-      <button (click)="showFilters.set(!showFilters())"
-              class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
-        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
-        </svg>
-        {{ showFilters() ? 'Ocultar Filtros' : 'Mostrar Filtros' }}
-      </button>
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
 
-      <!-- Botón Crear Test -->
-      <a routerLink="/admin/tests/create"
-         class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors">
-        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
-        </svg>
-        Crear Test
-      </a>
+      <!-- Grupo de botones de creación -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 sm:mb-0 sm:mr-2">
+          Crear Test:
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <a routerLink="/admin/tests/create"
+            class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-white bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-600 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
+            </svg>
+            Manual
+          </a>
+          
+          <a routerLink="/admin/tests/json-create"
+            class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"/>
+            </svg>
+            Desde JSON
+          </a>
+
+          <a routerLink="/generate-test"
+            class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-800/50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+            </svg>
+            Con IA
+          </a>
+        </div>
+      </div>
+
+      <!-- Separador visual -->
+      <div class="hidden sm:block h-8 w-px bg-gray-300 dark:bg-gray-600 mx-2"></div>
+      
+      <!-- Botón para mostrar/ocultar filtros -->
+      <div class="flex">
+        <button (click)="showFilters.set(!showFilters())"
+                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors border border-blue-600 dark:border-blue-700">
+          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+          </svg>
+          {{ showFilters() ? 'Ocultar Filtros' : 'Mostrar Filtros' }}
+        </button>
+      </div>
     </div>
   </div>
 

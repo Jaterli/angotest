@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ResultsManagementService } from '../services/results-management.service';
 import { SharedUtilsService } from '../../shared/services/shared-utils.service';
-import { AdminResultResponse, AdminResultsFilter } from '../models/admin-results.models';
+import { AdminResultResponse, AdminResultsFilter } from '../models/results-list.models';
 import { ModalComponent } from '../../shared/components/modal.component';
 import { UserResultDetailsModalComponent } from '../user/user-result-details-modal/user-result-details-modal.component';
 import { UserResultDetailsModalService } from '../services/user-result-details-modal.service';
@@ -13,7 +13,7 @@ import { UserResultDetailsModalService } from '../services/user-result-details-m
   selector: 'app-admin-results',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule, ModalComponent, UserResultDetailsModalComponent], 
-  templateUrl: './admin-results.component.html',
+  templateUrl: './results-list.component.html',
 })
 export class AdminResultsComponent implements OnInit {
   private resultsManagementService = inject(ResultsManagementService);

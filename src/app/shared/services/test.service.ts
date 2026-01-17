@@ -14,7 +14,7 @@ import {
   NextQuestionResponse, 
   NotStartedTestsFilter,
   NotStartedTestsFullResponse,
-  CompletedTestsResponse
+  CompletedTestsFullResponse
 } from '../models/test.model';
 
 @Injectable({
@@ -67,7 +67,7 @@ export class TestService {
   // ====== Método para tests completados con filtros ======
   getMyCompletedTests(
     filter: CompletedTestsFilter = {}
-  ): Observable<CompletedTestsResponse> {
+  ): Observable<CompletedTestsFullResponse> {
     let params = new HttpParams();
     
     // Parámetros obligatorios con valores por defecto
@@ -100,7 +100,7 @@ export class TestService {
       params = params.set('to_date', filter.to_date);
     }
 
-    return this.http.get<CompletedTestsResponse>(
+    return this.http.get<CompletedTestsFullResponse>(
       `${this.apiUrl}/tests/completed`, 
       { params }
     );
