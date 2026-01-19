@@ -15,7 +15,7 @@ import { UserResultDetailsModalService } from '../services/user-result-details-m
   imports: [CommonModule, RouterModule, FormsModule, ModalComponent, UserResultDetailsModalComponent], 
   templateUrl: './results-list.component.html',
 })
-export class AdminResultsComponent implements OnInit {
+export class ResultsListComponent implements OnInit {
   private resultsManagementService = inject(ResultsManagementService);
   private sharedUtilsService = inject(SharedUtilsService);
   private resultDetailsModalService = inject(UserResultDetailsModalService);
@@ -46,6 +46,7 @@ export class AdminResultsComponent implements OnInit {
  
   // Paginación
   currentPage = signal(1);
+  totalFilteredResults = signal(0);
   totalResults = signal(0);
   totalPages = signal(0);  
   hasMore = signal(false);
@@ -125,15 +126,16 @@ export class AdminResultsComponent implements OnInit {
     
     this.resultsManagementService.getAdminResults(this.selectedFilters()).subscribe({
       next: (res) => {
-        this.adminResultsData.set(res.data.results);
-        this.totalResults.set(res.stats.total_results_with_filters);
-        this.currentPage.set(res.data.current_page);          
-        this.totalPages.set(Math.ceil(res.stats.total_results_with_filters / (this.selectedFilters().page_size || 20)));
+        this.adminResultsData.set(res.results);
+        this.totalFilteredResults.set(res.stats.total_filtered_results);
+        this.totalResults.set(res.stats.total_results);
+        //this.currentPage.set(res.filters_applied.CurrentPage);          
+        this.totalPages.set(Math.ceil(res.stats.total_filtered_results / (this.selectedFilters().page_size || 20)));
         this.hasMore.set(this.currentPage() < this.totalPages());
         
         // Actualizar filtros disponibles
-        if (res.data.available_filters) {
-          this.availableFilters.set(res.data.available_filters);
+        if (res.available_filters) {
+          this.availableFilters.set(res.available_filters);
         }
         
         this.loading.set(false);
@@ -155,6 +157,7 @@ export class AdminResultsComponent implements OnInit {
     // Resetear a página 1 cuando cambian los filtros
     this.selectedFilters.update(filters => ({ ...filters, page: 1 }));
     this.currentPage.set(1);
+    console.log("Filtros cambiados");
     this.loadResults();
   }
 
@@ -203,7 +206,7 @@ export class AdminResultsComponent implements OnInit {
 
   goToPage(page: number): void {
     if (page < 1 || page > this.totalPages()) return;
-    
+    console.log("Yendo a página: ",page);
     this.currentPage.set(page);
     this.selectedFilters.update(filters => ({ ...filters, page }));
     this.loadResults();
@@ -320,7 +323,7 @@ export class AdminResultsComponent implements OnInit {
         );
         
         // Actualizar contadores
-        this.totalResults.update(count => count - 1);
+        this.totalFilteredResults.update(count => count - 1);
         
         // Cerrar modal y resetear estado
         this.showDeleteModal.set(false);
@@ -352,7 +355,7 @@ export class AdminResultsComponent implements OnInit {
         );
         
         // Actualizar contadores
-        this.totalResults.update(count => count - selectedIds.length);
+        this.totalFilteredResults.update(count => count - selectedIds.length);
         
         // Limpiar selección
         this.clearSelection();
@@ -446,7 +449,7 @@ export class AdminResultsComponent implements OnInit {
   }
 
   showPagination(): boolean {
-    return this.totalResults() > 0 && this.totalPages() > 1;
+    return this.totalFilteredResults() > 0 && this.totalPages() > 1;
   }
 
   getStartIndex(): number {
@@ -454,7 +457,7 @@ export class AdminResultsComponent implements OnInit {
   }
 
   getEndIndex(): number {
-    return Math.min(this.currentPage() * (this.selectedFilters().page_size || 20), this.totalResults());
+    return Math.min(this.currentPage() * (this.selectedFilters().page_size || 20), this.totalFilteredResults());
   }
 
   // Método para exportar resultados

@@ -34,8 +34,6 @@ export interface AdminResultResponse {
 }
 
 export interface AdminResultsFilter {
-  page?: number;
-  page_size?: number;
   
   // Filtros por usuario
   user_id?: number;
@@ -64,28 +62,27 @@ export interface AdminResultsFilter {
   // Ordenamiento
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
+
+  // Paginación
+  page?: number;
+  page_size?: number;
   
   // Búsqueda
   search?: string;
 }
 
-export interface AdminResultsResponse {
+
+export interface AdminResultsFullResponse {
   results: AdminResultResponse[];
-  current_page: number;
-  page_size: number;
+  filters_applied: any;
   available_filters?: {
     main_topics: string[];
     levels: string[];
     statuses: string[];
     roles: string[];
-  };
-}
-
-export interface AdminResultsFullResponse {
-  success: boolean;
-  data: AdminResultsResponse;
-  filters_applied: any;
+  };  
   stats: {
-    total_results_with_filters: number;
+    total_results: number;
+    total_filtered_results: number;
   };
 }

@@ -2,10 +2,11 @@ import { Component, signal, inject, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { User, UsersStatsFilters, UserStats } from '../../../shared/models/user.model';
+import { User } from '../../../shared/models/user.model';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { UsersManagementService } from '../../services/users-management.service';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
+import { UsersStatsFilters, UserStats } from '../../models/user-stats.models';
 
 @Component({
   selector: 'app-users-stats',
@@ -23,23 +24,22 @@ export class UsersStatsComponent implements OnInit {
   private sharedUtilsService = inject(SharedUtilsService);
 
   // Datos
-  usersData = signal<UserStats[]>([]);
+  currentPage = signal(1);
+  totalFilteredUsers = signal(0);
   totalUsers = signal(0);
+  usersData = signal<UserStats[]>([]);
   totalPages = signal(0);
   hasMore = signal(false);
-  
+
   // Estados
   loading = signal(true);
   deleting = signal(false);
   loadingProfile = signal(false);  
-  
-  // Paginación
-  currentPage = signal(1);
-  
+   
   // Filtros y ordenación
   selectedFilters = signal<UsersStatsFilters>({
-    page: 1,
     page_size: 10,
+    page: 1,
     sort_by: 'created_at',
     sort_order: 'desc',
     search: ''
@@ -90,11 +90,15 @@ export class UsersStatsComponent implements OnInit {
     this.loading.set(true);
     
     this.usersManagementService.getUsersStats(this.selectedFilters()).subscribe({
-      next: (response) => {
-        this.usersData.set(response.users);
-        this.totalUsers.set(response.total_users);
-        this.totalPages.set(response.total_pages);
-        this.hasMore.set(response.has_more);
+      next: (res) => {
+        this.usersData.set(res.users);
+        this.totalFilteredUsers.set(res.stats.total_filtered_users);
+        this.totalUsers.set(res.stats.total_users);
+        this.currentPage.set(res.filters.page || 1);          
+        this.totalPages.set(Math.ceil(res.stats.total_filtered_users / (this.selectedFilters().page_size || 20)));
+        this.hasMore.set(this.currentPage() < this.totalPages());
+
+
         this.loading.set(false);
       },
       error: (err) => {
@@ -183,7 +187,7 @@ export class UsersStatsComponent implements OnInit {
   }
 
   getEndIndex(): number {
-    return Math.min(this.currentPage() * (this.selectedFilters().page_size || 10), this.totalUsers());
+    return Math.min(this.currentPage() * (this.selectedFilters().page_size || 10), this.totalFilteredUsers());
   }
 
   // Métodos para mostrar filtros activos
@@ -193,7 +197,7 @@ export class UsersStatsComponent implements OnInit {
   }
 
   showPagination(): boolean {
-    return this.totalUsers() > 0 && this.totalPages() > 1;
+    return this.totalFilteredUsers() > 0 && this.totalPages() > 1;
   }
 
   // Método para cargar perfil de usuario

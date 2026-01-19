@@ -163,7 +163,7 @@
   }
 
   <!-- Sin resultados -->
-  @if (!loading() && totalUsers() === 0) {
+  @if (!loading() && totalFilteredUsers() === 0) {
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
       <div class="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4">
         <svg fill="currentColor" viewBox="0 0 20 20">
@@ -191,13 +191,13 @@
   }
 
   <!-- Información de resultados -->
-  @if (!loading() && totalUsers() > 0) {
+  @if (!loading() && totalFilteredUsers() > 0) {
     <div class="mb-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
       <div>
         Mostrando 
         <span class="font-medium">{{ getStartIndex() }}</span> a 
         <span class="font-medium">{{ getEndIndex() }}</span> de 
-        <span class="font-medium">{{ totalUsers() }}</span> usuario{{ totalUsers() !== 1 ? 's' : '' }}
+        <span class="font-medium">{{ totalFilteredUsers()}}</span> resultado(s) filtrados ({{ totalUsers() }} totales)
       </div>
       <div>
         Orden: 
@@ -209,7 +209,7 @@
   }
 
   <!-- Tabla de usuarios -->
-  @if (!loading() && totalUsers() > 0) {
+  @if (!loading() && totalFilteredUsers() > 0) {
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
