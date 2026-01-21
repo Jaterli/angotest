@@ -35,24 +35,35 @@ export interface TestWithCount extends Test {
   question_count: number;
 }
 
-export interface TestsListResponse {
-  tests: TestWithCount[];
-  total_tests: number;
-  total_pages: number;
-  current_page: number;
-  page_size: number;
-  has_more: boolean;
-  filters?: {
-    main_topic?: string;
-    sub_topic?: string;
+export interface TestFiltersApplied {
+    main_topic: string | null;
+    sub_topic: string | null;
     level?: string;
     is_active?: boolean;
+    page: number;
+    page_size: number;
     search?: string;
     sort_by?: string;
     sort_order?: 'asc' | 'desc';
-  };
 }
 
+export interface TestAvailableFilters {
+    main_topics: string[]; 
+    sub_topics: string[];
+    levels: string[];
+    is_active?: boolean;
+}
+
+export interface TestsListResponse {
+  tests: TestWithCount[];
+  available_filters: TestAvailableFilters;
+  filters_applied : TestFiltersApplied;
+  stats: {
+    total_filtered_tests: number;
+    total_tests: number;
+    page_size: number;
+  }
+}
 
 export interface Result {
   id: number;

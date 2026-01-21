@@ -1,12 +1,13 @@
-import { Component, OnInit, signal, computed, OnDestroy } from '@angular/core';
+import { Component, OnInit, signal, OnDestroy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subscription, debounceTime, distinctUntilChanged, filter, tap } from 'rxjs';
+
 import { AuthService } from '../../../shared/services/auth.service';
 import { ModalComponent } from '../../../shared/components/modal.component';
-import { debounceTime, distinctUntilChanged, switchMap, Subject, of } from 'rxjs';
-import { AITestService } from '../../../shared/services/generate-test.service';
 import { TestsManagementService } from '../../services/tests-management.service';
+import { TopicsService } from '../../../shared/services/topics.service';
 
 @Component({
   selector: 'app-test-create',
@@ -20,9 +21,9 @@ import { TestsManagementService } from '../../services/tests-management.service'
 })
 export class TestCreateComponent implements OnInit, OnDestroy {
   testForm: FormGroup;
-  
-  // Señales para modales y estados
   loading = signal(false);
+  
+  // Estados para modales
   showSuccessModal = signal(false);
   showErrorModal = signal(false);
   showValidationModal = signal(false);
@@ -31,29 +32,72 @@ export class TestCreateComponent implements OnInit, OnDestroy {
   // Mensajes de error
   errorMessage = signal('');
   validationMessage = signal('');
-  
-  // Estados de carga para temas
-  topicsLoading = signal(true);
-  subTopicsLoading = signal(false);
-  specificTopicsLoading = signal(false);
-  
-  // Temas jerárquicos
+
+  // Estados para temas
   mainTopics = signal<string[]>([]);
   subTopics = signal<string[]>([]);
   specificTopics = signal<string[]>([]);
+  isValidSpecificTopic = signal<boolean>(true);
   
+  // Estados de carga
+  isLoading = signal({
+    main: false,
+    sub: false,
+    specific: false
+  });
+  
+  // Estados de validación
+  validationState = computed(() => {
+    const mainTopic = this.testForm.get('main_topic')?.value;
+    const subTopic = this.testForm.get('sub_topic')?.value;
+    const specificTopic = this.testForm.get('specific_topic')?.value;
+    
+    const mainValid = !mainTopic || this.mainTopics().some(t => t.toLowerCase() === mainTopic.toLowerCase());
+    const subValid = !subTopic || this.subTopics().some(t => t.toLowerCase() === subTopic.toLowerCase());
+    const specificValid = !specificTopic || this.specificTopics().some(t => t.toLowerCase() === specificTopic.toLowerCase());
+
+    this.isValidSpecificTopic(); // Dependencia necesaria
+
+    return {
+      main: {
+        isValid: mainValid,
+        message: !mainTopic ? '' : 
+                 mainValid ? '✓ Tema válido' : 'Tema no encontrado',
+        hasData: this.mainTopics().length > 0
+      },
+      sub: {
+        isValid: subValid,
+        message: !subTopic ? '' : 
+                 subValid ? '✓ Subtema válido' : 'Subtema no encontrado',
+        hasData: this.subTopics().length > 0
+      },
+      specific: {
+        isValid: specificValid,
+        message: !specificTopic ? '' : 
+                 specificValid ? '✓ Tema específico válido' : 'Tema específico no encontrado',
+        hasData: this.specificTopics().length > 0
+      }
+    };
+  });
+
+  // UI states
+  showLists = {
+    main: false,
+    sub: false,
+    specific: false
+  };
+
   // Opciones de nivel predefinidas
   levels = signal<string[]>(['Principiante', 'Intermedio', 'Avanzado']);
 
-  // Subjects para debounce
-  private mainTopicChangeSubject = new Subject<string>();
-  private subTopicChangeSubject = new Subject<string>();
+  // Suscripciones
+  private subscriptions = new Subscription();
 
   constructor(
     private fb: FormBuilder, 
     private testsManagementService: TestsManagementService,
     private authService: AuthService,
-    private aiTestService: AITestService,
+    private topicsService: TopicsService,
     private router: Router
   ) {
     this.testForm = this.fb.group({
@@ -63,136 +107,145 @@ export class TestCreateComponent implements OnInit, OnDestroy {
       sub_topic: ['', Validators.required],
       specific_topic: ['', Validators.required],
       level: ['', Validators.required],
-      is_active: [true], // Nuevo campo
+      is_active: [true],
       questions: this.fb.array([])
     });
   }
 
   ngOnInit(): void {
-    // Cargar temas principales desde el servicio
     this.loadMainTopics();
-    
-    // Configurar debounce para tema principal
-    this.mainTopicChangeSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap(mainTopic => {
-        if (!mainTopic) {
+    this.setupTopicListeners();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  setupTopicListeners() {
+    // 1. TEMA PRINCIPAL
+    this.subscriptions.add(
+      this.testForm.get('main_topic')?.valueChanges.pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        tap(() => this.showLists.main = false),
+        filter(value => value && value.trim().length > 0)
+      ).subscribe(value => {
+        const isValid = this.mainTopics().some(t => t.toLowerCase() === value.toLowerCase());
+        
+        if (isValid) {
+          this.loadSubTopics(value);
+        } else {
           this.subTopics.set([]);
           this.specificTopics.set([]);
-          this.testForm.get('sub_topic')?.setValue('');
-          this.testForm.get('specific_topic')?.setValue('');
-          return of({ sub_topics: [] });
+          this.testForm.get('sub_topic')?.setValue('', { emitEvent: false });
+          this.testForm.get('specific_topic')?.setValue('', { emitEvent: false });
         }
+      }) || new Subscription()
+    );
+
+    // 2. SUBTEMA
+    this.subscriptions.add(
+      this.testForm.get('sub_topic')?.valueChanges.pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        tap(() => this.showLists.sub = false),
+        filter(value => {
+          const mainTopic = this.testForm.get('main_topic')?.value;
+          return value && value.trim() && mainTopic && mainTopic.trim();
+        })
+      ).subscribe(value => {
+        const isValid = this.subTopics().some(t => t.toLowerCase() === value.toLowerCase());
+        const mainTopic = this.testForm.get('main_topic')?.value;
         
-        this.subTopicsLoading.set(true);
-        this.testForm.get('sub_topic')?.setValue('');
-        this.testForm.get('specific_topic')?.setValue('');
-        return this.aiTestService.getSubTopics(mainTopic);
-      })
-    ).subscribe({
-      next: (response: any) => {
-        this.subTopics.set(response.sub_topics || []);
-        this.subTopicsLoading.set(false);
-        
-        if (response.sub_topics && response.sub_topics.length > 0) {
-          setTimeout(() => {
-            this.testForm.get('sub_topic')?.setValue(response.sub_topics[0]);
-          });
+        if (isValid && mainTopic) {
+          this.loadSpecificTopics(mainTopic, value);
+        } else {
+          this.specificTopics.set([]);
+          this.testForm.get('specific_topic')?.setValue('', { emitEvent: false });
         }
+      }) || new Subscription()
+    );
+
+    // 3. TEMA ESPECÍFICO
+    this.subscriptions.add(
+      this.testForm.get('specific_topic')?.valueChanges.pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        tap(() => this.showLists.specific = false),
+        filter(value => {
+          const mainTopic = this.testForm.get('main_topic')?.value;
+          const subTopic = this.testForm.get('sub_topic')?.value;
+          return value && value.trim() && mainTopic && mainTopic.trim() && subTopic && subTopic.trim();
+        })
+      ).subscribe(value => {
+        const isValid = this.specificTopics().some(t => t.toLowerCase() === value.toLowerCase());
+        if (!isValid && this.specificTopics().length > 0) {
+          this.isValidSpecificTopic.set(false);
+        } else {
+          this.isValidSpecificTopic.set(true);
+        }
+      }) || new Subscription()
+    );
+  }
+
+  loadMainTopics() {
+    this.isLoading.update(state => ({ ...state, main: true }));
+    this.topicsService.getMainTopics().subscribe({
+      next: (topics) => {
+        this.mainTopics.set(topics);
+        this.isLoading.update(state => ({ ...state, main: false }));
+      },
+      error: (err) => {
+        console.error('Error al cargar temas principales:', err);
+        this.mainTopics.set([]);
+        this.isLoading.update(state => ({ ...state, main: false }));
+      }
+    });
+  }
+
+  loadSubTopics(mainTopic: string) {
+    this.isLoading.update(state => ({ ...state, sub: true }));
+    this.topicsService.getSubtopics(mainTopic).subscribe({
+      next: (topics) => {
+        this.subTopics.set(topics);
+        this.isLoading.update(state => ({ ...state, sub: false }));
       },
       error: (err) => {
         console.error('Error al cargar subtemas:', err);
         this.subTopics.set([]);
-        this.subTopicsLoading.set(false);
+        this.isLoading.update(state => ({ ...state, sub: false }));
       }
     });
-    
-    // Configurar debounce para subtema
-    this.subTopicChangeSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap(subTopic => {
-        const mainTopic = this.testForm.get('main_topic')?.value;
-        if (!mainTopic || !subTopic) {
-          this.specificTopics.set([]);
-          this.testForm.get('specific_topic')?.setValue('');
-          return of({ specific_topics: [] });
-        }
-        
-        this.specificTopicsLoading.set(true);
-        this.testForm.get('specific_topic')?.setValue('');
-        return this.aiTestService.getSpecificTopics(mainTopic, subTopic);
-      })
-    ).subscribe({
-      next: (response: any) => {
-        this.specificTopics.set(response.specific_topics || []);
-        this.specificTopicsLoading.set(false);
-        
-        if (response.specific_topics && response.specific_topics.length > 0) {
-          setTimeout(() => {
-            this.testForm.get('specific_topic')?.setValue(response.specific_topics[0]);
-          });
-        }
+  }
+
+  loadSpecificTopics(mainTopic: string, subTopic: string) {
+    this.isLoading.update(state => ({ ...state, specific: true }));
+    this.topicsService.getSpecificTopics(mainTopic, subTopic).subscribe({
+      next: (topics) => {
+        this.specificTopics.set(topics);
+        this.isLoading.update(state => ({ ...state, specific: false }));
       },
       error: (err) => {
         console.error('Error al cargar temas específicos:', err);
         this.specificTopics.set([]);
-        this.specificTopicsLoading.set(false);
+        this.isLoading.update(state => ({ ...state, specific: false }));
       }
-    });
-    
-    // Escuchar cambios en main_topic
-    this.testForm.get('main_topic')?.valueChanges.subscribe(mainTopic => {
-      this.mainTopicChangeSubject.next(mainTopic);
-    });
-    
-    // Escuchar cambios en sub_topic
-    this.testForm.get('sub_topic')?.valueChanges.subscribe(subTopic => {
-      this.subTopicChangeSubject.next(subTopic);
     });
   }
 
-  ngOnDestroy(): void {
-    this.mainTopicChangeSubject.complete();
-    this.subTopicChangeSubject.complete();
+  onMainTopicSelect(topic: string) {
+    this.testForm.get('main_topic')?.setValue(topic, { emitEvent: true });
+    this.showLists.main = false;
   }
 
-  loadMainTopics(): void {
-    this.topicsLoading.set(true);
-    
-    this.aiTestService.getMainTopics().subscribe({
-      next: (response: any) => {
-        const topics = response.main_topics || response.hierarchy || [];
-        this.mainTopics.set(Array.isArray(topics) ? topics : Object.keys(topics));
-        this.topicsLoading.set(false);
-        
-        // Auto-seleccionar el primer tema si hay temas disponibles
-        if (this.mainTopics().length > 0) {
-          setTimeout(() => {
-            const firstTopic = this.mainTopics()[0];
-            this.testForm.get('main_topic')?.setValue(firstTopic);
-          });
-        }
-      },
-      error: (err) => {
-        console.error('Error al cargar temas principales:', err);
-        // Fallback a temas predefinidos
-        const fallbackTopics = [
-          'Ciencias de la Computación', 'Matemáticas', 'Historia', 'Ciencias Naturales',
-          'Literatura', 'Idiomas (Inglés)', 'Idiomas (Francés)', 'Derecho', 'Economía',
-          'Cultura General', 'Deportes'
-        ];
-        this.mainTopics.set(fallbackTopics);
-        this.topicsLoading.set(false);
-        
-        if (fallbackTopics.length > 0) {
-          setTimeout(() => {
-            this.testForm.get('main_topic')?.setValue(fallbackTopics[0]);
-          });
-        }
-      }
-    });
+  onSubTopicSelect(topic: string) {
+    this.testForm.get('sub_topic')?.setValue(topic, { emitEvent: true });
+    this.showLists.sub = false;
+  }
+
+  onSpecificTopicSelect(topic: string) {
+    this.testForm.get('specific_topic')?.setValue(topic, { emitEvent: true });
+    this.showLists.specific = false;
   }
 
   get questions(): FormArray {
@@ -297,7 +350,7 @@ export class TestCreateComponent implements OnInit, OnDestroy {
 
   addAnswer(qIndex: number): void {
     this.getAnswers(qIndex).push(this.fb.group({ 
-      answer_text: '', 
+      answer_text: ['', Validators.required], 
       is_correct: false,
       id: null 
     }));
@@ -351,7 +404,7 @@ export class TestCreateComponent implements OnInit, OnDestroy {
       sub_topic: formValue.sub_topic,
       specific_topic: formValue.specific_topic,
       level: formValue.level,
-      is_active: formValue.is_active, // Incluir is_active
+      is_active: formValue.is_active,
       questions: filteredQuestions
     };
   }
@@ -475,11 +528,11 @@ export class TestCreateComponent implements OnInit, OnDestroy {
       this.testForm.reset({
         title: '',
         description: '',
-        created_at: '',
         main_topic: '',
         sub_topic: '',
         specific_topic: '',
         level: '',
+        is_active: true,
         questions: []
       });
       while (this.questions.length !== 0) {

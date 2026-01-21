@@ -1,9 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Test, TestsListResponse } from '../../shared/models/test.model';
-import { TestsFilterOptions, TestsListFilters } from '../models/admin-tests.models';
-
+import { Test, TestFiltersApplied, TestsListResponse } from '../../shared/models/test.model';
 
 @Injectable({ providedIn: 'root' })
 export class TestsManagementService {
@@ -28,12 +26,12 @@ export class TestsManagementService {
   }
 
   // Método para obtener tests con paginación, filtrado y ordenación
-  getAllTests(filters: TestsListFilters): Observable<TestsListResponse> {
+  getAllTests(filters: TestFiltersApplied): Observable<TestsListResponse> {
     let params = new HttpParams();
     
     // Agregar todos los filtros a los parámetros
     Object.keys(filters).forEach(key => {
-      const value = filters[key as keyof TestsListFilters];
+      const value = filters[key as keyof TestFiltersApplied];
       if (value !== undefined && value !== null && value !== '') {
         params = params.set(key, value.toString());
       }
@@ -57,9 +55,9 @@ export class TestsManagementService {
   }
 
   // Método para obtener opciones de filtrado
-  getFilterOptions(): Observable<TestsFilterOptions> {
-    return this.http.get<TestsFilterOptions>(`${this.apiUrl}/filter-options`);
-  }
+  // getFilterOptions(): Observable<TestsFilterOptions> {
+  //   return this.http.get<TestsFilterOptions>(`${this.apiUrl}/filter-options`);
+  // }
 
 
   // Método para obtener estadísticas generales del sistema

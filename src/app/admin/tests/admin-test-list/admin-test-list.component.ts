@@ -1,11 +1,10 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TestWithCount } from '../../../shared/models/test.model';
+import { TestAvailableFilters, TestFiltersApplied, TestWithCount } from '../../../shared/models/test.model';
 import { RouterModule } from '@angular/router';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { TestsManagementService } from '../../services/tests-management.service';
-import { TestsFilterOptions, TestsListFilters } from '../../models/admin-tests.models';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
 
 @Component({
@@ -21,16 +20,18 @@ export class AdminTestListComponent implements OnInit {
   // Datos
   tests = signal<TestWithCount[]>([]);
   totalTests = signal(0);
+  totalFilteredTests = signal(0);  
+  currentPage = signal(1);
   totalPages = signal(0);
   hasMore = signal(false);
-  
+
   // Estados
   loading = signal(true);
   loadingOptions = signal(false);
   deleting = signal(false);
   
   // Filtros y ordenación
-  selectedFilters = signal<TestsListFilters>({
+  selectedFilters = signal<TestFiltersApplied>({
     page: 1,
     page_size: 10,
     sort_by: 'created_at',
@@ -42,7 +43,7 @@ export class AdminTestListComponent implements OnInit {
   });
 
   // Opciones de filtrado
-  filterOptions = signal<TestsFilterOptions>({
+  filterOptions = signal<TestAvailableFilters>({
     main_topics: [],
     sub_topics: [],
     levels: [],
@@ -83,32 +84,34 @@ export class AdminTestListComponent implements OnInit {
   errorMessage = signal('');
 
   ngOnInit(): void {
-    this.loadFilterOptions();
+    //this.loadFilterOptions();
     this.loadTests();
   }
 
-  loadFilterOptions(): void {
-    this.loadingOptions.set(true);
-    this.testsManagementService.getFilterOptions().subscribe({
-      next: (options) => {
-        this.filterOptions.set(options);
-        this.loadingOptions.set(false);
-      },
-      error: (err) => {
-        console.error('Error al cargar opciones de filtro:', err);
-        this.loadingOptions.set(false);
-      }
-    });
-  }
+  // loadFilterOptions(): void {
+  //   this.loadingOptions.set(true);
+  //   this.testsManagementService.getFilterOptions().subscribe({
+  //     next: (options) => {
+  //       this.filterOptions.set(options);
+  //       this.loadingOptions.set(false);
+  //     },
+  //     error: (err) => {
+  //       console.error('Error al cargar opciones de filtro:', err);
+  //       this.loadingOptions.set(false);
+  //     }
+  //   });
+  // }
 
   loadTests(): void {
     this.loading.set(true);
     this.testsManagementService.getAllTests(this.selectedFilters()).subscribe({
       next: (res) => {
         this.tests.set(res.tests);
-        this.totalTests.set(res.total_tests);
-        this.totalPages.set(res.total_pages);
-        this.hasMore.set(res.has_more);
+        this.totalFilteredTests.set(res.stats.total_filtered_tests);
+        this.filterOptions.set(res.available_filters)
+        this.totalTests.set(res.stats.total_tests);
+        this.totalPages.set(Math.ceil(res.stats.total_filtered_tests / (this.selectedFilters().page_size || 20)));
+        this.hasMore.set(this.currentPage() < this.totalPages());
         this.loading.set(false);
       },
       error: err => {
@@ -140,14 +143,14 @@ export class AdminTestListComponent implements OnInit {
     this.loadTests();
   }
 
-  updateFilter<T extends keyof TestsListFilters>(key: T, value: TestsListFilters[T]): void {
+  updateFilter<T extends keyof TestFiltersApplied>(key: T, value: TestFiltersApplied[T]): void {
     this.selectedFilters.update(filters => ({ ...filters, [key]: value }));
     if (key !== 'page') {
       this.onFilterChange();
     }
   }
 
-  removeFilter(key: keyof TestsListFilters): void {
+  removeFilter(key: keyof TestFiltersApplied): void {
     const defaultValue = key === 'page_size' ? 10 : '';
     this.updateFilter(key, defaultValue as any);
   }
@@ -198,7 +201,7 @@ export class AdminTestListComponent implements OnInit {
   }
 
   getEndIndex(): number {
-    return Math.min(this.selectedFilters().page * (this.selectedFilters().page_size || 10), this.totalTests());
+    return Math.min(this.selectedFilters().page * (this.selectedFilters().page_size || 10), this.totalFilteredTests());
   }
 
   // Métodos para mostrar filtros activos
@@ -208,7 +211,7 @@ export class AdminTestListComponent implements OnInit {
   }
 
   showPagination(): boolean {
-    return this.totalTests() > 0 && this.totalPages() > 1;
+    return this.totalFilteredTests() > 0 && this.totalPages() > 1;
   }
 
   getLevelBadgeClass(level: string): string {
@@ -260,7 +263,7 @@ export class AdminTestListComponent implements OnInit {
   }
 
   // Método para obtener el texto de filtros activos
-  getActiveFilterLabel(key: keyof TestsListFilters): string {
+  getActiveFilterLabel(key: keyof TestFiltersApplied): string {
     switch (key) {
       case 'search':
         return 'Búsqueda';

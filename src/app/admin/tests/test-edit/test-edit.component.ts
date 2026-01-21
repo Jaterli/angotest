@@ -1,10 +1,12 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, OnDestroy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription, debounceTime, distinctUntilChanged, filter, tap } from 'rxjs';
 import { Test } from '../../../shared/models/test.model';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { TestsManagementService } from '../../services/tests-management.service';
+import { TopicsService } from '../../../shared/services/topics.service';
 
 @Component({
   selector: 'app-test-edit',
@@ -16,7 +18,7 @@ import { TestsManagementService } from '../../services/tests-management.service'
     ModalComponent,
   ]
 })
-export class TestEditComponent implements OnInit {
+export class TestEditComponent implements OnInit, OnDestroy {
   testForm: FormGroup;
   loading = signal(true);
   saving = signal(false);
@@ -24,14 +26,75 @@ export class TestEditComponent implements OnInit {
   testId!: number;
   testData: Test | null = null;
 
+  // Estados para temas
+  mainTopics = signal<string[]>([]);
+  subTopics = signal<string[]>([]);
+  specificTopics = signal<string[]>([]);
+  isValidSpecificTopic = signal<boolean>(true);
+  
+  // Estados de carga
+  isLoading = signal({
+    main: false,
+    sub: false,
+    specific: false
+  });
+  
+  // Estados de validación
+  validationState = computed(() => {
+
+    const mainTopic = this.testForm.get('main_topic')?.value;
+    const subTopic = this.testForm.get('sub_topic')?.value;
+    const specificTopic = this.testForm.get('specific_topic')?.value;
+    
+    const mainValid = !mainTopic || this.mainTopics().some(t => t.toLowerCase() === mainTopic.toLowerCase());
+    const subValid = !subTopic || this.subTopics().some(t => t.toLowerCase() === subTopic.toLowerCase());
+    const specificValid = !specificTopic || this.specificTopics().some(t => t.toLowerCase() === specificTopic.toLowerCase());
+
+    this.isValidSpecificTopic(); // Dependencia necesaria para cambiar el mensaje de Tema Específico
+
+    return {
+      main: {
+        isValid: mainValid,
+        message: !mainTopic ? '' : 
+                 mainValid ? '✓ Tema válido' : 'Tema no encontrado',
+        hasData: this.mainTopics().length > 0
+      },
+      sub: {
+        isValid: subValid,
+        message: !subTopic ? '' : 
+                 subValid ? '✓ Subtema válido' : 'Subtema no encontrado',
+        hasData: this.subTopics().length > 0
+      },
+      specific: {
+        isValid: specificValid,
+        message: !specificTopic ? '' : 
+                 specificValid ? '✓ Tema específico válido' : 'Tema específico no encontrado',
+        hasData: this.specificTopics().length > 0
+      }
+    };
+  });
+
+  // UI states
+  showLists = {
+    main: false,
+    sub: false,
+    specific: false
+  };
+
   // Estados para modales
   showSuccessModal = signal(false);
   showErrorModal = signal(false);
+  showTopicWarningModal = signal(false);
   errorMessage = signal('');
+  invalidTopics = signal<string[]>([]);
+
+  // Suscripciones
+  private subscriptions = new Subscription();
 
   constructor(
     private fb: FormBuilder,
     private testsManagementService: TestsManagementService,
+    private topicsService: TopicsService,
     private route: ActivatedRoute,
     private router: Router
   ) {
@@ -45,9 +108,12 @@ export class TestEditComponent implements OnInit {
       is_active: [true],
       questions: this.fb.array([])
     });
+
+    this.setupTopicListeners();
   }
 
   ngOnInit() {
+    this.loadMainTopics();
     this.route.params.subscribe(params => {
       this.testId = +params['id'];
       if (this.testId) {
@@ -57,6 +123,166 @@ export class TestEditComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.unsubscribe();
+  }
+
+  setupTopicListeners() {
+    // 1. TEMA PRINCIPAL
+    this.subscriptions.add(
+      this.testForm.get('main_topic')?.valueChanges.pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        tap(() => this.showLists.main = false),
+        filter(value => value && value.trim().length > 0)
+      ).subscribe(value => {
+        const isValid = this.mainTopics().some(t => t.toLowerCase() === value.toLowerCase());
+        
+        if (isValid) {
+          this.loadSubTopics(value);
+          const subTopic = this.testForm.get('sub_topic')?.value;
+          if (subTopic != '') this.loadSpecificTopics(value, subTopic);
+
+           
+        } else {
+          this.subTopics.set([]);
+          this.specificTopics.set([]);
+          //this.testForm.get('sub_topic')?.setValue('', { emitEvent: false });
+          //this.testForm.get('specific_topic')?.setValue('', { emitEvent: false });
+        }
+      }) || new Subscription()
+    );
+
+    // 2. SUBTEMA
+    this.subscriptions.add(
+      this.testForm.get('sub_topic')?.valueChanges.pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        tap(() => this.showLists.sub = false),
+        filter(value => {
+          const mainTopic = this.testForm.get('main_topic')?.value;
+          return value && value.trim() && mainTopic && mainTopic.trim();
+        })
+      ).subscribe(value => {
+        const isValid = this.subTopics().some(t => t.toLowerCase() === value.toLowerCase());
+        const mainTopic = this.testForm.get('main_topic')?.value;
+        
+        if (isValid && mainTopic) {
+          this.loadSpecificTopics(mainTopic, value);
+        } else {
+          this.specificTopics.set([]);
+          //this.testForm.get('specific_topic')?.setValue('', { emitEvent: false });
+        }
+      }) || new Subscription()
+    );
+
+    // 3. TEMA ESPECÍFICO
+    this.subscriptions.add(
+      this.testForm.get('specific_topic')?.valueChanges.pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        tap(() => this.showLists.specific = false),
+        filter(value => {
+          const mainTopic = this.testForm.get('main_topic')?.value;
+          const subTopic = this.testForm.get('sub_topic')?.value;
+          return value && value.trim() && mainTopic && mainTopic.trim() && subTopic && subTopic.trim();
+        })
+      ).subscribe(value => {
+
+        const isValid = this.specificTopics().some(t => t.toLowerCase() === value.toLowerCase());
+        if (!isValid && this.specificTopics().length > 0) {
+          this.isValidSpecificTopic.set(false);
+        } else {
+          this.isValidSpecificTopic.set(true);
+        }
+        // Solo mantener el listener para cerrar la lista si se muestra
+      }) || new Subscription()
+    );
+  }
+
+
+    // this.subscriptions.add(
+    //   this.testForm.get('specific_topic')?.valueChanges.pipe(
+    //     debounceTime(200),
+    //     distinctUntilChanged(),
+    //     tap(() => this.showLists.specific = false),
+    //     filter(value => {
+    //       const mainTopic = this.testForm.get('main_topic')?.value;
+    //       const subTopic = this.testForm.get('sub_topic')?.value;
+    //       return value && value.trim() && mainTopic && mainTopic.trim() && subTopic && subTopic.trim();
+    //     })
+    //   ).subscribe(value => {
+    //     const isValid = this.specificTopics().some(t => t.toLowerCase() === value.toLowerCase());
+    //     console.log("Validando specific: ", isValid);
+    //     // if (!isValid && this.specificTopics().length > 0) {
+    //     //   const suggestions = this.findSimilarTopics(value, this.specificTopics());
+    //     //   this.topicSuggestions.update(s => ({ ...s, specific_topics: suggestions }));
+    //     // }
+    //   }) || new Subscription()
+    // );
+
+
+
+
+  loadMainTopics() {
+    this.isLoading.update(state => ({ ...state, main: true }));
+    this.topicsService.getMainTopics().subscribe({
+      next: (topics) => {
+        this.mainTopics.set(topics);
+        this.isLoading.update(state => ({ ...state, main: false }));
+      },
+      error: (err) => {
+        console.error('Error al cargar temas principales:', err);
+        this.isLoading.update(state => ({ ...state, main: false }));
+      }
+    });
+  }
+
+  loadSubTopics(mainTopic: string) {
+    this.isLoading.update(state => ({ ...state, sub: true }));
+    this.topicsService.getSubtopics(mainTopic).subscribe({
+      next: (topics) => {
+        this.subTopics.set(topics);
+        this.isLoading.update(state => ({ ...state, sub: false }));
+      },
+      error: (err) => {
+        console.error('Error al cargar subtemas:', err);
+        this.subTopics.set([]);
+        this.isLoading.update(state => ({ ...state, sub: false }));
+      }
+    });
+  }
+
+  loadSpecificTopics(mainTopic: string, subTopic: string) {
+    this.isLoading.update(state => ({ ...state, specific: true }));
+    this.topicsService.getSpecificTopics(mainTopic, subTopic).subscribe({
+      next: (topics) => {
+        this.specificTopics.set(topics);
+        this.isLoading.update(state => ({ ...state, specific: false }));
+      },
+      error: (err) => {
+        console.error('Error al cargar temas específicos:', err);
+        this.specificTopics.set([]);
+        this.isLoading.update(state => ({ ...state, specific: false }));
+      }
+    });
+  }
+
+  onMainTopicSelect(topic: string) {
+    this.testForm.get('main_topic')?.setValue(topic, { emitEvent: true });
+    this.showLists.main = false;
+  }
+
+  onSubTopicSelect(topic: string) {
+    this.testForm.get('sub_topic')?.setValue(topic, { emitEvent: true });
+    this.showLists.sub = false;
+  }
+
+  onSpecificTopicSelect(topic: string) {
+    this.testForm.get('specific_topic')?.setValue(topic, { emitEvent: true });
+    this.showLists.specific = false;
   }
 
   loadTest() {
@@ -95,12 +321,12 @@ export class TestEditComponent implements OnInit {
   }
 
   populateForm(test: Test) {
-    // Limpiar el formulario
+    // Limpiar formulario
     while (this.questions.length !== 0) {
       this.questions.removeAt(0);
     }
 
-    // Establecer valores principales
+    // Establecer valores
     this.testForm.patchValue({
       title: test.title || '',
       description: test.description || '',
@@ -110,6 +336,23 @@ export class TestEditComponent implements OnInit {
       level: test.level || '',
       is_active: test.is_active !== undefined ? test.is_active : true      
     });
+
+    // Cargar datos relacionados
+    if (test.main_topic) {
+      setTimeout(() => {
+        if (this.mainTopics().some(t => t.toLowerCase() === test.main_topic.toLowerCase())) {
+          this.loadSubTopics(test.main_topic);
+        }
+      }, 100);
+    }
+
+    if (test.sub_topic) {
+      setTimeout(() => {
+        if (this.subTopics().some(t => t.toLowerCase() === test.sub_topic.toLowerCase())) {
+          this.loadSpecificTopics(test.main_topic, test.sub_topic);
+        }
+      }, 500);
+    }
 
     // Cargar preguntas
     if (test.questions && test.questions.length > 0) {
@@ -138,7 +381,6 @@ export class TestEditComponent implements OnInit {
         }));
       });
     } else {
-      // Agregar respuestas por defecto (primera correcta)
       for (let i = 0; i < 4; i++) {
         answersArray.push(this.fb.group({
           id: [null],
@@ -181,23 +423,19 @@ export class TestEditComponent implements OnInit {
     }));
   }
 
-  // NUEVO MÉTODO: Manejar cambio de respuesta correcta (selección única)
   onCorrectAnswerChange(questionIndex: number, answerIndex: number): void {
     const answersArray = this.questions.at(questionIndex).get('answers') as FormArray;
     
-    // Desmarcar todas las respuestas de esta pregunta
     answersArray.controls.forEach((answerControl, index) => {
       answerControl.get('is_correct')?.setValue(index === answerIndex);
     });
   }
 
-  // NUEVO MÉTODO: Verificar si una pregunta tiene respuesta correcta
   hasCorrectAnswer(questionIndex: number): boolean {
     const answersArray = this.questions.at(questionIndex).get('answers') as FormArray;
     return answersArray.controls.some(answerControl => answerControl.get('is_correct')?.value);
   }
 
-  // NUEVO MÉTODO: Verificar que todas las preguntas tengan respuesta correcta
   allQuestionsHaveCorrectAnswer(): boolean {
     return this.questions.controls.every((_, index) => this.hasCorrectAnswer(index));
   }
@@ -208,7 +446,6 @@ export class TestEditComponent implements OnInit {
       return false;
     }
     
-    // Validar jerarquía de temas
     const mainTopic = this.testForm.get('main_topic')?.value;
     const subTopic = this.testForm.get('sub_topic')?.value;
     const specificTopic = this.testForm.get('specific_topic')?.value;
@@ -218,32 +455,37 @@ export class TestEditComponent implements OnInit {
       return false;
     }
     
-    // Validar preguntas
+    const validation = this.validationState();
+    const hasInvalidTopics = !validation.main.isValid || !validation.sub.isValid || !validation.specific.isValid;
+    
+    if (hasInvalidTopics) {
+      this.showTopicWarning();
+      return true;
+    }
+    
+    return this.validateQuestions();
+  }
+
+  validateQuestions(): boolean {
     const questions = this.questions.value;
     if (questions.length === 0) {
       this.showError('Debe haber al menos una pregunta en el test.');
       return false;
     }
     
-    // Validar cada pregunta
     for (let i = 0; i < questions.length; i++) {
       const question = questions[i];
       
-      // Validar que haya una respuesta correcta (selección única)
-      const hasCorrectAnswer = question.answers.some((answer: any) => answer.is_correct);
-      
-      if (!hasCorrectAnswer) {
+      if (!question.answers.some((a: any) => a.is_correct)) {
         this.showError(`La pregunta "${question.question_text}" debe tener una respuesta correcta seleccionada.`);
         return false;
       }
       
-      // Validar que haya al menos 2 respuestas por pregunta
       if (question.answers.length < 2) {
         this.showError(`La pregunta "${question.question_text}" debe tener al menos dos respuestas.`);
         return false;
       }
       
-      // Validar que no haya respuestas duplicadas
       const answerTexts = question.answers.map((a: any) => a.answer_text.toLowerCase().trim());
       const uniqueAnswers = new Set(answerTexts);
       if (uniqueAnswers.size !== answerTexts.length) {
@@ -253,6 +495,58 @@ export class TestEditComponent implements OnInit {
     }
     
     return true;
+  }
+
+  showTopicWarning() {
+    const warnings: string[] = [];
+    const validation = this.validationState();
+    
+    if (!validation.main.isValid) warnings.push('Tema principal');
+    if (!validation.sub.isValid) warnings.push('Subtema');
+    if (!validation.specific.isValid) warnings.push('Tema específico');
+    
+    this.invalidTopics.set(warnings);
+    this.showTopicWarningModal.set(true);
+  }
+
+  onTopicWarningConfirm(proceed: boolean) {
+    this.showTopicWarningModal.set(false);
+    if (proceed) {
+      this.submitForm();
+    }
+  }
+
+  submit() {
+    if (!this.validateForm()) return;
+    
+    const validation = this.validationState();
+    const hasInvalidTopics = !validation.main.isValid || !validation.sub.isValid || !validation.specific.isValid;
+    
+    if (hasInvalidTopics) {
+      // Ya se mostró la advertencia en validateForm()
+    } else {
+      this.submitForm();
+    }
+  }
+
+  submitForm() {
+    this.saving.set(true);
+    
+    const formData = this.prepareFormData();
+    
+    this.testsManagementService.updateTest(this.testId, formData).subscribe({
+      next: (res: any) => {
+        console.log('Test editado con éxito:', res);
+        this.saving.set(false);
+        this.showSuccessModal.set(true);
+      },
+      error: (err) => {
+        console.error('Error al editar test:', err);
+        this.saving.set(false);
+        this.errorMessage.set(this.getErrorMessage(err));
+        this.showErrorModal.set(true);
+      }
+    });
   }
 
   private markFormGroupTouched(formGroup: FormGroup | FormArray) {
@@ -265,37 +559,9 @@ export class TestEditComponent implements OnInit {
     });
   }
 
-  submit() {
-    if (!this.validateForm()) return;
-
-    this.saving.set(true);
-    
-    // Preparar datos para enviar
-    const formData = this.prepareFormData();
-    
-    this.testsManagementService.updateTest(this.testId, formData).subscribe({
-      next: (res: any) => {
-        console.log('Test editado con éxito:', res);
-        this.saving.set(false);
-        
-        // Mostrar modal de éxito
-        this.showSuccessModal.set(true);
-      },
-      error: (err) => {
-        console.error('Error al editar test:', err);
-        this.saving.set(false);
-        
-        // Mostrar modal de error
-        this.errorMessage.set(this.getErrorMessage(err));
-        this.showErrorModal.set(true);
-      }
-    });
-  }
-
   private prepareFormData(): any {
     const formValue = this.testForm.value;
     
-    // Filtrar preguntas y respuestas con datos válidos
     const filteredQuestions = formValue.questions
       .filter((q: any) => q.question_text.trim())
       .map((question: any) => ({
@@ -309,7 +575,7 @@ export class TestEditComponent implements OnInit {
             is_correct: answer.is_correct
           }))
       }))
-      .filter((q: any) => q.answers.length >= 2); // Solo preguntas con al menos 2 respuestas
+      .filter((q: any) => q.answers.length >= 2);
 
     return {
       title: formValue.title.trim(),
@@ -323,7 +589,6 @@ export class TestEditComponent implements OnInit {
     };
   }
 
-  // Método para obtener mensaje de error legible
   private getErrorMessage(err: any): string {
     if (err.error?.error) {
       return err.error.error;
@@ -348,19 +613,16 @@ export class TestEditComponent implements OnInit {
     return 'Error desconocido al actualizar el test.';
   }
 
-  // Método para mostrar error sin modal
   private showError(message: string) {
     this.errorMessage.set(message);
     this.showErrorModal.set(true);
   }
 
-  // Manejar confirmación del modal de éxito
   onSuccessModalConfirm() {
     this.showSuccessModal.set(false);
     this.router.navigate(['/admin/tests']);
   }
 
-  // Manejar confirmación del modal de error
   onErrorModalConfirm() {
     this.showErrorModal.set(false);
   }
