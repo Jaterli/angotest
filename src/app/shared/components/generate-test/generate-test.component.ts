@@ -1,25 +1,10 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  signal,
-  inject
-} from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators
-} from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { debounceTime, distinctUntilChanged, switchMap, Subject } from 'rxjs';
-
 import { AITestService } from '../../services/generate-test.service';
-import {
-  GenerateTestRequest,
-  UserQuota
-} from '../../models/generate-test.model';
+import { TopicsService } from '../../../shared/services/topics.service';
+import { GenerateTestRequest, UserQuota } from '../../models/generate-test.model';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -28,7 +13,7 @@ import { AuthService } from '../../services/auth.service';
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './generate-test.component.html'
 })
-export class GenerateTestComponent implements OnInit, OnDestroy {
+export class GenerateTestComponent implements OnInit {
 
   /* ----------------------------- FORM ----------------------------- */
 
@@ -37,20 +22,21 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
   /* ---------------------------- SIGNALS ---------------------------- */
 
   loading = signal(false);
-
-  topicsLoading = signal(false);
-  subTopicsLoading = signal(false);
-  specificTopicsLoading = signal(false);
-  quotaLoading = signal(false);
-
   error = signal<string | null>(null);
-
   quota = signal<UserQuota | null>(null);
-  testId = signal<number | null>(null);
 
+  // Temas predefinidos
   mainTopics = signal<string[]>([]);
   subTopics = signal<string[]>([]);
   specificTopics = signal<string[]>([]);
+
+  // Estados de carga
+  isLoading = signal({
+    main: false,
+    sub: false,
+    specific: false,
+    quota: false
+  });
 
   /* ------------------------- UI CONSTANTS -------------------------- */
 
@@ -68,24 +54,22 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
 
   /* ---------------------------- RXJS ------------------------------- */
 
-  private mainTopicChange$ = new Subject<string>();
-  private subTopicChange$ = new Subject<string>();
-  private checkInterval?: number;
   private authService = inject(AuthService);
-  userRole = this.authService.getUserRole()
+  userRole = this.authService.getUserRole();
 
   /* --------------------------- CONSTRUCTOR ------------------------- */
 
   constructor(
     private fb: FormBuilder,
     private aiTestService: AITestService,
+    private topicsService: TopicsService,
     private router: Router
   ) {
     this.generateForm = this.fb.group({
-      generation_mode: ['structured'], // admin only
-      main_topic: [''],
-      sub_topic: [''],
-      specific_topic: [''],
+      generation_mode: ['structured'],
+      main_topic: ['', Validators.required],
+      sub_topic: ['', Validators.required],
+      specific_topic: ['', Validators.required],
       level: ['Principiante', Validators.required],
       num_questions: [10, [Validators.required, Validators.min(10), Validators.max(50)]],
       num_answers: [3, [Validators.required, Validators.min(3), Validators.max(4)]],
@@ -100,94 +84,42 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
     this.initUserRole();
     this.loadUserQuota();
     this.loadMainTopics();
-    this.initFormLogic();
-    this.initDebouncedRequests();
-  }
-
-  ngOnDestroy(): void {
-    this.mainTopicChange$.complete();
-    this.subTopicChange$.complete();
-    if (this.checkInterval) {
-      clearInterval(this.checkInterval);
-    }
+    this.setupFormLogic();
   }
 
   /* ----------------------------- INIT ------------------------------ */
 
   private initUserRole(): void {
-
     if (this.userRole !== 'admin') {
       this.generateForm.get('generation_mode')?.setValue('structured');
+      // Para usuarios no admin, deshabilitar modo prompt
+      this.generateForm.get('generation_mode')?.disable();
     }
 
     this.updateValidators(this.generateForm.value.generation_mode);
   }
 
-  private initFormLogic(): void {
+  private setupFormLogic(): void {
     this.generateForm.get('generation_mode')?.valueChanges.subscribe(mode => {
       this.updateValidators(mode);
     });
 
-    this.generateForm.get('main_topic')?.valueChanges.subscribe(topic => {
-      if (!topic) {
+    this.generateForm.get('main_topic')?.valueChanges.subscribe(mainTopic => {
+      if (mainTopic) {
+        this.loadSubTopics(mainTopic);
+      } else {
         this.resetSubTopics();
-        return;
       }
-      this.mainTopicChange$.next(topic);
     });
 
-    this.generateForm.get('sub_topic')?.valueChanges.subscribe(sub => {
-      if (!sub) {
+    this.generateForm.get('sub_topic')?.valueChanges.subscribe(subTopic => {
+      const mainTopic = this.generateForm.get('main_topic')?.value;
+      if (mainTopic && subTopic) {
+        this.loadSpecificTopics(mainTopic, subTopic);
+      } else {
         this.resetSpecificTopics();
-        return;
       }
-      this.subTopicChange$.next(sub);
     });
-  }
-
-  private initDebouncedRequests(): void {
-    this.mainTopicChange$
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        switchMap(topic => {
-          this.subTopicsLoading.set(true);
-          this.resetSubTopics();
-          return this.aiTestService.getSubTopics(topic);
-        })
-      )
-      .subscribe({
-        next: res => {
-          this.subTopics.set(res.sub_topics || []);
-          this.subTopicsLoading.set(false);
-        },
-        error: () => {
-          this.subTopics.set([]);
-          this.subTopicsLoading.set(false);
-        }
-      });
-
-    this.subTopicChange$
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        switchMap(sub => {
-          const main = this.generateForm.get('main_topic')?.value;
-          this.specificTopicsLoading.set(true);
-          this.resetSpecificTopics();
-          return this.aiTestService.getSpecificTopics(main, sub);
-        })
-      )
-      .subscribe({
-        next: res => {
-          this.specificTopics.set(res.specific_topics || []);
-          this.specificTopicsLoading.set(false);
-        },
-        error: () => {
-          this.specificTopics.set([]);
-          this.specificTopicsLoading.set(false);
-        }
-      });
   }
 
   /* -------------------------- VALIDATION ---------------------------- */
@@ -203,11 +135,30 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
       sub?.setValidators(Validators.required);
       specific?.setValidators(Validators.required);
       prompt?.clearValidators();
+      
+      // Habilitar selects de temas
+      main?.enable();
+      sub?.enable();
+      specific?.enable();
+      prompt?.disable();
     } else {
       main?.clearValidators();
       sub?.clearValidators();
       specific?.clearValidators();
       prompt?.setValidators([Validators.required, Validators.minLength(10)]);
+      
+      // Deshabilitar selects de temas
+      main?.disable();
+      sub?.disable();
+      specific?.disable();
+      prompt?.enable();
+      
+      // Resetear valores
+      this.generateForm.patchValue({
+        main_topic: '',
+        sub_topic: '',
+        specific_topic: ''
+      });
     }
 
     [main, sub, specific, prompt].forEach(c => c?.updateValueAndValidity());
@@ -216,37 +167,93 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
   /* ---------------------------- LOADERS ----------------------------- */
 
   private loadMainTopics(): void {
-    this.topicsLoading.set(true);
-    this.aiTestService.getMainTopics().subscribe({
-      next: res => {
-        this.mainTopics.set(res.main_topics || []);
-        this.topicsLoading.set(false);
+    this.isLoading.update(state => ({ ...state, main: true }));
+    this.topicsService.getMainTopics().subscribe({
+      next: (topics) => {
+        this.mainTopics.set(topics);
+        this.isLoading.update(state => ({ ...state, main: false }));
       },
-      error: () => {
-        this.mainTopics.set([
+      error: (err) => {
+        console.error('Error al cargar temas principales:', err);
+        // Fallback a temas predefinidos
+        const fallbackTopics = [
           'Ciencias de la Computación',
           'Matemáticas',
           'Historia',
           'Ciencias Naturales',
           'Literatura',
-          'Idiomas',
+          'Idiomas (Inglés)',
+          'Idiomas (Francés)',
+          'Derecho',
           'Economía',
-          'Cultura General'
-        ]);
-        this.topicsLoading.set(false);
+          'Cultura General',
+          'Deportes'
+        ];
+        this.mainTopics.set(fallbackTopics);
+        this.isLoading.update(state => ({ ...state, main: false }));
+      }
+    });
+  }
+
+  private loadSubTopics(mainTopic: string) {
+    this.isLoading.update(state => ({ ...state, sub: true }));
+    this.topicsService.getSubtopics(mainTopic).subscribe({
+      next: (topics) => {
+        this.subTopics.set(topics);
+        this.isLoading.update(state => ({ ...state, sub: false }));
+        
+        // Resetear subtema y tema específico
+        this.generateForm.patchValue({
+          sub_topic: '',
+          specific_topic: ''
+        });
+        this.specificTopics.set([]);
+      },
+      error: (err) => {
+        console.error('Error al cargar subtemas:', err);
+        this.subTopics.set([]);
+        this.specificTopics.set([]);
+        this.generateForm.patchValue({
+          sub_topic: '',
+          specific_topic: ''
+        });
+        this.isLoading.update(state => ({ ...state, sub: false }));
+      }
+    });
+  }
+
+  private loadSpecificTopics(mainTopic: string, subTopic: string) {
+    this.isLoading.update(state => ({ ...state, specific: true }));
+    this.topicsService.getSpecificTopics(mainTopic, subTopic).subscribe({
+      next: (topics) => {
+        this.specificTopics.set(topics);
+        this.isLoading.update(state => ({ ...state, specific: false }));
+        
+        // Resetear tema específico
+        this.generateForm.patchValue({
+          specific_topic: topics.length > 0 ? topics[0] : ''
+        });
+      },
+      error: (err) => {
+        console.error('Error al cargar temas específicos:', err);
+        this.specificTopics.set([]);
+        this.generateForm.patchValue({
+          specific_topic: ''
+        });
+        this.isLoading.update(state => ({ ...state, specific: false }));
       }
     });
   }
 
   private loadUserQuota(): void {
-    this.quotaLoading.set(true);
+    this.isLoading.update(state => ({ ...state, quota: true }));
     this.aiTestService.getUserQuota().subscribe({
       next: quota => {
         this.quota.set(quota);
-        this.quotaLoading.set(false);
+        this.isLoading.update(state => ({ ...state, quota: false }));
       },
       error: () => {
-        this.quotaLoading.set(false);
+        this.isLoading.update(state => ({ ...state, quota: false }));
       }
     });
   }
@@ -265,7 +272,9 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const payload: GenerateTestRequest = { ...this.generateForm.value };
+    const payload: GenerateTestRequest = { 
+      ...this.generateForm.getRawValue() 
+    };
 
     if (this.userRole !== 'admin') {
       delete payload.generation_mode;
@@ -286,17 +295,14 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
         this.loading.set(false);
 
         if (res.status === 'completed') {
-          clearInterval(this.checkInterval);
-          
           if (this.userRole != 'admin') {
             this.router.navigate(['/tests', res.generated_test_id, 'start-single']);
           } else {
-            this.router.navigate(['/tests']);
+            this.router.navigate(['/admin/tests']);
           }
         }
 
         if (res.status === 'failed') {
-          clearInterval(this.checkInterval);
           this.error.set(res.error_message || 'Error al generar el test');
         }
         
@@ -309,10 +315,8 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
   }
 
   cancelGeneration(): void {
-    if (this.checkInterval) {
-      clearInterval(this.checkInterval);
-    }
-    this.testId.set(null);
+    this.error.set(null);
+    this.loading.set(false);
   }
 
   /* ---------------------------- HELPERS ----------------------------- */
@@ -320,11 +324,40 @@ export class GenerateTestComponent implements OnInit, OnDestroy {
   private resetSubTopics(): void {
     this.subTopics.set([]);
     this.specificTopics.set([]);
-    this.generateForm.patchValue({ sub_topic: '', specific_topic: '' });
+    this.generateForm.patchValue({ 
+      sub_topic: '', 
+      specific_topic: '' 
+    });
   }
 
   private resetSpecificTopics(): void {
     this.specificTopics.set([]);
-    this.generateForm.patchValue({ specific_topic: '' });
+    this.generateForm.patchValue({ 
+      specific_topic: '' 
+    });
+  }
+
+  resetForm(): void {
+    if (confirm('Se perderán todos los datos ingresados. ¿Estás seguro?')) {
+      this.generateForm.reset({
+        generation_mode: 'structured',
+        main_topic: '',
+        sub_topic: '',
+        specific_topic: '',
+        level: 'Principiante',
+        num_questions: 10,
+        num_answers: 3,
+        language: 'es',
+        ai_prompt: ''
+      });
+      this.subTopics.set([]);
+      this.specificTopics.set([]);
+      this.error.set(null);
+      
+      // Re-habilitar controles según el modo
+      if (this.userRole === 'admin') {
+        this.generateForm.get('generation_mode')?.enable();
+      }
+    }
   }
 }
