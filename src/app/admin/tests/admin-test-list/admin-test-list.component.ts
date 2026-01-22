@@ -56,6 +56,7 @@ export class AdminTestListComponent implements OnInit {
     { value: 'sub_topic', label: 'Subtema' },
     { value: 'created_at', label: 'Fecha de creación' },
     { value: 'updated_at', label: 'Fecha de actualización' },
+    { value: 'created_by', label: 'Creador' },    
     { value: 'level', label: 'Nivel' },
   ];
 

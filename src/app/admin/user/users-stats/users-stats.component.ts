@@ -267,7 +267,7 @@ export class UsersStatsComponent implements OnInit {
         console.error('Error al eliminar usuario:', err);
         this.deleting.set(false);
         this.showDeleteModal.set(false);
-        this.errorMessage.set(err.error?.message || 'Error al eliminar el usuario');
+        this.errorMessage.set(err.error?.error || 'Error al eliminar el usuario');
         this.showErrorModal.set(true);
       }
     });
