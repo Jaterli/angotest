@@ -8,7 +8,7 @@ export interface User {
   address?: string;
   country?: string;
   birth_date?: string; // o Date
-  role?: string;
+  role: string;
   created_at: string; // o Date
   login_at?: string; // o Date
 }
@@ -26,10 +26,10 @@ export interface RegisterData {
   role?: string;
 }
 
-export interface AuthResponse {
-  token: string;
-  user: User;
-}
+// export interface AuthResponse {
+//   token: string;
+//   user: User;
+// }
 
 export interface UserUpdateData {
   first_name: string;

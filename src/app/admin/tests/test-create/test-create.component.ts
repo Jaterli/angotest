@@ -415,7 +415,7 @@ export class TestCreateComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     
     // Obtener usuario autenticado
-    const currentUser = this.authService.getUser();
+    const currentUser = this.authService.currentUser();
     if (!currentUser) {
       this.errorMessage.set('Usuario no autenticado');
       this.showErrorModal.set(true);

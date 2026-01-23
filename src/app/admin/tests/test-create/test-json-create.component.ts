@@ -156,7 +156,7 @@ export class TestJsonCreateComponent {
     this.loading.set(true);
     
     // Obtener el ID del usuario autenticado
-    const currentUser = this.authService.getUser();
+    const currentUser = this.authService.currentUser();
     if (!currentUser) {
       this.errorMessage.set('Usuario no autenticado. Por favor, inicia sesión nuevamente.');
       this.showErrorModal.set(true);
@@ -199,7 +199,7 @@ export class TestJsonCreateComponent {
           is_correct: answer.is_correct || false
         }))
       })),
-      created_by: this.authService.getUser()?.id
+      created_by: this.authService.currentUser()?.id
     };
   }
 

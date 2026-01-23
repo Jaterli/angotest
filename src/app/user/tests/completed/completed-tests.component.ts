@@ -72,7 +72,7 @@ export class CompletedTestsComponent implements OnInit {
   }
 
   loadCurrentUser(): void {
-    const currentUser = this.authService.getUser();
+    const currentUser = this.authService.currentUser();
     if (currentUser) {
       this.currentUser = currentUser;
     }

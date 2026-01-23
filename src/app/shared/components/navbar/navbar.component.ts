@@ -57,7 +57,6 @@ export class NavbarComponent {
     return 'Usuario';
   }
 
-
   toggleMobileMenu(): void {
     this.showMobileMenu.update(value => !value);
     this.showUserDropdown.set(false);    
@@ -69,11 +68,12 @@ export class NavbarComponent {
 
   // Exponer señales y propiedades para template
   get isLoggedIn() {
-    return this.authService.isLoggedIn();
+    if (this.authService.currentUser()) { return true }
+    return false;
   }
 
   get currentUser() {
-    return this.authService.getUser();
+    return this.authService.currentUser();
   }
 
   get userEmail() {
@@ -102,21 +102,14 @@ export class NavbarComponent {
   }
 
   // Métodos para verificar roles específicos
-  isAdmin(): boolean {
-    return this.authService.isAdmin();
-  }
 
-  isUser(): boolean {
-    return this.userRole === 'user' || this.userRole === 'usuario';
-  }
-
-  // Helper para menús específicos
+    // Helper para menús específicos
   shouldShowAdminMenu(): boolean {
-    return this.isLoggedIn && this.isAdmin();
+    return this.isLoggedIn && this.currentUser?.role == 'admin';
   }
 
   shouldShowUserMenu(): boolean {
-    return this.isLoggedIn && this.isUser();
+    return this.isLoggedIn && this.currentUser?.role != 'admin';
   }
 
   logout() {

@@ -55,7 +55,7 @@ export class GenerateTestComponent implements OnInit {
   /* ---------------------------- RXJS ------------------------------- */
 
   private authService = inject(AuthService);
-  userRole = this.authService.getUserRole();
+  userRole = this.authService.currentUser()?.role;
 
   /* --------------------------- CONSTRUCTOR ------------------------- */
 
