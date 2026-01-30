@@ -167,7 +167,7 @@
           >
             <option value="">Todos los roles</option>
             @for (role of availableFilters().roles; track role) {
-              <option [value]="role">{{ role === 'admin' ? 'Administrador' : 'Usuario' }}</option>
+              <option [value]="role">{{ role === 'user' ? 'Usuario' : role === 'guest' ? 'Invitado' : 'Administrador' }}</option>
             }
           </select>
         </div>
@@ -354,7 +354,7 @@
             }
             @if (selectedFilters().user_role && selectedFilters().user_role !== 'all') {
               <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300">
-                Rol: {{ selectedFilters().user_role === 'admin' ? 'Administrador' : 'Usuario' }}
+                Rol: {{ selectedFilters().user_role === 'user' ? 'Usuario': selectedFilters().user_role === 'guest' ? 'Invitado' : 'Administrador' }}
                 <button 
                   (click)="removeFilter('user_role')"
                   class="ml-1.5 text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200"
@@ -538,8 +538,9 @@
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
                       <div>
-                        <span class="flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium {{ result.user_role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300' : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300' }}">
-                          {{ result.user_role !== 'admin' ? 'U' : 'A' }}
+                        <span class="flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium"                         
+                          [class]="getRoleBadgeClass(result.user_role)">                         
+                          {{ result.user_role[0].toUpperCase() }}
                         </span>
                       </div>
                     </div>

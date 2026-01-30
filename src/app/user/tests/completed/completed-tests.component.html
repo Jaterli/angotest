@@ -450,6 +450,18 @@
                 </svg>
                 Realizar de nuevo
               </a>
+
+              <!-- Botón de Invitación - NUEVO -->
+              <button 
+                (click)="openInviteModal(data)"
+                class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors flex-1"
+              >
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                </svg>
+                Invitar a hacer
+              </button>
+
             </div>
             
           </div>
@@ -512,7 +524,7 @@
 <!-- Modal para revisar respuestas incorrectas -->
 <app-modal 
   [isOpen]="showReviewModal()"
-  [title]="selectedResult ? 'Respuestas Incorrectas - ' + selectedResult.t_title : 'Respuestas Incorrectas'"
+  [title]="selectedResult ? 'Respuestas Incorrectas - ' + selectedResult.test_title : 'Respuestas Incorrectas'"
   size="lg"
   confirmText="Cerrar"
   (confirm)="closeReviewModal()"
@@ -648,4 +660,22 @@
       </div>
     }
   </div>
+</app-modal>
+
+
+<!-- Modal para crear invitación (usando @if) -->
+<app-modal 
+  [isOpen]="showInviteModal()"
+  [title]="selectedTestForInvitation ? 'Invitar a hacer ' + selectedTestForInvitation.test_title : 'Invitar a hacer test'"
+  size="md"
+  confirmText="Cerrar"
+  (confirm)="closeInviteModal()"
+  [showCancelButton]="false"
+  [customContent]="true"
+>
+  @if (selectedTestForInvitation) {
+    <app-invitation-create 
+      [testId]="selectedTestForInvitation.test_id"
+    ></app-invitation-create>
+  }
 </app-modal>

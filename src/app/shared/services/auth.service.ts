@@ -1,181 +1,233 @@
-import { Injectable, Inject, signal, computed } from '@angular/core';
+import {
+  Injectable,
+  Inject,
+  signal,
+  computed,
+  PLATFORM_ID,
+  effect
+} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
-import { PLATFORM_ID } from '@angular/core';
-import { Observable, tap, firstValueFrom, map } from 'rxjs';
+import {
+  Observable,
+  tap,
+  shareReplay,
+  of,
+  catchError,
+  firstValueFrom,
+  map
+} from 'rxjs';
 import { User, RegisterData } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly API_URL = 'http://localhost:8080/api/auth';
-  private readonly USER_KEY = 'angotest_user';
 
-  // Signals
-  private userSignal = signal<User| null>(null);
+  /* ---------------- Signals ---------------- */
+  private userSignal = signal<User | null>(null);
   currentUser = computed(() => this.userSignal());
+
+  /* ---------------- Cache ---------------- */
+  private userCache: User | null = null;
+  private lastFetchTime = 0;
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 min
+
+  /* ---------------- Loading ---------------- */
+  private loadingSignal = signal<boolean>(false);
+  loading = computed(() => this.loadingSignal());
+
+  /* ---------------- HTTP cache ---------------- */
+  private userRequest$: Observable<{
+    authenticated: boolean;
+    user?: User;
+  }> | null = null;
 
   constructor(
     private http: HttpClient,
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
-    // Solo inicializar usuario desde localStorage
     if (this.isBrowser()) {
-      const storedUser = this.readFromStorage<User>(this.USER_KEY);
-      this.userSignal.set(storedUser);
-      
-      // Verificar autenticación con el backend
-      this.checkAuthStatus();
+      effect(() => {
+        if (this.userSignal() === null) {
+          void this.checkAuthStatus();
+        }
+      });
     }
   }
 
-  // --- Métodos privados ---
+  /* ---------------- Utils ---------------- */
   private isBrowser(): boolean {
     return isPlatformBrowser(this.platformId);
   }
 
-  private readFromStorage<T>(key: string): T | null {
-    if (!this.isBrowser()) return null;
-    
-    try {
-      const item = localStorage.getItem(key);
-      if (!item) return null;
-      
-      return JSON.parse(item) as T;
-    } catch {
-      console.error(`Error reading "${key}" from localStorage`);
-      return null;
-    }
-  }
-
-  private writeToStorage(key: string, value: any): void {
-    if (!this.isBrowser()) return;
-
-    try {
-      if (value === null) {
-        localStorage.removeItem(key);
-      } else {
-        localStorage.setItem(key, JSON.stringify(value));
-      }
-    } catch (error) {
-      console.error('Error writing to localStorage:', error);
-    }
-  }
-
+  /* ---------------- Auth bootstrap ---------------- */
   private async checkAuthStatus(): Promise<void> {
     if (!this.isBrowser()) return;
-    
+
     try {
-      const response = await firstValueFrom(
-        this.http.get<{ authenticated: boolean; user?: User }>(
-          `${this.API_URL}/check-auth`,
-          { withCredentials: true } // IMPORTANTE: envía cookies automáticamente
-        )
-      );
-      
+      const response = await firstValueFrom(this.getCachedAuthCheck());
+
       if (response.authenticated && response.user) {
-        this.userSignal.set(response.user);
-        this.writeToStorage(this.USER_KEY, response.user);
+        this.setUser(response.user);
       } else {
-        // Limpiar si no está autenticado
-        this.userSignal.set(null);
-        this.writeToStorage(this.USER_KEY, null);
+        this.clearUser();
       }
     } catch (error: any) {
       console.error('Error checking auth status:', error);
-      
-      // Si hay error 401 o similar, limpiar estado
-      if (error.status === 401 || error.status === 403) {
-        this.userSignal.set(null);
-        this.writeToStorage(this.USER_KEY, null);
+
+      if (error?.status === 401 || error?.status === 403) {
+        this.clearUser();
       }
     }
   }
 
-  // --- API pública ---
-  login(email: string, password: string): Observable<{ user: User; message: string }> {
-    return this.http.post<{ user: User; message: string }>(
-      `${this.API_URL}/login`, 
-      { email, password },
-      { withCredentials: true } // IMPORTANTE: envía/recibe cookies
-    ).pipe(
-      tap(response => {
-        this.userSignal.set(response.user);
-        this.writeToStorage(this.USER_KEY, response.user);
-      })
-    );
+  /* ---------------- Cached auth check ---------------- */
+  private getCachedAuthCheck(): Observable<{
+    authenticated: boolean;
+    user?: User;
+  }> {
+    const now = Date.now();
+
+    if (
+      this.userCache &&
+      now - this.lastFetchTime < this.CACHE_TTL
+    ) {
+      return of({ authenticated: true, user: this.userCache });
+    }
+
+    if (this.userRequest$) {
+      return this.userRequest$;
+    }
+
+    this.loadingSignal.set(true);
+
+    this.userRequest$ = this.http
+      .get<{ authenticated: boolean; user?: User }>(
+        `${this.API_URL}/check-auth`,
+        { withCredentials: true }
+      )
+      .pipe(
+        tap(response => {
+          if (response.authenticated && response.user) {
+            this.setUser(response.user);
+          } else {
+            this.clearUser();
+          }
+
+          this.loadingSignal.set(false);
+          this.userRequest$ = null;
+        }),
+        catchError(error => {
+          this.loadingSignal.set(false);
+          this.userRequest$ = null;
+          this.clearUser();
+          throw error;
+        }),
+        shareReplay(1)
+      );
+
+    return this.userRequest$;
+  }
+
+  /* ---------------- Cache helpers ---------------- */
+  private setUser(user: User): void {
+    this.userSignal.set(user);
+    this.userCache = user;
+    this.lastFetchTime = Date.now();
+  }
+
+  private clearUser(): void {
+    this.userSignal.set(null);
+    this.userCache = null;
+    this.lastFetchTime = 0;
+  }
+
+  private invalidateCache(): void {
+    this.clearUser();
+    this.userRequest$ = null;
+  }
+
+  /* ---------------- Public API ---------------- */
+  login(
+    email: string,
+    password: string
+  ): Observable<{ user: User; message: string }> {
+    return this.http
+      .post<{ user: User; message: string }>(
+        `${this.API_URL}/login`,
+        { email, password },
+        { withCredentials: true }
+      )
+      .pipe(
+        tap(res => this.setUser(res.user))
+      );
   }
 
   register(userData: RegisterData): Observable<any> {
     return this.http.post(
-      `${this.API_URL}/register`, 
+      `${this.API_URL}/register`,
       userData
     );
   }
 
   logout(redirect = true): void {
-    // Llamar al backend para limpiar la cookie
+    this.invalidateCache();
+
     if (this.isBrowser()) {
-      this.http.post(
-        `${this.API_URL}/logout`, 
-        {},
-        { withCredentials: true }
-      ).subscribe({
-        next: () => {
-          console.log('Sesión cerrada en el backend');
-        },
-        error: (err) => {
-          console.error('Error cerrando sesión en backend:', err);
-        }
-      });
+      void firstValueFrom(
+        this.http.post(
+          `${this.API_URL}/logout`,
+          {},
+          { withCredentials: true }
+        )
+      ).catch(err =>
+        console.error('Error cerrando sesión:', err)
+      );
     }
-    
-    // Limpiar estado local
-    this.writeToStorage(this.USER_KEY, null);
-    this.userSignal.set(null);
-    
+
     if (redirect) {
-      this.router.navigate(['/login'], { 
+      this.router.navigate(['/login'], {
         queryParams: { message: 'Sesión cerrada exitosamente' }
       });
     }
   }
 
-  // Verificar autenticación (útil para guards)
   verifyAuth(): Observable<{ authenticated: boolean; user?: User }> {
-    return this.http.get<{ authenticated: boolean; user?: User }>(
-      `${this.API_URL}/check-auth`,
-      { withCredentials: true }
-    );
+    return this.getCachedAuthCheck();
   }
 
-  // --- Métodos de conveniencia (compatibilidad) ---
-  // getUser(): User | null {
-  //   return this.userSignal();
-  // }
+  get CurrentUser(): Observable<User | null> {
+    if (!this.userSignal() && this.isBrowser()) {
+      return this.verifyAuth().pipe(map(res => res.user ?? null));
+    }
+    return of(this.userSignal());
+  }
 
-  // getUserRole(): string | null {
-  //   return this.userSignal()?.role || null;
-  // }
+  refreshAuth(): Observable<{
+    authenticated: boolean;
+    user?: User;
+  }> {
+    this.invalidateCache();
+    this.loadingSignal.set(true);
 
-  // isAdmin(): boolean {
-  //   return this.getUserRole() === 'admin';
-  // }
-
-  // // Para forzar una verificación de autenticación
-  // refreshAuthStatus(): Promise<boolean> {
-  //   return firstValueFrom(
-  //     this.verifyAuth().pipe(
-  //       tap(response => {
-  //         this.isAuthSignal.set(response.authenticated);
-  //         if (response.authenticated && response.user) {
-  //           this.userSignal.set(response.user);
-  //           this.writeToStorage(this.USER_KEY, response.user);
-  //         }
-  //       }),
-  //       map(response => response.authenticated)
-  //     )
-  //   );
-  // }
+    return this.http
+      .get<{ authenticated: boolean; user?: User }>(
+        `${this.API_URL}/check-auth`,
+        { withCredentials: true }
+      )
+      .pipe(
+        tap(res => {
+          res.authenticated && res.user
+            ? this.setUser(res.user)
+            : this.clearUser();
+          this.loadingSignal.set(false);
+        }),
+        catchError(err => {
+          this.loadingSignal.set(false);
+          throw err;
+        })
+      );
+  }
 }

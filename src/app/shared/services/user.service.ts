@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { ChangePasswordData, UserUpdateData } from '../models/user.model';
+import { UpdateEmailPassword, UserUpdateData } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 
@@ -22,9 +22,14 @@ export class UserService {
     return this.http.put(`${this.apiUrl}/update`, userData);
   }
 
-  // Cambiar contraseña
-  changePassword(passwordData: ChangePasswordData): Observable<any> {
-    return this.http.put(`${this.apiUrl}/change-password`, passwordData);
+  // Actualiza credenciales de acceso
+  updateEmailPassword(data: UpdateEmailPassword): Observable<any> {
+    return this.http.post(`${this.apiUrl}/update-email-password`, data);
+  }
+
+  // Actualiza perfil de guest
+  updateGuestProfile(data: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/update-guest-profile`, data);
   }
 
 }

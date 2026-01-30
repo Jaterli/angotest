@@ -32,6 +32,8 @@ export interface RegisterData {
 // }
 
 export interface UserUpdateData {
+  username: string;
+  email: string;
   first_name: string;
   last_name: string;
   phone: string;
@@ -40,7 +42,8 @@ export interface UserUpdateData {
   birth_date: string;
 }
 
-export interface ChangePasswordData {
+export interface UpdateEmailPassword {
   current_password: string;
-  new_password: string;
+  new_email?: string;
+  new_password?: string;
 }

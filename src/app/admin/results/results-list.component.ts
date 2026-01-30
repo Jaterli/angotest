@@ -40,7 +40,7 @@ export class ResultsListComponent implements OnInit {
     main_topics: [],
     levels: [],
     statuses: [],
-    roles: ['user', 'admin']
+    roles: ['user', 'guest', 'admin']
   });
   
  
@@ -391,6 +391,10 @@ export class ResultsListComponent implements OnInit {
   }
 
   // Métodos de utilidad
+  getRoleBadgeClass(role: string): string {
+    return this.sharedUtilsService.getSharedRoleBadgeClass(role);
+  }
+
   getLevelBadgeClass(level: string): string {
     return this.sharedUtilsService.getSharedLevelBadgeClass(level);
   }

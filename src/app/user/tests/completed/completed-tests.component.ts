@@ -9,11 +9,13 @@ import { SharedUtilsService } from '../../../shared/services/shared-utils.servic
 import { CompletedTestResponse, CompletedTestsStats, CompletedTestsFilter } from '../../../shared/models/test.model';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { ResultService } from '../../../shared/services/result.service';
+import { InvitationCreateComponent } from '../../../shared/components/invitation/invitation-create.component';
+import { InvitationService } from '../../../shared/services/invitation.service';
 
 @Component({
   selector: 'app-completed-tests',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ModalComponent],
+  imports: [CommonModule, RouterModule, FormsModule, ModalComponent, InvitationCreateComponent ],
   templateUrl: './completed-tests.component.html',
 })
 export class CompletedTestsComponent implements OnInit {
@@ -21,6 +23,7 @@ export class CompletedTestsComponent implements OnInit {
   private authService = inject(AuthService);
   private resultService = inject(ResultService);
   private sharedUtilsService = inject(SharedUtilsService);
+  private invitationService = inject(InvitationService);
 
   // Tests y estado
   completedTestsData = signal<CompletedTestResponse[]>([]);
@@ -62,6 +65,10 @@ export class CompletedTestsComponent implements OnInit {
   reviewSummary = signal<any>(null);
   showCorrectAnswer = false;
   
+
+  showInviteModal = signal(false);
+  selectedTestForInvitation: any = null;
+
   // Memoria de filtros (localStorage)
   private readonly FILTER_STORAGE_KEY = 'completed_tests_filters';
   
@@ -169,6 +176,18 @@ export class CompletedTestsComponent implements OnInit {
     this.incorrectQuestions.set([]);
     this.reviewSummary.set(null);
     this.reviewError.set('');
+  }
+
+  // Método para abrir modal de invitación
+  openInviteModal(testData: any): void {
+    this.selectedTestForInvitation = testData;
+    this.showInviteModal.set(true);
+  }
+
+  // Método para cerrar modal de invitación
+  closeInviteModal(): void {
+    this.showInviteModal.set(false);
+    this.selectedTestForInvitation = null;
   }
 
   // Resto de métodos permanecen igual...

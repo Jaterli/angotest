@@ -6,6 +6,7 @@ import { Test, ResumeTestResponse, QuestionWithAnswers, NextQuestionResponse, Sa
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
 import { Observable, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';
+import { AuthService } from '../../../shared/services/auth.service';
 
 
 @Component({
@@ -16,6 +17,7 @@ import { Observable, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs
 })
 export class TestSingleComponent implements OnInit, OnDestroy {
   private testService = inject(TestService);
+  private authService = inject(AuthService);
   private sharedUtilsService = inject(SharedUtilsService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -36,6 +38,7 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   showErrorModal = signal(false);
   showSuccessModal = signal(false);
   showConfirmExitModal = signal(false);
+  showGuestReminderModal = signal(false); // Para usuarios invitados
   
   // Datos para modales
   errorMessage = signal<string>('');
@@ -54,6 +57,9 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   // Para manejar navegación forzosa (abandonar test)
   isExiting = false;
 
+  // Si el usuario proviene de una invitación
+  isGuest = signal(false);  
+
   ngOnInit(): void {
     this.route.params.subscribe(params => {
       const testId = +params['id'];
@@ -65,6 +71,16 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     
     // Prevenir navegación accidental
     this.setupNavigationProtection();
+
+    // Verificar si es usuario invitado
+    this.checkIfGuest();
+  }
+
+
+  // Método para verificar si es usuario invitado
+  checkIfGuest(): void {
+    const currentUser = this.authService.currentUser();
+    this.isGuest.set(currentUser?.role === 'guest');
   }
 
   ngOnDestroy(): void {
@@ -115,8 +131,7 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   }
 
   loadTest(testId: number): void {    
-    console.log("loadTest id: ", testId);
-    
+
     this.testService.getTestProgress(testId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -244,6 +259,22 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   }
 
   // Métodos del template
+  
+
+  completeProfile(): void {
+    // Cerrar cualquier modal abierto
+    this.showGuestReminderModal.set(false);
+    this.showSuccessModal.set(false);
+    
+    // Navegar al perfil con parámetros
+    this.router.navigate(['/user/profile'], {
+      queryParams: { 
+        message: 'Completa tu información para guardar tu progreso permanentemente',
+        isGuest: 'true' 
+      }
+    });
+  }
+
   isQuestionAnswered(questionId: number): boolean {
     return this.selectedAnswers[questionId.toString()] !== undefined;
   }
@@ -348,7 +379,12 @@ export class TestSingleComponent implements OnInit, OnDestroy {
           this.removeNavigationProtection();
           this.isContentProtected.set(false);
           
-          this.showSuccessModal.set(true);
+          // Si es usuario invitado, mostrar recordatorio de completar perfil
+          if (this.isGuest()) {
+            this.showGuestReminderModal.set(true);
+          } else {
+            this.showSuccessModal.set(true);
+          }
         },
         error: (err: any) => {
           console.error('Error al completar test:', err);
@@ -360,6 +396,19 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     this.showSuccessModal.set(false);
     this.isResuming = false;
   }
+
+  // Método para navegar a resultados (para usuarios no invitados)
+  goToResults(): void {
+    this.showSuccessModal.set(false);
+    this.router.navigate(['/tests/completed']);
+  }
+
+  // Método para cerrar el recordatorio de invitado
+  dismissGuestReminder(): void {
+    this.showGuestReminderModal.set(false);
+    this.router.navigate(['/dashboard']);
+  }
+
 
   getTimeElapsed(): string {
     if (!this.startTime) return '0:00';

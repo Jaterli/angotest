@@ -1,0 +1,225 @@
+<div
+  class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800
+         flex items-center justify-center p-4"
+>
+  <div class="max-w-md w-full">
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="text-center">
+        <div
+          class="w-12 h-12 border-4 border-blue-500 border-t-transparent
+                 rounded-full animate-spin mx-auto"
+        ></div>
+        <p class="mt-4 text-gray-600 dark:text-gray-400">
+          Verificando invitación...
+        </p>
+      </div>
+    }
+
+    <!-- Error -->
+    @else if (error()) {
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center">
+        <div class="w-16 h-16 text-red-500 dark:text-red-400 mx-auto mb-4">
+          <svg fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          Invitación no válida
+        </h3>
+
+        <p class="text-gray-600 dark:text-gray-400 mb-6">
+          {{ error() }}
+        </p>
+
+        <button
+          (click)="router.navigate(['/auth/login'])"
+          class="px-6 py-2 bg-blue-600 hover:bg-blue-700
+                 text-white font-medium rounded-lg transition-colors"
+        >
+          Ir al Login
+        </button>
+      </div>
+    }
+
+    <!-- Invitación válida -->
+    @else if (response(); as r) {
+
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+
+        <!-- Header -->
+        @if (r.result?.status === 'completed') { 
+        <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 p-6 text-center">
+            <h1 class="text-2xl font-bold text-white mb-2">¡Ya completaste este test!</h1>
+            <p class="text-emerald-100">
+            {{ isAuthenticated() && currentUser()!.role === 'guest' ? 'Completa tu perfil para ver tus resultados' : 'Accede a la aplicación para ver tus resultados' }}
+            </p>
+        </div>
+        } @else if (r.result?.status === 'in_progress') {
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-center">
+            <h1 class="text-2xl font-bold text-white mb-2">¡Tienes un test en progreso!</h1>
+            <p class="text-blue-100">Continúa donde lo dejaste</p>
+        </div>      
+        } @else {
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-center">
+            <h1 class="text-2xl font-bold text-white mb-2">¡Has sido invitado!</h1>
+            <p class="text-blue-100">Te invitan a realizar un test</p>
+        </div>
+        }            
+
+        <div class="p-6">
+
+          <!-- Info del test -->
+          <app-invitation-test-info [response]="r"></app-invitation-test-info>
+
+          <!-- Mensaje informativo -->
+          @if (r.message) {
+            <div
+              class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20
+                     border border-blue-200 dark:border-blue-800 rounded-lg"
+            >
+              <p class="text-sm text-blue-700 dark:text-blue-400">
+                {{ r.message }}
+              </p>
+            </div>
+          }
+
+        <button
+            (click)="handleAction2()"
+            class="w-full mb-4 p-4 text-left
+                    bg-gradient-to-r from-blue-500 to-blue-600
+                    hover:from-blue-600 hover:to-blue-700
+                    text-white font-semibold rounded-lg
+                    transition-all shadow-md hover:shadow-lg"
+        >
+            <div class="flex items-center justify-between">
+                <div>
+                
+                @if (isAuthenticated()){
+
+                    @if (r.result?.status == 'in_progress') {
+                        @if (currentUser()!.id != r.invitation.guest_user_id) {
+                            <h3 class="font-bold mb-1">Reanudar test</h3>
+                            @if (r.invitation.guest_user_id) {
+                                <p class="text-sm text-white/90">Transferir resultados a @{{ currentUser()?.username }} y reanudar el test</p>
+                            } @else {
+                                <p class="text-sm text-white/90">Reanudar test con mi usuario @{{ currentUser()?.username }}</p>
+                            }                            
+                        } @else if (currentUser()!.id == r.invitation.guest_user_id) {
+                            <h3 class="font-bold mb-1">Reanudar test</h3> 
+                            <p class="text-sm text-white/90">Usar mi usuario @{{ currentUser()?.username }}</p>
+                        } 
+                    } @else if (r.result?.status == 'completed') {                            
+                        @if (currentUser()!.id != r.invitation.guest_user_id) {
+                            @if (r.invitation.is_guest) {
+                                <h3 class="font-bold mb-1">Completaste el test como invitado</h3>
+                            } @else {
+                                <h3 class="font-bold mb-1">Completaste el test con otro usuario</h3>
+                            }
+                            <p class="text-sm text-white/90">Transferir los resultados a mi usuario @{{ currentUser()!.username }}</p>
+                        } @else if (currentUser()!.id == r.invitation.guest_user_id) {
+                            <h3 class="font-bold mb-1">Ver resultados</h3>
+                            <p class="text-sm text-white/90">Click aquí para continuar</p>
+                        } 
+                    } @else {
+                        @if (currentUser()!.id != r.invitation.guest_user_id) {
+                            <h3 class="font-bold mb-1">Iniciar test</h3>
+                            <p class="text-sm text-white/90">Acceder con mi usuario @{{ currentUser()!.username }}</p>
+                        }
+                    }
+
+                } @else {            
+                    @if (r.result?.status == 'in_progress') {
+                        @if (r.invitation.guest_user_id && !r.invitation.is_guest) {
+                            <h3 class="font-bold mb-1">Reanudar test</h3>                                
+                            <p class="text-sm text-white/90">Inicia sesión con tu cuenta para reanudar el test</p>
+                        } @else if (r.invitation.guest_user_id && r.invitation.is_guest) {
+                            <h3 class="font-bold mb-1">Reanudar test</h3> 
+                            <p class="text-sm text-white/90">Reanudar como Invitado</p>
+                        } 
+                    } @else if (r.result?.status == 'completed') {                            
+                        @if (r.invitation.guest_user_id && !r.invitation.is_guest) {
+                            <h3 class="font-bold mb-1">Completaste el test</h3>                                
+                            <p class="text-sm text-white/90">Inicia sesión con tu cuenta para ver los resultados del test</p>
+                        } @else if (r.invitation.guest_user_id && r.invitation.is_guest) {
+                            <h3 class="font-bold mb-1">Completaste el test como invitado</h3> 
+                            <p class="text-sm text-white/90">Ver resultados del test. Después podrás completar tu perfil.</p>
+                        } 
+                    } @else {
+                        <h3 class="font-bold mb-1">Iniciar test</h3>
+                        <p class="text-sm text-white/90">Click aquí para iniciar el test como invitado</p>
+                    }
+                }
+
+                </div>
+                <svg
+                    class="w-5 h-5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                >
+                    <path
+                    fill-rule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10
+                        7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clip-rule="evenodd"
+                    />
+                </svg>
+            </div>
+        </button>
+
+          <!-- Login / Registro -->
+          @if (!isAuthenticated()) {
+            <div class="flex gap-2 mb-4">
+              <button
+                (click)="router.navigate(['/auth/login'], {
+                  queryParams: { returnUrl: router.url }
+                })"
+                class="flex-1 py-3 bg-white dark:bg-gray-800
+                       border border-gray-300 dark:border-gray-600
+                       text-gray-700 dark:text-gray-300 rounded-lg"
+              >
+                Iniciar Sesión
+              </button>
+
+              <button
+                (click)="router.navigate(['/register'], {
+                  queryParams: { returnUrl: router.url }
+                })"
+                class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700
+                       text-white rounded-lg"
+              >
+                Registrarse
+              </button>
+            </div>
+          }
+
+          <!-- Info extra -->
+          <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+              <span>Invitación válida hasta:</span>
+              <span class="font-medium">
+                {{ getExpirationDate() | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Modal de carga -->
+<app-modal
+  [isOpen]="showLoadingModal()"
+  title="Procesando..."
+  message="Estamos preparando todo para ti. Por favor, espera un momento."
+  icon="info"
+  [showCancelButton]="false"
+></app-modal>

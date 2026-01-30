@@ -1,6 +1,6 @@
 <app-modal
   [isOpen]="isOpen"
-  [title]="selectedResult()?.title || 'Detalles del Resultado'"
+  [title]="resultDetails()?.test.title || 'Detalles del Resultado'"
   [showCancelButton]="false"
   confirmText="Cerrar"
   (confirm)="closeModal()"

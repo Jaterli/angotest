@@ -76,14 +76,13 @@ export class NavbarComponent {
     return this.authService.currentUser();
   }
 
-  get userEmail() {
-    return this.currentUser?.email;
+  get userName() {
+    return this.currentUser?.username;
   }
 
   get userRole() {
     return this.currentUser?.role;
   }
-
 
   getHomeRoute(): string {
     if (!this.isLoggedIn) {
@@ -109,7 +108,7 @@ export class NavbarComponent {
   }
 
   shouldShowUserMenu(): boolean {
-    return this.isLoggedIn && this.currentUser?.role != 'admin';
+    return this.isLoggedIn && this.currentUser?.role == 'user';
   }
 
   logout() {

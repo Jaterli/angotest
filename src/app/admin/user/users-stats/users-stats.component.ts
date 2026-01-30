@@ -236,6 +236,10 @@ export class UsersStatsComponent implements OnInit {
     return this.sharedUtilsService.sharedFormatDateTime(dateString);
   }
 
+  getRoleBadgeClass(role: string): string {
+    return this.sharedUtilsService.getSharedRoleBadgeClass(role);
+  }
+
   getScoreBadgeClass(score: number): string {
     return this.sharedUtilsService.getSharedScoreBadgeClass(score);
   }

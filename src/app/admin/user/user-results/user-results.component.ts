@@ -240,25 +240,7 @@ export class UserResultsComponent implements OnInit {
   }
 
   getPageNumbers(): number[] {
-    const total = this.totalPages();
-    const current = this.currentPage();
-    const pages: number[] = [];
-    
-    if (total <= 5) {
-      for (let i = 1; i <= total; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (current <= 3) {
-        pages.push(1, 2, 3, 4, 5);
-      } else if (current >= total - 2) {
-        pages.push(total - 4, total - 3, total - 2, total - 1, total);
-      } else {
-        pages.push(current - 2, current - 1, current, current + 1, current + 2);
-      }
-    }
-    
-    return pages;
+    return this.sharedUtilsService.getSharedPageNumbers(this.totalPages(), this.currentPage());
   }
 
   // Método para mostrar detalles usando el servicio
@@ -274,15 +256,11 @@ export class UserResultsComponent implements OnInit {
   }
 
   formatDate(dateString: string): string {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return this.sharedUtilsService.sharedFormatDateTime(dateString);
+  }
+
+  getRoleBadgeClass(role: string): string {
+    return this.sharedUtilsService.getSharedRoleBadgeClass(role);
   }
 
   getScoreColor(score: number): string {

@@ -270,16 +270,28 @@
   </div>
 }
 
-<!-- Modal de éxito -->
+<!-- Modal de éxito para usuarios regulares -->
 <app-modal 
   [isOpen]="showSuccessModal()"
   title="¡Test Completado!"
-  [message]="'Has completado el test con un puntaje del ' + score() + '%. Tiempo empleado: ' +formatTime(timeTaken()) + '.'"
+  [message]="'Has completado el test con un puntaje del ' + score() + '%. Tiempo empleado: ' + formatTime(timeTaken()) + '.'"
   icon="success"
   confirmText="Ver Resultados"
   cancelText="Volver a Tests"
-  (confirm)="onSuccessModalConfirm()"
+  (confirm)="goToResults()"
   (cancel)="goToTests()">
+</app-modal>
+
+<!-- Modal para recordatorio a usuarios invitados -->
+<app-modal 
+  [isOpen]="showGuestReminderModal()"
+  title="¡Test Completado!"
+  [message]="'Has completado el test con un puntaje del ' + score() + '%. Tiempo empleado: ' + formatTime(timeTaken()) + '. Como usuario invitado, te recomendamos completar tu perfil para guardar permanentemente tus resultados y poder acceder a más funcionalidades.'"
+  icon="info"
+  confirmText="Completar Mi Perfil"
+  cancelText="Más Tarde"
+  (confirm)="completeProfile()"
+  (cancel)="dismissGuestReminder()">
 </app-modal>
 
 <!-- Modal de error -->

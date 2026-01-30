@@ -38,7 +38,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         console.log('Acceso denegado: permisos insuficientes');
         
         // Redirigir a página de acceso denegado o dashboard
-        router.navigate(['/dashboard'], {
+        router.navigate(['/forbidden'], {
           queryParams: { error: 'Acceso denegado' }
         });
       }

@@ -1,7 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -10,10 +10,11 @@ import { AuthService } from '../../services/auth.service';
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './login.component.html',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -22,6 +23,27 @@ export class LoginComponent {
 
   loading = signal(false);
   error = signal<string | null>(null);
+  returnUrl: string | null = null;
+  message = signal<string | null>(null); // Nueva señal para el mensaje
+
+  ngOnInit() {
+    // Obtener los parámetros de la query string
+    this.route.queryParamMap.subscribe(params => {
+      this.returnUrl = params.get('returnUrl');
+      const messageParam = params.get('message');
+      
+      // Si existe el parámetro message, asignarlo a la señal
+      if (messageParam) {
+        this.message.set(messageParam);
+      }
+    });
+
+    // Cerrar sesión si se accede a /login
+    if (!!this.auth.currentUser()) {
+      this.auth.logout();
+    }
+    console.log("Auth: ", !!this.auth.currentUser());
+  }
 
   submit() {
     // Marcar todos los controles como touched
@@ -40,6 +62,15 @@ export class LoginComponent {
       next: (response) => {
         console.log('Login exitoso');
         this.loading.set(false);
+        
+        // Si hay returnUrl, redirigir allí
+        if (this.returnUrl) {
+          console.log('Redirigiendo a returnUrl:', this.returnUrl);
+          this.router.navigateByUrl(this.returnUrl);
+          return;
+        }
+        
+        // Si no hay returnUrl, continuar con la lógica original
         if (response.user.role !== 'admin') {
           this.router.navigate(['/tests/not-started']);
           return;
@@ -55,6 +86,11 @@ export class LoginComponent {
         console.log('Login observable completado');
       }
     });
+  }
+
+  // Método para limpiar el mensaje (opcional, para cerrar el mensaje manualmente)
+  clearMessage() {
+    this.message.set(null);
   }
 
   // Getters para template

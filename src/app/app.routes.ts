@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './guards/auth.guard';
+import { authGuard, strictAuthGuard } from './guards/auth.guard';
 import { adminGuard } from './guards/admin.guard';
 
 export const APP_ROUTES: Routes = [
@@ -20,20 +20,25 @@ export const APP_ROUTES: Routes = [
   { path: 'admin/results', loadComponent: () => import('./admin/results/results-list.component').then(m => m.ResultsListComponent), canActivate: [authGuard, adminGuard] },
   { path: 'admin/dashboard', loadComponent: () => import('./admin/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent), canActivate: [authGuard, adminGuard] },
 
+  // Ruta para configuración del sistema
+  { path: 'admin/system-config', loadComponent: () => import('./admin/system-config/system-config.component').then(m => m.SystemConfigComponent), canActivate: [authGuard, adminGuard] },
+
   // Rutas de usuario
   { path: 'tests/:id/start-single', loadComponent: () => import('./user/tests/test-single/test-single.component').then(m => m.TestSingleComponent), canActivate: [authGuard] },
   { path: 'tests/not-started', loadComponent: () => import('./user/tests/no-started/not-started-tests.component').then(m => m.NotStartedTestsComponent), canActivate: [authGuard] },
   { path: 'tests/completed', loadComponent: () => import('./user/tests/completed/completed-tests.component').then(m => m.CompletedTestsComponent), canActivate: [authGuard] },
   { path: 'tests/in-progress', loadComponent: () => import('./user/tests/in-progress/in-progress-tests.component').then(m => m.InProgressTestsComponent), canActivate: [authGuard] },  
-  { path: 'user/profile', loadComponent: () => import('./user/profile/profile.component').then(m => m.ProfileComponent), canActivate: [authGuard] },
+  { path: 'user/profile', loadComponent: () => import('./user/profile/profile.component').then(m => m.ProfileComponent), canActivate: [strictAuthGuard] }, // strictAuthGuard: Fuerza refresco para datos sensibles
 
   // Rutas para dashboard de usuario
   { path: 'dashboard', loadComponent: () => import('./user/dashboard/dashboard.component').then (m => m.DashboardComponent), canActivate: [authGuard]},
   // Ruta para generación de tests con IA
   { path: 'generate-test', loadComponent: () => import('./shared/components/generate-test/generate-test.component').then(m => m.GenerateTestComponent), canActivate: [authGuard] },
   
-  // Ruta para configuración del sistema
-  { path: 'admin/system-config', loadComponent: () => import('./admin/system-config/system-config.component').then(m => m.SystemConfigComponent), canActivate: [authGuard, adminGuard] },
+  { path: 'invitation/accept', loadComponent: () => import('./shared/components/invitation/invitation-accept.component').then(m => m.InvitationAcceptComponent) },
+
+  { path: 'forbidden', loadComponent: () => import('./shared/components/forbidden/forbidden.component').then(m => m.ForbiddenComponent), canActivate: [authGuard] },
+
 
   { path: '**', redirectTo: 'login' }
 ];
