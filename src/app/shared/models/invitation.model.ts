@@ -3,7 +3,7 @@ export interface TestInvitation {
   id: number;
   test_id: number;
   invited_by: number;
-  email: string;
+  message?: string;
   token: string;
   is_used: boolean;
   is_guest: boolean;
@@ -17,7 +17,7 @@ export interface TestInvitation {
 
 export interface CreateInvitationInput {
   test_id: number;
-  email: string;
+  message: string;
 }
 
 export interface CheckInvitationResponse {
@@ -48,6 +48,7 @@ export interface AcceptInvitationResponse {
   user_id: number;
   is_guest: boolean;
   transferred_from_guest?: boolean;
+  auto_authenticated?: boolean;
   message: string;
 }
 

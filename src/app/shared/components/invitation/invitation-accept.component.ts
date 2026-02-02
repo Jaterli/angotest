@@ -62,14 +62,14 @@ export class InvitationAcceptComponent implements OnInit {
         this.response.set(response);
 
         // Auto-resume si corresponde
-        if (
-          response.result_status === 'in_progress' &&
-          response.current_user_id === response.invitation.guest_user_id
-        ) {
+        // if (
+        //   response.result_status === 'in_progress' &&
+        //   response.current_user_id === response.invitation.guest_user_id
+        // ) {
 
-          this.navigateToTest(response.test.id);
-          return;
-        }
+        //   this.navigateToTest(response.test.id);
+        //   return;
+        // }
 
         this.loading.set(false);
       },
@@ -81,7 +81,7 @@ export class InvitationAcceptComponent implements OnInit {
 
 
 
-  async handleAction2() {
+  async handleAction() {
 
     const r = this.response();
     if (!r) return;
@@ -93,33 +93,68 @@ export class InvitationAcceptComponent implements OnInit {
 
         if (r.result?.status == 'in_progress') {
             if (this.currentUser()!.id != r.invitation.guest_user_id) {
-                if (r.invitation.guest_user_id) {
+                if (r.invitation.guest_user_id && r.invitation.is_guest) {
+                  // Reanudar test con el usuario autenticado
                   await this.acceptInvitation(false);
                   return;
-                  } else {
-                    this.navigateToTest(r.test.id);
-                    return;
-                  }                            
-              }else if (this.currentUser()!.id == r.invitation.guest_user_id) {
-                   this.navigateToTest(r.test.id);
-                   return;
-              } 
-          } else if (r.result?.status == 'completed') {                            
-              if (this.currentUser()!.id != r.invitation.guest_user_id) {
-                  await this.acceptInvitation(false);
+                } else if (r.invitation.guest_user_id && !r.invitation.is_guest) {
+                  // Test iniciado con otro usuario. Redireccionar a login
+                  this.redirectToLogin('Inicia sesión con tu usuario para reanudar el test');
+                  return;                            
+                } else {
+                  this.navigateToTest(r.test.id);
                   return;
-              } else if (this.currentUser()!.id == r.invitation.guest_user_id) {
-                  this.handleViewResults();
-                  return;
-              } 
-          } else {
-              if (this.currentUser()!.id != r.invitation.guest_user_id) {
-                  await this.acceptInvitation(false);
-                  return;
+                }                            
+            }else if (this.currentUser()!.id == r.invitation.guest_user_id) {
+              if (this.currentUser()!.role == 'user' && r.invitation.is_guest) {
+                 await this.acceptInvitation(false); 
+                 return;                
               }
-          }
+              this.navigateToTest(r.test.id);
+              return;
+            } 
 
-      } else {            
+        } else if (r.result?.status == 'completed') {         
+          
+          if (this.currentUser()!.id != r.invitation.guest_user_id) {
+              if (this.currentUser()!.role == 'user' && r.invitation.is_guest && r.invitation.guest_user_id) {
+                // Test completado como invitado. Transferir resultados a usuario autenticado como "user"
+                await this.acceptInvitation(false);
+                return;
+              
+              } else if (this.currentUser()!.role == 'guest' && r.invitation.is_guest && r.invitation.guest_user_id) {
+                // Test completado como invitado. Transferir resultados a usuario autenticado como "guest"
+                await this.acceptInvitation(false);
+                return;                 
+
+              } else if (!r.invitation.is_guest && r.invitation.guest_user_id) {
+                // Test completado con otro usuario. Redireccionar a login
+                this.redirectToLogin('Inicia sesión con tu usuario para ver los resultados del test');
+                return;
+
+              } else {
+                // Test completado con el usuario autenticado. Dar opción a completar de nuevo
+                await this.acceptInvitation(false);
+                return;                 
+              }
+          } else if (this.currentUser()!.id == r.invitation.guest_user_id) {
+                this.handleViewResults();
+                return;
+          }
+        } else {
+            if (this.currentUser()!.role == 'user') {
+              // Iniciar test con el usuario autenticado
+              await this.acceptInvitation(false);
+              return;              
+            } else {
+              // Iniciar test como invitado (guest)
+              await this.acceptInvitation(true);
+              return;
+            }
+        }
+
+      } else {         
+        // No autenticado   
           if (r.result?.status == 'in_progress') {
               if (r.invitation.guest_user_id && !r.invitation.is_guest) {
                 this.redirectToLogin('Tienes un test en progreso. Inicia sesión para continuar');
@@ -135,10 +170,12 @@ export class InvitationAcceptComponent implements OnInit {
               } else if (r.invitation.guest_user_id && r.invitation.is_guest) {
                   await this.acceptInvitation(false);
                   // luego redirigir a resultados
+                  // Esto falla porque lleva a la realización de test en vez de únicamente autenticarme con el guest_user_id
                   return;
               } 
           } else {
-            this.navigateToTest(r.test.id);
+            //this.navigateToTest(r.test.id);
+            await this.acceptInvitation(true);
             return;
           }
       }
@@ -150,68 +187,71 @@ export class InvitationAcceptComponent implements OnInit {
   }
 
 
-  async handleAction() {
-    const response = this.response();
-    if (!response) return;
+  // async handleAction() {
+  //   const response = this.response();
+  //   if (!response) return;
 
-    const options = response.options;
+  //   const options = response.options;
 
-    this.showLoadingModal.set(true);
+  //   this.showLoadingModal.set(true);
 
-    try {
-      if (options.can_resume_test) {
-        this.navigateToTest(response.test.id);
-        return;
-      }
+  //   try {
+  //     if (options.can_resume_test) {
+  //       this.navigateToTest(response.test.id);
+  //       return;
+  //     }
 
-      if (options.can_view_results) {
-        this.handleViewResults();
-        return;
-      }
+  //     if (options.can_view_results) {
+  //       this.handleViewResults();
+  //       return;
+  //     }
 
-      if (options.can_login_to_start || options.can_login_to_resume || options.can_login_to_view) {
-        this.redirectToLogin(options);
-        return;
-      }
+  //     if (options.can_login_to_start || options.can_login_to_resume || options.can_login_to_view) {
+  //       this.redirectToLogin(options);
+  //       return;
+  //     }
 
-      if (options.can_start_authenticated || options.can_start_with_authenticated) {
-        await this.acceptInvitation(false);
-        return;
-      }
+  //     if (options.can_start_authenticated || options.can_start_with_authenticated) {
+  //       await this.acceptInvitation(false);
+  //       return;
+  //     }
 
-      if (options.can_start_as_guest && !this.isAuthenticated()) {
-        await this.acceptInvitation(true);
-        return;
-      }
+  //     if (options.can_start_as_guest && !this.isAuthenticated()) {
+  //       await this.acceptInvitation(true);
+  //       return;
+  //     }
 
-    } catch (err: any) {
-      this.error.set(err?.error?.error || 'Error procesando la acción');
-    } finally {
-      this.showLoadingModal.set(false);
-    }
-  }
+  //   } catch (err: any) {
+  //     this.error.set(err?.error?.error || 'Error procesando la acción');
+  //   } finally {
+  //     this.showLoadingModal.set(false);
+  //   }
+  // }
 
   private async acceptInvitation(asGuest: boolean) {
-    const acceptResponse = await firstValueFrom(
-      this.invitationService.acceptInvitation(this.token, asGuest)
-    );
+    try {
+      const acceptResponse = await firstValueFrom(
+        this.invitationService.acceptInvitation(this.token, asGuest)
+      );
 
-    this.navigateToTest(acceptResponse.test_id);
+      if (this.isAuthenticated() && this.response()!.result?.status === 'completed') {
+        this.handleViewResults();
+      } else {
+        this.navigateToTest(acceptResponse.test_id);
+      }
+
+    } catch (error) {
+      console.error('Error aceptando la invitación:', error);
+    }
   }
 
-  private redirectToLogin(options: any) {
-    let message = 'Inicia sesión para comenzar el test.';
 
-    if (options.can_login_to_resume) {
-      message = 'Tienes un test en progreso. Inicia sesión para continuar.';
-    } else if (options.can_login_to_view) {
-      message = 'Test ya completado. Inicia sesión para ver resultados.';
-    }
-
+  private redirectToLogin(message: string) {
+    
     this.router.navigate(['/auth/login'], {
       queryParams: {
         returnUrl: this.router.url,
-        message
+        message 
       }
     });
   }

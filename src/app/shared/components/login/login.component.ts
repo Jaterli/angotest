@@ -42,7 +42,6 @@ export class LoginComponent implements OnInit {
     if (!!this.auth.currentUser()) {
       this.auth.logout();
     }
-    console.log("Auth: ", !!this.auth.currentUser());
   }
 
   submit() {

@@ -78,99 +78,106 @@
           <!-- Info del test -->
           <app-invitation-test-info [response]="r"></app-invitation-test-info>
 
-          <!-- Mensaje informativo -->
-          @if (r.message) {
-            <div
-              class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20
-                     border border-blue-200 dark:border-blue-800 rounded-lg"
-            >
-              <p class="text-sm text-blue-700 dark:text-blue-400">
-                {{ r.message }}
-              </p>
-            </div>
-          }
-
-        <button
-            (click)="handleAction2()"
+          <button
+            (click)="handleAction()"
             class="w-full mb-4 p-4 text-left
                     bg-gradient-to-r from-blue-500 to-blue-600
                     hover:from-blue-600 hover:to-blue-700
                     text-white font-semibold rounded-lg
                     transition-all shadow-md hover:shadow-lg"
-        >
-            <div class="flex items-center justify-between">
-                <div>
-                
-                @if (isAuthenticated()){
+          >
+          <div class="flex items-center justify-between">
+            <div>
+            
+            @if (isAuthenticated()){
 
-                    @if (r.result?.status == 'in_progress') {
-                        @if (currentUser()!.id != r.invitation.guest_user_id) {
-                            <h3 class="font-bold mb-1">Reanudar test</h3>
-                            @if (r.invitation.guest_user_id) {
-                                <p class="text-sm text-white/90">Transferir resultados a @{{ currentUser()?.username }} y reanudar el test</p>
-                            } @else {
-                                <p class="text-sm text-white/90">Reanudar test con mi usuario @{{ currentUser()?.username }}</p>
-                            }                            
-                        } @else if (currentUser()!.id == r.invitation.guest_user_id) {
-                            <h3 class="font-bold mb-1">Reanudar test</h3> 
-                            <p class="text-sm text-white/90">Usar mi usuario @{{ currentUser()?.username }}</p>
-                        } 
-                    } @else if (r.result?.status == 'completed') {                            
-                        @if (currentUser()!.id != r.invitation.guest_user_id) {
-                            @if (r.invitation.is_guest) {
-                                <h3 class="font-bold mb-1">Completaste el test como invitado</h3>
-                            } @else {
-                                <h3 class="font-bold mb-1">Completaste el test con otro usuario</h3>
-                            }
+                @if (r.result?.status == 'in_progress') {
+                    @if (currentUser()!.id != r.invitation.guest_user_id) {
+                        <h3 class="font-bold mb-1">Retomar test</h3>
+                        @if (r.invitation.is_guest && r.invitation.guest_user_id) {
+                            <p class="text-sm text-white/90">Transferir resultados a @{{ currentUser()?.username }} y retomar el test</p>
+                        } @else if (currentUser()!.role == 'guest' && r.invitation.guest_user_id) {
+                            <p class="text-sm text-white/90">Inicia sesión con tu usuario para retomar el test</p>
+                        } @else if (!r.invitation.is_guest && r.invitation.guest_user_id) {
+                            <p class="text-sm text-white/90">Inicia sesión con tu usuario para retomar el test</p>
+                        } @else if (currentUser()!.role == 'guest') {
+                            <p class="text-sm text-white/90">Retomar test como invitado</p>
+                        } @else {
+                            <p class="text-sm text-white/90">Retomar test con mi usuario @{{ currentUser()?.username }}</p>
+                        }                            
+                    } @else if (currentUser()!.id == r.invitation.guest_user_id) {
+                        <h3 class="font-bold mb-1">Retomar test</h3> 
+                        <p class="text-sm text-white/90">Usar mi usuario @{{ currentUser()?.username }}</p>
+                    } 
+                } @else if (r.result?.status == 'completed') {                            
+                    @if (currentUser()!.id != r.invitation.guest_user_id) {
+                        @if (currentUser()!.role == 'user' && r.invitation.is_guest && r.invitation.guest_user_id) {
+                            <h3 class="font-bold mb-1">Completaste el test como invitado</h3>
                             <p class="text-sm text-white/90">Transferir los resultados a mi usuario @{{ currentUser()!.username }}</p>
-                        } @else if (currentUser()!.id == r.invitation.guest_user_id) {
+                        } @else if (currentUser()!.role == 'guest' && r.invitation.is_guest && r.invitation.guest_user_id) {
+                            <h3 class="font-bold mb-1">Ver resultados</h3>
+                            <p class="text-sm text-white/90">Después podrás completar tu perfil</p>                                
+                        } @else if (!r.invitation.is_guest && r.invitation.guest_user_id) {
+                            <h3 class="font-bold mb-1">Completaste el test con otro usuario</h3>
+                            <p class="text-sm text-white/90">Accede con tu cuenta para ver los resultados</p>
+                        } @else {
+                            <h3 class="font-bold mb-1">Ya completaste este test</h3>
+                            <p class="text-sm text-white/90">Volver a realizar el test</p>
+                        }
+                    } @else if (currentUser()!.id == r.invitation.guest_user_id) {
+                        @if (currentUser()!.role != 'guest') {
                             <h3 class="font-bold mb-1">Ver resultados</h3>
                             <p class="text-sm text-white/90">Click aquí para continuar</p>
-                        } 
-                    } @else {
-                        @if (currentUser()!.id != r.invitation.guest_user_id) {
-                            <h3 class="font-bold mb-1">Iniciar test</h3>
-                            <p class="text-sm text-white/90">Acceder con mi usuario @{{ currentUser()!.username }}</p>
+                        } @else {
+                            <h3 class="font-bold mb-1">Ver resultados</h3> 
+                            <p class="text-sm text-white/90">Después podrás completar tu perfil.</p>
                         }
                     }
 
-                } @else {            
-                    @if (r.result?.status == 'in_progress') {
-                        @if (r.invitation.guest_user_id && !r.invitation.is_guest) {
-                            <h3 class="font-bold mb-1">Reanudar test</h3>                                
-                            <p class="text-sm text-white/90">Inicia sesión con tu cuenta para reanudar el test</p>
-                        } @else if (r.invitation.guest_user_id && r.invitation.is_guest) {
-                            <h3 class="font-bold mb-1">Reanudar test</h3> 
-                            <p class="text-sm text-white/90">Reanudar como Invitado</p>
-                        } 
-                    } @else if (r.result?.status == 'completed') {                            
-                        @if (r.invitation.guest_user_id && !r.invitation.is_guest) {
-                            <h3 class="font-bold mb-1">Completaste el test</h3>                                
-                            <p class="text-sm text-white/90">Inicia sesión con tu cuenta para ver los resultados del test</p>
-                        } @else if (r.invitation.guest_user_id && r.invitation.is_guest) {
-                            <h3 class="font-bold mb-1">Completaste el test como invitado</h3> 
-                            <p class="text-sm text-white/90">Ver resultados del test. Después podrás completar tu perfil.</p>
-                        } 
-                    } @else {
+                } @else {
+                    @if (currentUser()!.id != r.invitation.guest_user_id) {
                         <h3 class="font-bold mb-1">Iniciar test</h3>
-                        <p class="text-sm text-white/90">Click aquí para iniciar el test como invitado</p>
+                        <p class="text-sm text-white/90">Acceder con mi usuario @{{ currentUser()!.username }}</p>
                     }
                 }
 
-                </div>
-                <svg
-                    class="w-5 h-5 text-white"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                >
-                    <path
-                    fill-rule="evenodd"
-                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10
-                        7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                    clip-rule="evenodd"
-                    />
-                </svg>
+            } @else {            
+                @if (r.result?.status == 'in_progress') {
+                    @if (r.invitation.guest_user_id && !r.invitation.is_guest) {
+                        <h3 class="font-bold mb-1">Retomar test</h3>                                
+                        <p class="text-sm text-white/90">Inicia sesión con tu cuenta para retomar el test</p>
+                    } @else if (r.invitation.guest_user_id && r.invitation.is_guest) {
+                        <h3 class="font-bold mb-1">Retomar test</h3> 
+                        <p class="text-sm text-white/90">Retomar como Invitado</p>
+                    } 
+                } @else if (r.result?.status == 'completed') {                            
+                    @if (r.invitation.guest_user_id && !r.invitation.is_guest) {
+                        <h3 class="font-bold mb-1">Completaste el test</h3>                                
+                        <p class="text-sm text-white/90">Inicia sesión con tu cuenta para ver los resultados del test</p>
+                    } @else if (r.invitation.guest_user_id && r.invitation.is_guest) {
+                        <h3 class="font-bold mb-1">Ver resultados</h3> 
+                        <p class="text-sm text-white/90">Después podrás completar tu perfil.</p>
+                    } 
+                } @else {
+                    <h3 class="font-bold mb-1">Iniciar test</h3>
+                    <p class="text-sm text-white/90">Click aquí para iniciar el test como invitado</p>
+                }
+            }
+
             </div>
+            <svg
+                class="w-5 h-5 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+            >
+                <path
+                fill-rule="evenodd"
+                d="M7.293 14.707a1 1 0 010-1.414L10.586 10
+                    7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                clip-rule="evenodd"
+                />
+            </svg>
+          </div>
         </button>
 
           <!-- Login / Registro -->
