@@ -362,11 +362,11 @@
               <!-- Progreso destacado -->
               <div class="flex-shrink-0">
                 <div class="text-center">
-                  <div class="text-3xl font-bold {{ getProgressColor(calculateProgress(data)) }}">
-                    {{ calculateProgress(data) }}%
+                  <div class="text-3xl font-bold {{ getProgressColor(calculatePercentage(data.answered_count, data.total_questions)) }}">
+                    {{ calculatePercentage(data.answered_count, data.total_questions) }}%
                   </div>
                   <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {{ getProgressMessage(calculateProgress(data)) }}
+                    {{ getProgressMessage(calculatePercentage(data.answered_count, data.total_questions)) }}
                   </div>
                 </div>
               </div>
@@ -380,8 +380,8 @@
               </div>
               <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
                 <div 
-                  class="h-2.5 rounded-full transition-all duration-300 {{ getProgressBarColor(calculateProgress(data)) }}"
-                  [style.width.%]="calculateProgress(data)">
+                  class="h-2.5 rounded-full transition-all duration-300 {{ getProgressBarColor(calculatePercentage(data.answered_count, data.total_questions)) }}"
+                  [style.width.%]="calculatePercentage(data.answered_count, data.total_questions)">
                 </div>
               </div>
             </div>

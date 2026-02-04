@@ -326,7 +326,11 @@
               <!-- Puntuación -->
               <div class="text-center">
                 <div class="text-2xl font-bold" [class]="getScoreColor(result.score)">
-                  {{ result.score | number:'1.1-1' }}%
+                  @if (result.status == 'completed') {
+                    {{ result.score | number:'1.1-1' }}%
+                  } @else {
+                    N/A
+                  }
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400">Puntuación</div>
               </div>
@@ -334,9 +338,13 @@
               <!-- Respuestas correctas/incorrectas -->
               <div class="text-center">
                 <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  <span class="text-emerald-600 dark:text-emerald-400">{{ result.correct_answers }}</span>
-                  <span class="text-gray-400 mx-1">/</span>
-                  <span class="text-gray-900 dark:text-gray-100">{{ result.total_questions }}</span>
+                  @if (result.status == 'completed') {
+                    <span class="text-emerald-600 dark:text-emerald-400">{{ result.correct_answers }}</span>
+                    <span class="text-gray-400 mx-1">/</span>
+                    <span class="text-gray-900 dark:text-gray-100">{{ result.total_questions }}</span>
+                  } @else {
+                    N/A
+                  }
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400">Correctas/Total</div>
               </div>
@@ -362,12 +370,14 @@
             @if (result.total_questions > 0) {
               <div class="mt-4">
                 <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  <span>Progreso: {{ result.correct_answers + result.wrong_answers }} de {{ result.total_questions }} preguntas</span>
-                  <span>{{ ((result.correct_answers + result.wrong_answers) / result.total_questions * 100) | number:'1.0-0' }}%</span>
+                  <span>Progreso: {{ result.answered_count }} de {{ result.total_questions }} preguntas</span>
+                  <span>{{ calculatePercentage(result.answered_count, result.total_questions) }}%</span>
                 </div>
-                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div class="bg-blue-600 dark:bg-blue-500 h-2 rounded-full" 
-                       [style.width.%]="(result.correct_answers + result.wrong_answers) / result.total_questions * 100">
+
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                  <div 
+                    class="h-2.5 rounded-full transition-all duration-300 {{ getProgressBarColor(calculatePercentage(result.answered_count, result.total_questions)) }}"
+                    [style.width.%]="calculatePercentage(result.answered_count, result.total_questions)">
                   </div>
                 </div>
               </div>

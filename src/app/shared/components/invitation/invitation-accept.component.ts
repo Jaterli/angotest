@@ -99,7 +99,7 @@ export class InvitationAcceptComponent implements OnInit {
                   return;
                 } else if (r.invitation.guest_user_id && !r.invitation.is_guest) {
                   // Test iniciado con otro usuario. Redireccionar a login
-                  this.redirectToLogin('Inicia sesión con tu usuario para reanudar el test');
+                  this.redirectToLogin('Inicia sesión con tu usuario para retomar el test');
                   return;                            
                 } else {
                   this.navigateToTest(r.test.id);
@@ -117,23 +117,13 @@ export class InvitationAcceptComponent implements OnInit {
         } else if (r.result?.status == 'completed') {         
           
           if (this.currentUser()!.id != r.invitation.guest_user_id) {
-              if (this.currentUser()!.role == 'user' && r.invitation.is_guest && r.invitation.guest_user_id) {
-                // Test completado como invitado. Transferir resultados a usuario autenticado como "user"
-                await this.acceptInvitation(false);
-                return;
-              
-              } else if (this.currentUser()!.role == 'guest' && r.invitation.is_guest && r.invitation.guest_user_id) {
-                // Test completado como invitado. Transferir resultados a usuario autenticado como "guest"
-                await this.acceptInvitation(false);
-                return;                 
-
-              } else if (!r.invitation.is_guest && r.invitation.guest_user_id) {
+              if (!r.invitation.is_guest && r.invitation.guest_user_id) {
                 // Test completado con otro usuario. Redireccionar a login
                 this.redirectToLogin('Inicia sesión con tu usuario para ver los resultados del test');
                 return;
 
               } else {
-                // Test completado con el usuario autenticado. Dar opción a completar de nuevo
+                // Test completado con el usuario autenticado.
                 await this.acceptInvitation(false);
                 return;                 
               }
@@ -186,48 +176,6 @@ export class InvitationAcceptComponent implements OnInit {
     }
   }
 
-
-  // async handleAction() {
-  //   const response = this.response();
-  //   if (!response) return;
-
-  //   const options = response.options;
-
-  //   this.showLoadingModal.set(true);
-
-  //   try {
-  //     if (options.can_resume_test) {
-  //       this.navigateToTest(response.test.id);
-  //       return;
-  //     }
-
-  //     if (options.can_view_results) {
-  //       this.handleViewResults();
-  //       return;
-  //     }
-
-  //     if (options.can_login_to_start || options.can_login_to_resume || options.can_login_to_view) {
-  //       this.redirectToLogin(options);
-  //       return;
-  //     }
-
-  //     if (options.can_start_authenticated || options.can_start_with_authenticated) {
-  //       await this.acceptInvitation(false);
-  //       return;
-  //     }
-
-  //     if (options.can_start_as_guest && !this.isAuthenticated()) {
-  //       await this.acceptInvitation(true);
-  //       return;
-  //     }
-
-  //   } catch (err: any) {
-  //     this.error.set(err?.error?.error || 'Error procesando la acción');
-  //   } finally {
-  //     this.showLoadingModal.set(false);
-  //   }
-  // }
-
   private async acceptInvitation(asGuest: boolean) {
     try {
       const acceptResponse = await firstValueFrom(
@@ -248,7 +196,7 @@ export class InvitationAcceptComponent implements OnInit {
 
   private redirectToLogin(message: string) {
     
-    this.router.navigate(['/auth/login'], {
+    this.router.navigate(['/login'], {
       queryParams: {
         returnUrl: this.router.url,
         message 
@@ -275,7 +223,7 @@ export class InvitationAcceptComponent implements OnInit {
       queryParams: {
         from_invitation: true,
         invitation_token: this.token,
-        message: 'Completa tu perfil para ver tus resultados y acceder a todas las funciones'
+        message: 'Completa tu perfil para ver tus resultados y tener acceso al resto de las funciones'
       }
     });
   }

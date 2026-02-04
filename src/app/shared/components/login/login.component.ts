@@ -38,10 +38,6 @@ export class LoginComponent implements OnInit {
       }
     });
 
-    // Cerrar sesión si se accede a /login
-    if (!!this.auth.currentUser()) {
-      this.auth.logout();
-    }
   }
 
   submit() {

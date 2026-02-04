@@ -841,8 +841,8 @@
                 @for (user of dashboardData()!.user_lists.most_active_users; track user.id; let i = $index) {
                   <div class="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                     <div class="flex items-center space-x-4 min-w-0">
-                      <div class="flex-shrink-0 w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
-                        <span class="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                      <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center">
+                        <span class="text-sm font-bold">
                           {{ user.username.charAt(0).toUpperCase() }}
                         </span>
                       </div>

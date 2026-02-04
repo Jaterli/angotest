@@ -41,6 +41,8 @@ export class UserResultsComponent implements OnInit {
   filters = signal<UserResultsFilters>({
     page: 1,
     page_size: 20,
+    level: '',
+    main_topic: '',
     status: 'all',
     sort_by: 'updated_at',
     sort_order: 'desc'
@@ -134,7 +136,7 @@ export class UserResultsComponent implements OnInit {
     this.userResultsService.getUserResults(this.userId()!, this.filters()).subscribe({
       next: (res) => {
         this.resultsData.set(res);
-        this.userResults.set(res.data.results);
+        this.userResults.set(res.data.results);        
         this.loading.set(false);
       },
       error: (error) => {
@@ -257,6 +259,14 @@ export class UserResultsComponent implements OnInit {
 
   formatDate(dateString: string): string {
     return this.sharedUtilsService.sharedFormatDateTime(dateString);
+  }
+
+  calculatePercentage(total_answered: number, total_questions: number): number {
+    return this.sharedUtilsService.sharedCalculatePercentage(total_answered, total_questions);
+  }
+
+  getProgressBarColor(progress: number): string {
+    return this.sharedUtilsService.getSharedProgressBarColor(progress);
   }
 
   getRoleBadgeClass(role: string): string {

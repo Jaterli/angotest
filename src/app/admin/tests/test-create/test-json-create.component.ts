@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../shared/services/auth.service';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { TestsManagementService } from '../../services/tests-management.service';
+import { TopicsViewerComponent } from './topics-viewer.component';
 
 @Component({
   selector: 'app-test-json-create',
@@ -12,7 +13,8 @@ import { TestsManagementService } from '../../services/tests-management.service'
   imports: [
     CommonModule,
     FormsModule,
-    ModalComponent
+    ModalComponent,
+    TopicsViewerComponent
   ],
   templateUrl: './test-json-create.component.html'
 })
@@ -31,6 +33,7 @@ export class TestJsonCreateComponent {
   showConfirmClearModal = signal(false);
   errorMessage = signal('');
   successMessage = signal('');
+  showTopicsModal = signal(false);
 
   // Opciones de nivel predefinidas
   levels = ['Principiante', 'Intermedio', 'Avanzado'];
@@ -340,4 +343,13 @@ export class TestJsonCreateComponent {
   onCancelClear(): void {
     this.showConfirmClearModal.set(false);
   }
+
+  openTopicsModal() {
+    this.showTopicsModal.set(true);
+  }
+
+  closeTopicsModal(): void {
+    this.showTopicsModal.set(false);
+  }  
+
 }

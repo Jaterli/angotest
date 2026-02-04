@@ -124,15 +124,8 @@ export class UserStatsModalComponent implements OnInit, OnDestroy {
     }
   }
 
-  getRoleColor(role: string): string {
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400';
-      case 'user':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400';
-      default:
-        return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400';
-    }
+  getRoleBadgeClass(role: string): string {
+    return this.sharedUtilsService.getSharedRoleBadgeClass(role);
   }
 
   getLevelColor(level: string): string {
@@ -184,8 +177,8 @@ export class UserStatsModalComponent implements OnInit, OnDestroy {
     return this.sharedUtilsService.getSharedScoreColor(score);
   }
 
-  getProgressColor(percentage: number): string {
-    return this.sharedUtilsService.getSharedProgressColor(percentage);
+  getProgressBarColor(percentage: number): string {
+    return this.sharedUtilsService.getSharedProgressBarColor(percentage);
   }
 
   getActivityStatusColor(status: string): string {

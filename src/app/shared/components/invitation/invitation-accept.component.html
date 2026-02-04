@@ -39,7 +39,7 @@
         </p>
 
         <button
-          (click)="router.navigate(['/auth/login'])"
+          (click)="router.navigate(['/login'])"
           class="px-6 py-2 bg-blue-600 hover:bg-blue-700
                  text-white font-medium rounded-lg transition-colors"
         >
@@ -99,7 +99,7 @@
                         } @else if (currentUser()!.role == 'guest' && r.invitation.guest_user_id) {
                             <p class="text-sm text-white/90">Inicia sesión con tu usuario para retomar el test</p>
                         } @else if (!r.invitation.is_guest && r.invitation.guest_user_id) {
-                            <p class="text-sm text-white/90">Inicia sesión con tu usuario para retomar el test</p>
+                            <p class="text-sm text-white/90">Inicia sesión con el usuario con el que empezaste el test para retomarlo</p>
                         } @else if (currentUser()!.role == 'guest') {
                             <p class="text-sm text-white/90">Retomar test como invitado</p>
                         } @else {
@@ -137,7 +137,10 @@
                 } @else {
                     @if (currentUser()!.id != r.invitation.guest_user_id) {
                         <h3 class="font-bold mb-1">Iniciar test</h3>
-                        <p class="text-sm text-white/90">Acceder con mi usuario @{{ currentUser()!.username }}</p>
+                        <p class="text-sm text-white/90">Hacer el test con mi usuario @{{ currentUser()!.username }}</p>
+                    } @else {
+                        <h3 class="font-bold mb-1">Iniciar test</h3>
+                        <p class="text-sm text-white/90">Click aquí para iniciar el test como invitado</p>
                     }
                 }
 
@@ -145,7 +148,7 @@
                 @if (r.result?.status == 'in_progress') {
                     @if (r.invitation.guest_user_id && !r.invitation.is_guest) {
                         <h3 class="font-bold mb-1">Retomar test</h3>                                
-                        <p class="text-sm text-white/90">Inicia sesión con tu cuenta para retomar el test</p>
+                        <p class="text-sm text-white/90">Inicia sesión con tu usuario para retomar el test</p>
                     } @else if (r.invitation.guest_user_id && r.invitation.is_guest) {
                         <h3 class="font-bold mb-1">Retomar test</h3> 
                         <p class="text-sm text-white/90">Retomar como Invitado</p>
@@ -153,7 +156,7 @@
                 } @else if (r.result?.status == 'completed') {                            
                     @if (r.invitation.guest_user_id && !r.invitation.is_guest) {
                         <h3 class="font-bold mb-1">Completaste el test</h3>                                
-                        <p class="text-sm text-white/90">Inicia sesión con tu cuenta para ver los resultados del test</p>
+                        <p class="text-sm text-white/90">Inicia sesión con tu usuario para ver los resultados del test</p>
                     } @else if (r.invitation.guest_user_id && r.invitation.is_guest) {
                         <h3 class="font-bold mb-1">Ver resultados</h3> 
                         <p class="text-sm text-white/90">Después podrás completar tu perfil.</p>
@@ -184,8 +187,8 @@
           @if (!isAuthenticated()) {
             <div class="flex gap-2 mb-4">
               <button
-                (click)="router.navigate(['/auth/login'], {
-                  queryParams: { returnUrl: router.url }
+                (click)="router.navigate(['/login'], {
+                  queryParams: { returnUrl: router.url, message: 'Inicia sesión para hacer el test con tu usuario' }
                 })"
                 class="flex-1 py-3 bg-white dark:bg-gray-800
                        border border-gray-300 dark:border-gray-600

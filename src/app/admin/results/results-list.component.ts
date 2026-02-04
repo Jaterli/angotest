@@ -27,7 +27,16 @@ export class ResultsListComponent implements OnInit {
   // Filtros
   selectedFilters = signal<AdminResultsFilter>({
     page: 1,
-    page_size: 20
+    page_size: 20,
+
+    user_role: '',
+    test_main_topic: '',
+    test_level: '',
+
+    // Filtros por resultado
+    status: '',
+    min_score: 0,
+    max_score: 100,
   });
   
   // Opciones de filtros

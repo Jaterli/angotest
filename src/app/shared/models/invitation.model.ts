@@ -17,6 +17,7 @@ export interface TestInvitation {
 
 export interface CreateInvitationInput {
   test_id: number;
+  test_title?: string;
   message: string;
 }
 

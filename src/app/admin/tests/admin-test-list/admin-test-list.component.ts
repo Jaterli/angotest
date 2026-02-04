@@ -1,16 +1,17 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TestAvailableFilters, TestFiltersApplied, TestWithCount } from '../../../shared/models/test.model';
 import { RouterModule } from '@angular/router';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { TestsManagementService } from '../../services/tests-management.service';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
+import { InvitationCreateComponent } from '../../../shared/components/invitation/invitation-create.component';
 
 @Component({
   selector: 'app-admin-tests-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ModalComponent],
+  imports: [CommonModule, RouterModule, FormsModule, ModalComponent, InvitationCreateComponent],
   templateUrl: './admin-test-list.component.html',
 })
 export class AdminTestListComponent implements OnInit {
@@ -30,6 +31,11 @@ export class AdminTestListComponent implements OnInit {
   loadingOptions = signal(false);
   deleting = signal(false);
   
+  // Modal para la invitación
+  showInviteModal = signal(false);
+  selectedTestForInvitation: any | null = null;
+
+
   // Filtros y ordenación
   selectedFilters = signal<TestFiltersApplied>({
     page: 1,
@@ -88,20 +94,6 @@ export class AdminTestListComponent implements OnInit {
     //this.loadFilterOptions();
     this.loadTests();
   }
-
-  // loadFilterOptions(): void {
-  //   this.loadingOptions.set(true);
-  //   this.testsManagementService.getFilterOptions().subscribe({
-  //     next: (options) => {
-  //       this.filterOptions.set(options);
-  //       this.loadingOptions.set(false);
-  //     },
-  //     error: (err) => {
-  //       console.error('Error al cargar opciones de filtro:', err);
-  //       this.loadingOptions.set(false);
-  //     }
-  //   });
-  // }
 
   loadTests(): void {
     this.loading.set(true);
@@ -221,6 +213,18 @@ export class AdminTestListComponent implements OnInit {
 
   formatDate(dateString: string): string {
     return this.sharedUtilsService.sharedFormatDate(dateString);
+  }
+
+  // Método para abrir modal de invitación
+  openInviteModal(testData: any): void {
+    this.selectedTestForInvitation = testData;
+    this.showInviteModal.set(true);
+  }
+
+  // Método para cerrar modal de invitación
+  closeInviteModal(): void {
+    this.showInviteModal.set(false);
+    this.selectedTestForInvitation = null;
   }
 
   // Métodos para eliminar tests

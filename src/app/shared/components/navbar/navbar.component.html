@@ -130,20 +130,20 @@
 
             <!-- Dropdown menu -->
             @if (showUserDropdown()) {
-              <div class="absolute right-0 mt-2 w-56 rounded-xl shadow-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden z-50 animate-fadeIn">
+              <div class="absolute right-0 mt-0 w-64 rounded-xl shadow-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden z-50 animate-fadeIn">
                 <!-- Header del dropdown -->
                 <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                   <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center shadow-sm">
+                    <div class="w-8 h-8 text-xs rounded-full bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center shadow-sm">
                       @if (userProfilePic()) {
                         <img [src]="userProfilePic()" alt="Avatar" class="w-full h-full rounded-full object-cover">
                       } @else {
                         <span class="text-white font-semibold">{{ getUserInitials() }}</span>
                       }
                     </div>
-                    <div>
-                      <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ getUserDisplayName() }}</p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">@{{ userName }}</p>
+                    <div class="truncate">
+                      <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{{ getUserDisplayName() }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 truncate">@{{ userName }}</p>
                     </div>
                   </div>
                 </div>

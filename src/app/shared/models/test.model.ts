@@ -315,9 +315,11 @@ export interface InProgressTestsFullResponse {
 
 // Estructura para la jerarquía de temas
 export interface TopicHierarchy {
+  id?: number;
   main_topic: string;
   sub_topic: string;
   specific_topic: string;
+  is_predefined?: boolean;
 }
 
 export interface TopicStructure {

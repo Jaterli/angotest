@@ -192,25 +192,7 @@ export class InProgressTestsComponent implements OnInit {
   }
 
   getPageNumbers(): number[] {
-    const total = this.totalPages();
-    const current = this.currentPage();
-    const pages: number[] = [];
-    
-    if (total <= 5) {
-      for (let i = 1; i <= total; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (current <= 3) {
-        pages.push(1, 2, 3, 4, 5);
-      } else if (current >= total - 2) {
-        pages.push(total - 4, total - 3, total - 2, total - 1, total);
-      } else {
-        pages.push(current - 2, current - 1, current, current + 1, current + 2);
-      }
-    }
-    
-    return pages;
+    return this.sharedUtilsService.getSharedPageNumbers(this.totalPages(), this.currentPage());
   }
 
   // Métodos compartidos del servicio de utilidades
@@ -218,18 +200,12 @@ export class InProgressTestsComponent implements OnInit {
     return this.sharedUtilsService.getSharedLevelBadgeClass(level);
   }
 
-  getProgressColor(progress: number): string {
-    if (progress >= 75) return 'text-emerald-600 dark:text-emerald-400';
-    if (progress >= 50) return 'text-yellow-600 dark:text-yellow-400';
-    if (progress >= 25) return 'text-orange-600 dark:text-orange-400';
-    return 'text-red-600 dark:text-red-400';
+  getProgressColor(percentage: number): string {
+    return this.sharedUtilsService.getSharedProgressColor(percentage);
   }
 
   getProgressBarColor(progress: number): string {
-    if (progress >= 75) return 'bg-emerald-500 dark:bg-emerald-500';
-    if (progress >= 50) return 'bg-yellow-500 dark:bg-yellow-500';
-    if (progress >= 25) return 'bg-orange-500 dark:bg-orange-500';
-    return 'bg-red-500 dark:bg-red-500';
+    return this.sharedUtilsService.getSharedProgressBarColor(progress);
   }
 
   formatDate(dateString: string): string {
@@ -258,9 +234,9 @@ export class InProgressTestsComponent implements OnInit {
     return 'Listo para finalizar';
   }
 
-  calculateProgress(test: InProgressTestResponse): number {
-    if (!test.total_questions || test.total_questions === 0) return 0;
-    return Math.round((test.answered_count / test.total_questions) * 100);
+
+  calculatePercentage(total_answered: number, total_questions: number): number {
+    return this.sharedUtilsService.sharedCalculatePercentage(total_answered, total_questions);
   }
 
   getRemainingQuestions(test: InProgressTestResponse): number {

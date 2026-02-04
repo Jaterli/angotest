@@ -10,7 +10,7 @@ import { CompletedTestResponse, CompletedTestsStats, CompletedTestsFilter } from
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { ResultService } from '../../../shared/services/result.service';
 import { InvitationCreateComponent } from '../../../shared/components/invitation/invitation-create.component';
-import { InvitationService } from '../../../shared/services/invitation.service';
+import { CreateInvitationInput } from '../../../shared/models/invitation.model';
 
 @Component({
   selector: 'app-completed-tests',
@@ -23,7 +23,6 @@ export class CompletedTestsComponent implements OnInit {
   private authService = inject(AuthService);
   private resultService = inject(ResultService);
   private sharedUtilsService = inject(SharedUtilsService);
-  private invitationService = inject(InvitationService);
 
   // Tests y estado
   completedTestsData = signal<CompletedTestResponse[]>([]);
@@ -65,9 +64,9 @@ export class CompletedTestsComponent implements OnInit {
   reviewSummary = signal<any>(null);
   showCorrectAnswer = false;
   
-
+  // Modal para la invitación
   showInviteModal = signal(false);
-  selectedTestForInvitation: any = null;
+  selectedTestForInvitation: CreateInvitationInput | null = null;
 
   // Memoria de filtros (localStorage)
   private readonly FILTER_STORAGE_KEY = 'completed_tests_filters';

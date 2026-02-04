@@ -9,7 +9,7 @@ import { HttpClient } from '@angular/common/http';
 export class SharedUtilsService {
   
   // Opcional: si necesitas endpoints específicos
-  private apiUrl = 'http://tu-api.com/api';
+  //private apiUrl = 'http://tu-api.com/api';
 
   constructor(private http: HttpClient) { }
 
@@ -97,10 +97,20 @@ export class SharedUtilsService {
   }
 
   getSharedProgressColor(score: number): string {
-    if (score >= 80) return 'bg-emerald-300 dark:bg-emerald-500';
-    if (score >= 60) return 'bg-yellow-300 dark:bg-yellow-500';
-    if (score >= 40) return 'bg-orange-300 dark:bg-orange-500';
-    if (score >= 20) return 'bg-red-300 dark:bg-red-500';
+    if (score >= 90) return 'text-emerald-600 dark:text-emerald-400';
+    if (score >= 80) return 'text-lime-700 dark:text-lime-700';
+    if (score >= 60) return 'text-yellow-600 dark:text-yellow-400';
+    if (score >= 40) return 'text-orange-600 dark:text-orange-400';
+    if (score >= 20) return 'text-red-600 dark:text-red-400';
+    return 'text-red-600 dark:text-red-400';
+  }
+
+  getSharedProgressBarColor(progress: number): string {
+    if (progress >= 90) return 'bg-emerald-300 dark:bg-emerald-500';
+    if (progress >= 80) return 'bg-lime-700 dark:bg-lime-700';
+    if (progress >= 60) return 'bg-yellow-300 dark:bg-yellow-500';
+    if (progress >= 40) return 'bg-orange-300 dark:bg-orange-500';
+    if (progress >= 20) return 'bg-red-300 dark:bg-red-500';
     return 'bg-red-300 dark:bg-red-00';
   }
 
@@ -122,16 +132,16 @@ export class SharedUtilsService {
   }
 
   getSharedRoleBadgeClass(role: string): string {
-    if (role == 'user') return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
-    if (role == 'admin') return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-    if (role == 'guest') return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
-    return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+    if (role == 'user') return 'bg-purple-100 text-purple-800 dark:bg-purple-800/30 dark:text-purple-300';
+    if (role == 'admin') return 'bg-orange-100 text-orange-800 dark:bg-orange-800/30 dark:text-orange-300';
+    if (role == 'guest') return 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-300';
+    return 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300';
   }
 
   getSharedStatusColor(status: string): string {
     switch (status) {
       case 'completed': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300';
-      case 'in_progress': return 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300';
+      case 'in_progress': return 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 whitespace-nowrap';
       case 'abandoned': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
     }
@@ -164,16 +174,16 @@ export class SharedUtilsService {
 
   
   // Método para obtener resultados con filtros (compartido)
-  getSharedUserResults(userId: number, filters?: any): Observable<any> {
-    return this.http.get(`${this.apiUrl}/users/${userId}/results`, { params: filters });
-  }
+  // getSharedUserResults(userId: number, filters?: any): Observable<any> {
+  //   return this.http.get(`${this.apiUrl}/users/${userId}/results`, { params: filters });
+  // }
 
 
   getSharedLevelBadgeClass(level: string): string {
     switch (level?.toLowerCase()) {
-      case 'principiante': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'intermedio': return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
-      case 'avanzado': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300';
+      case 'principiante': return 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300';
+      case 'intermedio': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300';
+      case 'avanzado': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
     }
   }
@@ -265,8 +275,13 @@ export class SharedUtilsService {
   }
 
   // Calcular porcentaje de progreso
-  sharedCalculateProgress(correct: number, total: number): number {
-    return total > 0 ? Math.round((correct / total) * 100) : 0;
+  // sharedCalculateProgress(total_answered: number, total_questions: number): number {
+  //   return total_questions > 0 ? Math.round((total_answered / total_questions) * 100) : 0;
+  // }
+
+  sharedCalculatePercentage(part: number, total: number): number {
+    if (total === 0) return 0;
+    return Math.round((part / total) * 100);
   }
 
   // Validar si un test está disponible

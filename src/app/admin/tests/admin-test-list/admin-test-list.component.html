@@ -463,6 +463,16 @@
                       </svg>
                       Realizar
                     </a>
+                    <!-- Botón de Invitación -->
+                    <button 
+                      (click)="openInviteModal(test)"
+                      class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-700/30 hover:bg-purple-200 dark:hover:bg-purple-700/50 transition-colors flex-1"
+                    >
+                      <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                      </svg>
+                      Invitar
+                    </button>                    
                     <button 
                       (click)="prepareDeleteTest(test)"
                       class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 dark:text-red-300 dark:bg-red-900 dark:hover:bg-red-800 transition-colors">
@@ -576,4 +586,21 @@
   confirmText="Entendido"
   (confirm)="closeErrorModal()"
   [showCancelButton]="false">
+</app-modal>
+
+<!-- Modal para crear invitación -->
+<app-modal 
+  [isOpen]="showInviteModal()"
+  size="md"
+  confirmText="Cerrar"
+  (confirm)="closeInviteModal()"
+  [showCancelButton]="false"
+  [customContent]="true"
+>
+  @if (selectedTestForInvitation) {
+    <app-invitation-create 
+      [testId]="selectedTestForInvitation.id"
+      [testTitle]="selectedTestForInvitation.title" 
+    ></app-invitation-create>
+  }
 </app-modal>

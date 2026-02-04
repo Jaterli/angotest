@@ -10,7 +10,7 @@
   },
   "include": [
     "src/**/*.ts"
-  ],
+, "src/app/admin/tests/test-create/topics-viewer.component.tss"  ],
   "exclude": [
     "src/**/*.spec.ts"
   ]

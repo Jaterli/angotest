@@ -16,6 +16,7 @@ export interface UserResultDetail {
   status: 'completed' | 'in_progress' | 'abandoned';
   started_at: string;
   updated_at: string;
+  answered_count: number;
 }
 
 export interface UserResultsFilters {
