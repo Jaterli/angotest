@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, ValidationErrors, AbstractControl, ValidatorFn } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -39,7 +39,8 @@ export class RegisterComponent {
       username: ['', [
         Validators.required,
         Validators.minLength(3),
-        Validators.maxLength(50)
+        Validators.maxLength(30),
+        Validators.pattern('^[a-zA-Z0-9_.-]+$')
       ]],
       email: ['', [
         Validators.required,
@@ -47,46 +48,86 @@ export class RegisterComponent {
       ]],
       password: ['', [
         Validators.required,
-        Validators.minLength(6)
+        Validators.minLength(6),
+        this.passwordStrengthValidator
       ]],
       confirmPassword: ['', [
         Validators.required
       ]],
       firstName: ['', [
         Validators.required,
-        Validators.maxLength(50)
+        Validators.minLength(3),
+        Validators.maxLength(50),
+        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$') // solo letras y espacios
       ]],
       lastName: ['', [
         Validators.required,
-        Validators.maxLength(50)
+        Validators.minLength(3),
+        Validators.maxLength(50),
+        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$') // solo letras y espacios
       ]],
       phone: ['', [
-        Validators.pattern('^[0-9+\-\s()]{7,15}$')
+        Validators.pattern('^[0-9+\\-\\s()]{7,15}$')
       ]],
       address: ['', [
         Validators.maxLength(200)
       ]],
-      country: ['', [ // ← NUEVO CAMPO
+      country: ['', [
         Validators.required
       ]],
       birthDate: ['', [
         Validators.required
       ]]
     }, {
-      validators: this.passwordMatchValidator
+      validators: [this.passwordMatchValidator]
     });
   }
 
+  // Validador de fortaleza de contraseña 
+  passwordStrengthValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value;
+    if (!value) {
+      return null;
+    }
+
+    const hasUpperCase = /[A-Z]/.test(value);
+    const hasLowerCase = /[a-z]/.test(value);
+    const hasNumbers = /\d/.test(value);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(value);
+
+    const errors: ValidationErrors = {};
+    
+    if (!hasUpperCase) {
+      errors['missingUpperCase'] = true;
+    }
+    if (!hasLowerCase) {
+      errors['missingLowerCase'] = true;
+    }
+    if (!hasNumbers) {
+      errors['missingNumber'] = true;
+    }
+    if (!hasSpecialChar) {
+      errors['missingSpecialChar'] = true;
+    }
+
+    return Object.keys(errors).length ? errors : null;
+  }
 
   // Validador personalizado para confirmar contraseña
-  passwordMatchValidator(form: FormGroup) {
-    const password = form.get('password')?.value;
-    const confirmPassword = form.get('confirmPassword')?.value;
+  passwordMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+    const password = control.get('password')?.value;
+    const confirmPassword = control.get('confirmPassword')?.value;
     
     if (password !== confirmPassword) {
-      form.get('confirmPassword')?.setErrors({ passwordMismatch: true });
+      control.get('confirmPassword')?.setErrors({ passwordMismatch: true });
       return { passwordMismatch: true };
     }
+    
+    // Limpiar el error si las contraseñas coinciden
+    if (control.get('confirmPassword')?.hasError('passwordMismatch')) {
+      control.get('confirmPassword')?.setErrors(null);
+    }
+    
     return null;
   }
 
@@ -129,7 +170,7 @@ export class RegisterComponent {
     this.loading.set(true);
     this.error.set(null);
 
-  // Asegurar que la fecha esté en formato YYYY-MM-DD
+    // Asegurar que la fecha esté en formato YYYY-MM-DD
     const birthDate = new Date(this.registerForm.value.birthDate);
     const formattedDate = birthDate.toISOString().split('T')[0];
 
@@ -146,8 +187,7 @@ export class RegisterComponent {
       birth_date: formattedDate
     };
 
-    this.authService.register(formData).
-    subscribe({
+    this.authService.register(formData).subscribe({
       next: () => {
         this.loading.set(false);
         this.success.set(true);
@@ -157,7 +197,7 @@ export class RegisterComponent {
           this.router.navigate(['/login'], { 
             queryParams: { registered: 'true' } 
           });
-        }, 5000);
+        }, 3000); // ✅ Cambiado a 3 segundos (más razonable)
       },
       error: (err: any) => {
         this.loading.set(false);

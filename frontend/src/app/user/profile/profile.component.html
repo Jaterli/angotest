@@ -196,9 +196,17 @@
                     : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
                 />
                 @if (guestFirstName?.invalid && guestFirstName?.touched) {
-                  <p class="text-sm text-red-600 dark:text-red-400">
-                    El nombre es requerido
-                  </p>
+                  <div class="space-y-1 text-sm text-red-600 dark:text-red-400">
+                    @if (guestFirstName?.errors?.['required']) {
+                      <p>El nombre es requerido</p>
+                    }
+                    @if (guestFirstName?.errors?.['minlength'] || guestFirstName?.errors?.['minlength']) {
+                      <p>Rango de caracteres, entre 3 y 50</p>
+                    }
+                    @if (guestFirstName?.errors?.['pattern']) {
+                      <p>Solo letras y espacios</p>
+                    }
+                  </div>
                 }
               </div>
 
@@ -216,9 +224,17 @@
                     : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
                 />
                 @if (guestLastName?.invalid && guestLastName?.touched) {
-                  <p class="text-sm text-red-600 dark:text-red-400">
-                    El apellido es requerido
-                  </p>
+                  <div class="space-y-1 text-sm text-red-600 dark:text-red-400">
+                    @if (guestLastName?.errors?.['required']) {
+                      <p>El nombre es requerido</p>
+                    }
+                    @if (guestLastName?.errors?.['minlength'] || guestLastName?.errors?.['minlength']) {
+                      <p>Rango de caracteres, entre 3 y 50</p>
+                    }
+                    @if (guestLastName?.errors?.['pattern']) {
+                      <p>Solo letras y espacios</p>
+                    }
+                  </div>
                 }
               </div>
             </div>
@@ -536,9 +552,17 @@
                   : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
               />
               @if (firstName?.invalid && firstName?.touched) {
-                <p class="text-sm text-red-600 dark:text-red-400">
-                  El nombre es requerido
-                </p>
+                <div class="space-y-1 text-sm text-red-600 dark:text-red-400">
+                  @if (firstName?.errors?.['required']) {
+                    <p>El nombre es requerido</p>
+                  }
+                  @if (firstName?.errors?.['minlength'] || firstName?.errors?.['minlength']) {
+                    <p>Rango de caracteres, entre 3 y 50</p>
+                  }
+                  @if (firstName?.errors?.['pattern']) {
+                    <p>Solo letras y espacios</p>
+                  }
+                </div>
               }
             </div>
 
@@ -556,9 +580,17 @@
                   : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
               />
               @if (lastName?.invalid && lastName?.touched) {
-                <p class="text-sm text-red-600 dark:text-red-400">
-                  El apellido es requerido
-                </p>
+                <div class="space-y-1 text-sm text-red-600 dark:text-red-400">
+                  @if (lastName?.errors?.['required']) {
+                    <p>El apellido es requerido</p>
+                  }
+                  @if (lastName?.errors?.['minlength'] || lastName?.errors?.['minlength']) {
+                    <p>Rango de caracteres, entre 3 y 50</p>
+                  }
+                  @if (lastName?.errors?.['pattern']) {
+                    <p>Solo letras y espacios</p>
+                  }
+                </div>
               }
             </div>
           </div>
@@ -792,9 +824,38 @@
                     : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
                 />
                 @if (currentPassword?.invalid && currentPassword?.touched) {
-                  <p class="text-sm text-red-600 dark:text-red-400">
-                    La contraseña actual es requerida
-                  </p>
+                  <div class="space-y-1">
+                    @if (guestNewPassword?.errors?.['required']) {
+                      <p class="text-sm text-red-600 dark:text-red-400">
+                        La nueva contraseña es requerida
+                      </p>
+                    }
+                    @if (guestNewPassword?.errors?.['minlength']) {
+                      <p class="text-sm text-red-600 dark:text-red-400">
+                        Mínimo 6 caracteres
+                      </p>
+                    }
+                    @if (guestNewPassword?.errors?.['missingUpperCase']) {
+                      <p class="text-sm text-red-600 dark:text-red-400">
+                        Debe contener al menos una mayúscula
+                      </p>
+                    }
+                    @if (guestNewPassword?.errors?.['missingLowerCase']) {
+                      <p class="text-sm text-red-600 dark:text-red-400">
+                        Debe contener al menos una minúscula
+                      </p>
+                    }
+                    @if (guestNewPassword?.errors?.['missingNumber']) {
+                      <p class="text-sm text-red-600 dark:text-red-400">
+                        Debe contener al menos un número
+                      </p>
+                    }
+                    @if (guestNewPassword?.errors?.['missingSpecialChar']) {
+                      <p class="text-sm text-red-600 dark:text-red-400">
+                        Debe contener al menos un carácter especial
+                      </p>
+                    }
+                  </div>
                 }
               </div>
               

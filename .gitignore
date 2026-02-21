@@ -13,8 +13,7 @@ frontend/.env
 # General
 .DS_Store
 *.log
-
-
+*.env
 
 # Compiled output
 /dist

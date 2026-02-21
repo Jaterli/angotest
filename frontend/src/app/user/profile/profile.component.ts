@@ -79,11 +79,16 @@ export class ProfileComponent implements OnInit {
       ]],
       firstName: ['', [
         Validators.required,
-        Validators.maxLength(50)
+        Validators.minLength(3),
+        Validators.maxLength(50),
+        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$') // solo letras y espacios
+
       ]],
       lastName: ['', [
         Validators.required,
-        Validators.maxLength(50)
+        Validators.minLength(3),
+        Validators.maxLength(50),
+        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$') // solo letras y espacios
       ]],
       phone: ['', [
         Validators.pattern('^[0-9+\-\s()]{7,15}$')
@@ -132,11 +137,15 @@ export class ProfileComponent implements OnInit {
       ]],
       firstName: ['', [
         Validators.required,
-        Validators.maxLength(50)
+        Validators.minLength(3),
+        Validators.maxLength(50),
+        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$') // solo letras y espacios
       ]],
       lastName: ['', [
         Validators.required,
-        Validators.maxLength(50)
+        Validators.minLength(3),
+        Validators.maxLength(50),
+        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$') // solo letras y espacios
       ]],
       phone: ['', [
         Validators.pattern('^[0-9+\-\s()]{7,15}$')
@@ -244,8 +253,6 @@ export class ProfileComponent implements OnInit {
       this.router.navigate(['/login']);
     }, 1000);
   }
-
-  // ========== FUNCIONES EXISTENTES (mantener igual) ==========
 
   passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
     const value = control.value;

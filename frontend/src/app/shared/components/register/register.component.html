@@ -43,12 +43,17 @@
               : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
           />
           @if (firstName?.invalid && firstName?.touched) {
-            <p class="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-              </svg>
-              El nombre es requerido (máximo 50 caracteres)
-            </p>
+            <div class="space-y-1 text-sm text-red-600 dark:text-red-400">
+              @if (firstName?.errors?.['required']) {
+                <p>El nombre es requerido</p>
+              }
+              @if (firstName?.errors?.['minlength'] || firstName?.errors?.['minlength']) {
+                <p>Rango de caracteres, entre 3 y 50</p>
+              }
+              @if (firstName?.errors?.['pattern']) {
+                <p>Solo letras y espacios</p>
+              }
+            </div>
           }
         </div>
 
@@ -67,12 +72,17 @@
               : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
           />
           @if (lastName?.invalid && lastName?.touched) {
-            <p class="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-              </svg>
-              El apellido es requerido (máximo 50 caracteres)
-            </p>
+            <div class="space-y-1 text-sm text-red-600 dark:text-red-400">
+              @if (lastName?.errors?.['required']) {
+                <p>El apellido es requerido</p>
+              }
+              @if (lastName?.errors?.['minlength'] || lastName?.errors?.['minlength']) {
+                <p>Rango de caracteres, entre 3 y 50</p>
+              }
+              @if (lastName?.errors?.['pattern']) {
+                <p>Solo letras y espacios</p>
+              }
+            </div>
           }
         </div>
       </div>
@@ -269,27 +279,29 @@
                 : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
             />
             @if (password?.invalid && password?.touched) {
-              <div class="space-y-1">
+              <div class="space-y-1 text-sm text-red-600 dark:text-red-400">
                 @if (password?.errors?.['required']) {
-                  <p class="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                    </svg>
-                    La contraseña es requerida
-                  </p>
+                  <p>La nueva contraseña es requerida</p>
                 }
                 @if (password?.errors?.['minlength']) {
-                  <p class="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                    </svg>
-                    Mínimo 6 caracteres
-                  </p>
+                  <p>Mínimo 6 caracteres</p>
+                }
+                @if (password?.errors?.['missingUpperCase']) {
+                  <p>Debe contener al menos una mayúscula</p>
+                }
+                @if (password?.errors?.['missingLowerCase']) {
+                  <p>Debe contener al menos una minúscula</p>
+                }
+                @if (password?.errors?.['missingNumber']) {
+                  <p>Debe contener al menos un número</p>
+                }
+                @if (password?.errors?.['missingSpecialChar']) {
+                  <p>Debe contener al menos un carácter especial</p>
                 }
               </div>
             }
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              La contraseña debe tener al menos 6 caracteres
+              La contraseña debe tener al menos 6 caracteres con mayúsculas, minúsculas, números y caracteres especiales.
             </p>
           </div>
 
