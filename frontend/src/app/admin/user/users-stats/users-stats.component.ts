@@ -56,6 +56,9 @@ export class UsersStatsComponent implements OnInit {
   // Estado de la UI
   showFilters = signal(true);
 
+  // Memoria de filtros (localStorage)
+  private readonly FILTER_STORAGE_KEY = 'admin_users_filters';
+
   // Computed properties para el template
   currentSortLabel = computed(() => {
     const sortBy = this.selectedFilters().sort_by;
@@ -81,7 +84,32 @@ export class UsersStatsComponent implements OnInit {
   profileError = signal<string | null>(null);
 
   ngOnInit() {
+    this.loadSavedFilters();
     this.loadUsers();
+  }
+
+  loadSavedFilters(): void {
+    try {
+      const savedFilters = localStorage.getItem(this.FILTER_STORAGE_KEY);
+      if (savedFilters) {
+        const filters = JSON.parse(savedFilters);
+        // Actualizar currentPage con el valor guardado
+        if (filters.page) {
+          this.currentPage.set(filters.page);
+        }
+        this.selectedFilters.set({ ...this.selectedFilters(), ...filters });
+      }
+    } catch (error) {
+      console.error('Error loading saved filters:', error);
+    }
+  }
+
+  saveFilters(): void {
+    const filters = {
+      ...this.selectedFilters(),
+      timestamp: new Date().getTime()
+    };
+    localStorage.setItem(this.FILTER_STORAGE_KEY, JSON.stringify(filters));
   }
 
   loadUsers(): void {
@@ -96,8 +124,8 @@ export class UsersStatsComponent implements OnInit {
         this.totalPages.set(Math.ceil(res.stats.total_filtered_users / (this.selectedFilters().page_size || 20)));
         this.hasMore.set(this.currentPage() < this.totalPages());
 
-
         this.loading.set(false);
+        this.saveFilters(); // Guardar filtros después de carga exitosa
       },
       error: (err) => {
         console.error('Error al cargar usuarios:', err);

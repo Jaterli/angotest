@@ -35,7 +35,6 @@ export class AdminTestListComponent implements OnInit {
   showInviteModal = signal(false);
   selectedTestForInvitation: any | null = null;
 
-
   // Filtros y ordenación
   selectedFilters = signal<TestFiltersApplied>({
     page: 1,
@@ -69,6 +68,9 @@ export class AdminTestListComponent implements OnInit {
   // Estado de la UI
   showFilters = signal(true);
 
+  // Memoria de filtros (localStorage)
+  private readonly FILTER_STORAGE_KEY = 'admin_tests_filters';
+
   // Computed properties
   currentSortLabel = computed(() => {
     const sortBy = this.selectedFilters().sort_by;
@@ -91,8 +93,32 @@ export class AdminTestListComponent implements OnInit {
   errorMessage = signal('');
 
   ngOnInit(): void {
-    //this.loadFilterOptions();
+    this.loadSavedFilters();
     this.loadTests();
+  }
+
+  loadSavedFilters(): void {
+    try {
+      const savedFilters = localStorage.getItem(this.FILTER_STORAGE_KEY);
+      if (savedFilters) {
+        const filters = JSON.parse(savedFilters);
+        // Actualizar currentPage con el valor guardado
+        if (filters.page) {
+          this.currentPage.set(filters.page);
+        }
+        this.selectedFilters.set({ ...this.selectedFilters(), ...filters });
+      }
+    } catch (error) {
+      console.error('Error loading saved filters:', error);
+    }
+  }
+
+  saveFilters(): void {
+    const filters = {
+      ...this.selectedFilters(),
+      timestamp: new Date().getTime()
+    };
+    localStorage.setItem(this.FILTER_STORAGE_KEY, JSON.stringify(filters));
   }
 
   loadTests(): void {
@@ -101,11 +127,12 @@ export class AdminTestListComponent implements OnInit {
       next: (res) => {
         this.tests.set(res.tests);
         this.totalFilteredTests.set(res.stats.total_filtered_tests);
-        this.filterOptions.set(res.available_filters)
+        this.filterOptions.set(res.available_filters);
         this.totalTests.set(res.stats.total_tests);
         this.totalPages.set(Math.ceil(res.stats.total_filtered_tests / (this.selectedFilters().page_size || 20)));
         this.hasMore.set(this.currentPage() < this.totalPages());
         this.loading.set(false);
+        this.saveFilters(); // Guardar filtros después de carga exitosa
       },
       error: err => {
         console.error('Error al cargar tests:', err);
@@ -119,6 +146,7 @@ export class AdminTestListComponent implements OnInit {
   // Métodos para filtros y ordenación
   onFilterChange(): void {
     this.selectedFilters.update(filters => ({ ...filters, page: 1 }));
+    this.currentPage.set(1);
     this.loadTests();
   }
 
@@ -133,6 +161,7 @@ export class AdminTestListComponent implements OnInit {
       level: '',
       search: ''
     });
+    this.currentPage.set(1);
     this.loadTests();
   }
 
@@ -167,6 +196,7 @@ export class AdminTestListComponent implements OnInit {
   goToPage(page: number): void {
     if (page < 1 || page > this.totalPages()) return;
     
+    this.currentPage.set(page);
     this.selectedFilters.update(filters => ({ ...filters, page }));
     this.loadTests();
   }

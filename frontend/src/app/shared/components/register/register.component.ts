@@ -197,7 +197,7 @@ export class RegisterComponent {
           this.router.navigate(['/login'], { 
             queryParams: { registered: 'true' } 
           });
-        }, 3000); // ✅ Cambiado a 3 segundos (más razonable)
+        }, 5000); // ✅ Cambiado a 3 segundos (más razonable)
       },
       error: (err: any) => {
         this.loading.set(false);
