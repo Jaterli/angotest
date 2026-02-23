@@ -10,6 +10,12 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+
+@theme {
+  --breakpoint-xs: 30rem;
+  --breakpoint-2xl: 100rem;
+}
+
 /* Estilos críticos para prevenir FOUC */
 html {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

@@ -358,6 +358,12 @@ export class TestSingleComponent implements OnInit, OnDestroy {
           this.isCompleted = response.is_completed;
           
           this.savingProgress.set(false);
+          // Desplazar suavemente al inicio de la página
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+
         },
         error: (err) => {
           console.error('Error al avanzar:', err);

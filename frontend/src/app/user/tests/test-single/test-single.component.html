@@ -20,7 +20,7 @@
               <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {{ test.main_topic }} &raquo; {{ test.sub_topic }} &raquo; {{ test.specific_topic }}
               </div>
-              <span class="text-xs font-medium px-2 py-1 rounded-full"
+              <span class="text-xs"
                     [class]="getLevelBadgeClass(test.level)">
                 {{ test.level }}
               </span>
@@ -56,50 +56,37 @@
     </header>
 
     <!-- Contenido principal -->
-    <main class="container mx-auto px-4 py-8">
+    <main class="container mx-auto px-2 xs:px-4 py-8">
       @if (currentQuestion) {
         <div class="max-w-3xl mx-auto">
           <!-- Tarjeta de pregunta actual -->
           <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 overflow-hidden">
             
             <!-- Indicador de pregunta -->
-            <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+            <div class="px-3 xs:px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                    <span class="text-xl font-bold text-blue-700 dark:text-blue-300">
-                      {{ currentQuestionNumber }}
-                    </span>
-                  </div>
                   <div>
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                       Pregunta {{ currentQuestionNumber }} de {{ totalQuestions }}
                     </h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                      Selecciona una opción para continuar
-                    </p>
+                    @if (currentQuestion && isQuestionAnswered(currentQuestion.id)) {
+                      <p class="text-sm text-emerald-500 dark:text-emerald-400">
+                        ¡Respondida! Puede continuar.
+                      </p>
+                    } @else {
+                      <p class="text-sm text-amber-500 dark:text-amber-400">
+                        Selecciona una opción para continuar
+                      </p>
+                    }
                   </div>
-                </div>
-
-                <div class="text-sm font-medium px-3 py-1 rounded-full"
-                    [ngClass]="{
-                      'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300': 
-                        currentQuestion && isQuestionAnswered(currentQuestion.id),
-                      'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300': 
-                        !currentQuestion || !isQuestionAnswered(currentQuestion.id)
-                    }">
-                  @if (currentQuestion && isQuestionAnswered(currentQuestion.id)) {
-                    Respondida
-                  } @else {
-                    Pendiente
-                  }
                 </div>
 
               </div>
             </div>
 
             <!-- Texto de la pregunta -->
-            <div class="px-6 py-8">
+            <div class="px-3 xs:px-6 py-8">
               <div class="prose prose-lg dark:prose-invert max-w-none">
                 <p class="text-gray-900 dark:text-gray-100 text-lg font-medium leading-relaxed select-none"
                    [class.select-none]="isContentProtected()">
@@ -109,7 +96,7 @@
             </div>
 
             <!-- Opciones de respuesta -->
-            <div class="px-6 pb-8">
+            <div class="px-3 xs:px-6 pb-8">
               <div class="space-y-3">
                         
               @for (answer of currentQuestion.answers || []; track answer.id; let i = $index) {
@@ -130,7 +117,7 @@
                       [checked]="getSelectedAnswer(currentQuestion!.id) === answer.id"
                       class="w-5 h-5 text-blue-600 dark:text-blue-400 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-0 cursor-pointer"
                     />
-                    <div class="inline-flex items-center justify-center w-6 h-6 ml-3 text-xs font-semibold rounded-full"
+                    <div class="hidden sm:inline-flex items-center justify-center w-6 h-6 ml-3 text-xs font-semibold rounded-full"
                           [ngClass]="{
                             'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300': 
                               getSelectedAnswer(currentQuestion!.id) === answer.id,
@@ -141,7 +128,7 @@
                     </div>                      
                   </div>                 
                 
-                  <div class="text-gray-900 dark:text-gray-100 text-base font-medium leading-relaxed select-none">
+                  <div class="text-gray-900 dark:text-gray-100 text-sm sm:text-base font-medium leading-relaxed select-none">
                       {{ answer.answer_text }}
                   </div>
                 </label>
@@ -151,17 +138,7 @@
 
             <!-- Botones de navegación -->
             <div class="px-6 py-5 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-              <div class="flex items-center justify-between">
-                  <!-- Botón Abandonar -->
-                  <button 
-                    (click)="showExitConfirmation()"
-                    class="inline-flex items-center cursor-pointer px-4 py-2 text-sm font-medium rounded-lg text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
-                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                    </svg>
-                    Abandonar Test
-                  </button>
-
+              <div class="text-center">
                   <!-- Botón Siguiente o Finalizar -->
                   @if (getUnansweredQuestionsCount() == 0) {
                     <button 
@@ -199,6 +176,7 @@
                       }
                     </button>
                   }
+
               </div>
               
               <!-- Instrucción -->
@@ -212,12 +190,25 @@
                   }
                 </p>
               </div>
+
+              <!-- Botón Abandonar -->
+              <div class="mt-4 text-center">
+                <button 
+                  (click)="showExitConfirmation()"
+                  class="inline-flex items-center cursor-pointer px-4 py-2 text-xs sm:text-sm font-medium rounded-lg text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+                  <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                  Abandonar Test
+                </button>
+              </div>
+
             </div>
           </div>
           
           <!-- Información de progreso -->
           <div class="mt-6 p-4 bg-white dark:bg-gray-800 rounded-xl shadow dark:shadow-gray-900/20 border border-gray-200 dark:border-gray-700">
-            <div class="grid grid-cols-4 gap-4">
+            <div class="flex justify-around gap-4">
               <div class="text-center">
                 <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ currentQuestionNumber }}</div>
                 <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Actual</div>

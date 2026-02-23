@@ -264,6 +264,10 @@ export class DashboardComponent implements OnInit {
     return this.sharedUtilsService.sharedFormatTime(seconds);
   }
 
+  getMedalIcon(position: number): string {
+    return this.sharedUtilsService.getSharedMedalIcon(position);
+  }
+
   formatTimeShort(seconds: number): string {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -541,18 +545,6 @@ getLevelAccuracy(level: string): string {
   return total > 0 ? (firstAttempt.total_correct / total * 100).toFixed(2) : '0';
 }
 
-// getLevelAverageTime(level: string): string {
-//   const levelData = this.levelData()?.[level];
-//   if (!levelData) return '0s';
-  
-//   const firstAttempt = levelData.first_attempt;
-//   const avgTime = firstAttempt.questions_count > 0 
-//     ? firstAttempt.total_time_taken / firstAttempt.questions_count 
-//     : 0;
-  
-//   return this.formatTimeShort(avgTime);
-// }
-
 getLevelQuestionsCount(level: string): number {
   return this.levelData()?.[level]?.first_attempt?.questions_count || 0;
 }
@@ -579,13 +571,5 @@ getLevelAccuracyValue(level: string): string {
       this.loadRankings();
     }
   }
-
-
-
-
-
-
-
-
-  
+ 
 }

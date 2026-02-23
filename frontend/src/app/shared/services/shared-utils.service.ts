@@ -125,13 +125,24 @@ export class SharedUtilsService {
     return 'text-red-600 dark:text-red-400';
   }
 
-  getSharedScoreMessage(score: number): string {
-    if (score >= 90) return '¡Excelente!';
-    if (score >= 80) return 'Muy bien';
-    if (score >= 70) return 'Buen trabajo';
-    if (score >= 60) return 'Aprobado';
-    if (score >= 50) return 'Necesitas mejorar';
-    return 'Requiere repaso';
+  getSharedScoreMessage(score: number): string {    
+    if (score >= 100) return '¡Perfecto! 🏆';
+    if (score >= 90) return '¡Excelente! ⭐';    
+    if (score >= 80) return '¡Muy bien! 👍';
+    if (score >= 70) return 'Buen trabajo 💪';
+    if (score >= 60) return 'Bien ✅';
+    if (score >= 50) return 'Aprobado 📚';
+    if (score >= 40) return 'A mejorar 🔄';
+    if (score >= 30) return 'Sigue practicando 📝';    
+    return 'Requiere repaso 📖';
+  }
+
+
+  getSharedMedalIcon(position: number): string {
+    if (position == 1) return '🥇';
+    if (position == 2) return '🥈';
+    if (position == 3) return '🥉';
+    return '';
   }
 
   getSharedRoleBadgeClass(role: string): string {

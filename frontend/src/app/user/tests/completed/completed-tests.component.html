@@ -28,14 +28,15 @@
   <!-- Estadísticas generales -->
   @if (stats() && !loading()) {
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center">
-          <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-4">
+      
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 mt-4 sm:mt-0">
+        <div class="flex flex-col sm:flex-row items-center sm:items-center">
+          <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg -mt-10 mb-2 sm:mt-0 sm:mb-0 sm:mr-4">
             <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
             </svg>
           </div>
-          <div>
+          <div class="text-center sm:text-left">
             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {{ stats()!.total_filtered_tests }}
             </div>
@@ -44,14 +45,14 @@
         </div>
       </div>
       
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center">
-          <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg mr-4">
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 mt-4 sm:mt-0">
+        <div class="flex flex-col sm:flex-row items-center sm:items-center">
+          <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg -mt-10 mb-2 sm:mt-0 sm:mb-0 sm:mr-4">
             <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clip-rule="evenodd"/>
             </svg>
           </div>
-          <div>
+          <div class="text-center sm:text-left">
             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {{ stats()!.average_score | number:'1.0-2' }}%
             </div>
@@ -60,30 +61,30 @@
         </div>
       </div>
       
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center">
-          <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg mr-4">
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 mt-4 sm:mt-0">
+        <div class="flex flex-col sm:flex-row items-center sm:items-center">
+          <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg -mt-10 mb-2 sm:mt-0 sm:mb-0 sm:mr-4">
             <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
             </svg>
           </div>
-          <div>
+          <div class="text-center sm:text-left">
             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {{ stats()!.total_questions_answered }}
             </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">Preguntas respondidas</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">Preguntas respondidas</div>
           </div>
         </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center">
-          <div class="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg mr-4">
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 mt-4 sm:mt-0">
+        <div class="flex flex-col sm:flex-row items-center sm:items-center">
+          <div class="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg -mt-10 mb-2 sm:mt-0 sm:mb-0 sm:mr-4">
             <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
             </svg>
           </div>
-          <div>
+          <div class="text-center sm:text-left">
             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
               {{ formatTime(stats()!.total_time_spent) }}
             </div>
@@ -309,7 +310,7 @@
 
   <!-- Información de resultados -->
   @if (!loading() && totalTests() > 0) {
-    <div class="mb-4 flex items-center justify-between text-sm font-medium text-gray-600 dark:text-gray-400">
+    <div class="mb-4 md:flex md:items-center md:justify-between text-sm font-medium text-gray-600 dark:text-gray-400">
         Mostrando 
         {{ getStartIndex() }} a {{ getEndIndex() }} de {{ stats().total_filtered_tests }} test(s) filtrados ({{ totalTests() }} totales)
       <div>
@@ -325,143 +326,140 @@
   @if (!loading() && totalTests() > 0) {
     <div class="space-y-4">
       @for (data of completedTestsData(); track data.result_id) {
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md dark:hover:shadow-gray-900/30 transition-all">
-          <div class="p-6">
-            <!-- Header con información básica -->
-            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
-              <div class="flex-1">
-                <div class="flex flex-wrap items-center gap-2 mb-2">
-                  <span class="inline-flex px-3 py-1 text-xs font-semibold rounded-full {{ getLevelBadgeClass(data.test_level) }}">
-                    {{ data.test_level }}
-                  </span>
-                  <span class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ formatDateTime(data.test_created_at) }}
-                  </span>
-                </div>
-                
-                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                  {{ data.test_title }}
-                </h3>
-                
-                @if (data.test_description) {
-                  <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
-                    {{ data.test_description }}
-                  </p>
-                }
-                
-                <!-- Temas -->
-                <div class="text-sm text-gray-600 dark:text-gray-400">
-                  <span class="font-medium">{{ data.test_main_topic }}</span>
-                  @if (data.test_sub_topic && data.test_sub_topic !== 'General') {
+        <div class="px-3 py-6 xs:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md dark:hover:shadow-gray-900/30 transition-all">
+          <!-- Header con información básica -->
+          <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-4">
+            <div class="flex-1">
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <span class="{{ getLevelBadgeClass(data.test_level) }}">
+                  {{ data.test_level }}
+                </span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ formatDateTime(data.test_created_at) }}
+                </span>
+              </div>
+              
+              <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                {{ data.test_title }}
+              </h3>
+              
+              @if (data.test_description) {
+                <p class="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
+                  {{ data.test_description }}
+                </p>
+              }
+              
+              <!-- Temas -->
+              <div class="text-sm text-gray-600 dark:text-gray-400">
+                <span class="font-medium">{{ data.test_main_topic }}</span>
+                @if (data.test_sub_topic && data.test_sub_topic !== 'General') {
+                  <span class="mx-1">›</span>
+                  <span>{{ data.test_sub_topic }}</span>
+                  @if (data.test_specific_topic && data.test_specific_topic !== 'General') {
                     <span class="mx-1">›</span>
-                    <span>{{ data.test_sub_topic }}</span>
-                    @if (data.test_specific_topic && data.test_specific_topic !== 'General') {
-                      <span class="mx-1">›</span>
-                      <span>{{ data.test_specific_topic }}</span>
-                    }
+                    <span>{{ data.test_specific_topic }}</span>
                   }
-                </div>
-              </div>
-              
-              <!-- Puntuación destacada -->
-              <div class="flex-shrink-0">
-                <div class="text-center">
-                  <div class="text-3xl font-bold {{ getAccuracyColor(data.accuracy) }}">
-                    {{ data.score_rounded }}%
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {{ getScoreMessage(data.score_rounded) }}
-                  </div>
-                </div>
+                }
               </div>
             </div>
             
-            <!-- Estadísticas detalladas -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                <div class="text-center">
-                  <div class="text-2xl font-bold">
-                    <span class="text-green-800 dark:text-green-500">
-                      ✓ {{ data.correct_answers }}
-                    </span> /
-                    <span class="text-red-800 dark:text-red-500">
-                      ✗ {{ data.wrong_answers }}
-                    </span>  
-                    de {{ data.total_questions }}
-                  </div>                
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Respuestas</div>
+            <!-- Puntuación destacada -->
+            <div class="flex-shrink-0">
+              <div class="text-center">
+                <div class="text-3xl font-bold {{ getAccuracyColor(data.accuracy) }}">
+                  {{ data.score_rounded }}%
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {{ getScoreMessage(data.score_rounded) }}
                 </div>
               </div>
-              
-              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ data.attempt }}
-                  </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Intento</div>
-                </div>
+            </div>
+          </div>
+          
+          <!-- Estadísticas detalladas -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+              <div class="text-center">
+                <div class="text-2xl font-bold">
+                  <span class="text-green-800 dark:text-green-500">
+                    ✓ {{ data.correct_answers }}
+                  </span> /
+                  <span class="text-red-800 dark:text-red-500">
+                    ✗ {{ data.wrong_answers }}
+                  </span>  
+                  de {{ data.total_questions }}
+                </div>                
+                <div class="text-sm text-gray-500 dark:text-gray-400">Respuestas</div>
               </div>
-
-              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                <div class="text-center">
-                  <span class="text-2xl tracking-tighter font-bold text-gray-900 dark:text-gray-100">
-                    {{ formatDate(data.updated_at) }},
-                  </span>
-                  <span class="text-sm">
-                    {{ formatTimeShort(data.updated_at) }}
-                  </span>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Fecha de finalización</div>
-                </div>
-              </div>
-
-              <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                <div class="text-center">
-                  <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {{ data.time_taken ? formatTime(data.time_taken) : 'N/A' }}
-                  </div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">Tiempo invertido</div>
-                </div>
-              </div>
-         
             </div>
             
-            <!-- Acciones -->
-            <div class="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-              
-              <button 
-                (click)="openReviewModal(data)"
-                class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex-1"
-              >
-                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
-                  <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
-                </svg>
-                Revisar errores
-              </button>
-              
-              <a 
-                [routerLink]="['/tests', data.test_id, 'start-single']"
-                class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex-1"
-              >
-                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-                </svg>
-                Realizar de nuevo
-              </a>
-
-              <!-- Botón de Invitación -->
-              <button 
-                (click)="openInviteModal(data)"
-                class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-700/30 hover:bg-purple-200 dark:hover:bg-purple-700/50 transition-colors flex-1"
-              >
-                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
-                </svg>
-                Invitar
-              </button>
-
+            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {{ data.attempt }}
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">Intento</div>
+              </div>
             </div>
+
+            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+              <div class="text-center">
+                <span class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {{ formatDate(data.updated_at) }},
+                </span>
+                <span class="text-sm">
+                  {{ formatTimeShort(data.updated_at) }}
+                </span>
+                <div class="text-sm text-gray-500 dark:text-gray-400">Fecha de finalización</div>
+              </div>
+            </div>
+
+            <div class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {{ data.time_taken ? formatTime(data.time_taken) : 'N/A' }}
+                </div>
+                <div class="text-sm text-gray-500 dark:text-gray-400">Tiempo invertido</div>
+              </div>
+            </div>
+        
+          </div>
+          
+          <!-- Acciones -->
+          <div class="flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
             
+            <button 
+              (click)="openReviewModal(data)"
+              class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors flex-1"
+            >
+              <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+              </svg>
+              Revisar errores
+            </button>
+            
+            <a 
+              [routerLink]="['/tests', data.test_id, 'start-single']"
+              class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex-1"
+            >
+              <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+              </svg>
+              Realizar de nuevo
+            </a>
+
+            <!-- Botón de Invitación -->
+            <button 
+              (click)="openInviteModal(data)"
+              class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-700/30 hover:bg-purple-200 dark:hover:bg-purple-700/50 transition-colors flex-1"
+            >
+              <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+              </svg>
+              Invitar
+            </button>
+
           </div>
         </div>
       }
@@ -605,9 +603,6 @@
           @for (question of incorrectQuestions(); track question.question_id; let i = $index) {
             <div class="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-xl p-5">
               <div class="flex items-start gap-3 mb-4">
-                <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                  <span class="text-sm font-bold text-red-700 dark:text-red-300">{{ i + 1 }}</span>
-                </div>
                 <div class="flex-1">
                   <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Pregunta {{ question.question_number }}</h4>
                   <p class="text-gray-900 dark:text-gray-100 text-base">{{ question.question_text }}</p>
@@ -621,7 +616,7 @@
                   Tu respuesta
                 </div>
                 <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                  <p class="text-red-800 dark:text-red-300">{{ question.user_answer_text }}</p>
+                  <p class="text-sm xs:text-base text-red-800 dark:text-red-300">{{ question.user_answer_text }}</p>
                 </div>
               </div>
 
