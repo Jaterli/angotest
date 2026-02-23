@@ -56,6 +56,8 @@ services:
       - backend
     ports:
       - "80:80"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
       - angotest_network
     deploy:
