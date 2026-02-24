@@ -7,12 +7,11 @@ import { InvitationResponse, InvitationsFilter, InvitationsResponse } from '../m
 import { InvitationsManagementService } from '../services/invitations-management.service';
 import { UserModalService } from '../services/user-modal.service';
 import { UserProfileModalComponent } from '../user/user-profile-modal.component/user-profile-modal.component';
-import { IdWithIconButtonComponent } from '../shared-components/id-with-icon-button.component';
 
 @Component({
   selector: 'app-invitations-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent, IdWithIconButtonComponent, UserProfileModalComponent],
+  imports: [CommonModule, FormsModule, ModalComponent, UserProfileModalComponent],
   templateUrl: './invitations-management.component.html'
 })
 export class InvitationsManagementComponent implements OnInit {

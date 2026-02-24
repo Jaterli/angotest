@@ -24,7 +24,7 @@ import { CommonModule } from '@angular/common';
                [class]="size === 'sm' ? 'sm:max-w-sm' : size === 'md' ? 'sm:max-w-lg' : size === 'lg' ? 'sm:max-w-2xl' : size === 'xl' ? 'sm:max-w-4xl' : 'sm:max-w-lg'">
             
             <!-- Header -->
-            <div class="px-6 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div class="px-3 pt-5 pb-4 sm:p-6 sm:pb-4">
               <div class="flex items-start">
                 <!-- Icono -->
                 @if (icon) {

@@ -55,25 +55,25 @@
 
         <!-- Header -->
         @if (r.result?.status === 'completed') { 
-        <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 p-6 text-center">
-            <h1 class="text-2xl font-bold text-white mb-2">¡Ya completaste este test!</h1>
+        <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 p-3 xs:p-6 text-center">
+            <h1 class="text-xl xs:text-2xl font-bold text-white mb-2">¡Ya completaste este test!</h1>
             <p class="text-emerald-100">
             {{ isAuthenticated() && currentUser()!.role === 'guest' ? 'Completa tu perfil para ver tus resultados' : 'Accede a la aplicación para ver tus resultados' }}
             </p>
         </div>
         } @else if (r.result?.status === 'in_progress') {
-        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-center">
-            <h1 class="text-2xl font-bold text-white mb-2">¡Tienes un test en progreso!</h1>
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-3 xs:p-6 text-center">
+            <h1 class="text-xl xs:text-2xl font-bold text-white mb-2">¡Tienes un test en progreso!</h1>
             <p class="text-blue-100">Continúa donde lo dejaste</p>
         </div>      
         } @else {
-        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-center">
-            <h1 class="text-2xl font-bold text-white mb-2">¡Has sido invitado!</h1>
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-3 xs:p-6 text-center">
+            <h1 class="text-xl xs:text-2xl font-bold text-white mb-2">¡Has sido invitado!</h1>
             <p class="text-blue-100">Te invitan a realizar un test</p>
         </div>
         }            
 
-        <div class="p-6">
+        <div class="p-3 xs:p-6">
 
           <!-- Info del test -->
           <app-invitation-test-info [response]="r"></app-invitation-test-info>
@@ -211,7 +211,7 @@
 
           <!-- Info extra -->
           <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+            <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400">
               <span>Invitación válida hasta:</span>
               <span class="font-medium">
                 {{ getExpirationDate() | date:'dd/MM/yyyy' }}

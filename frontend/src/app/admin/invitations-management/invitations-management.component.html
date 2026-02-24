@@ -11,7 +11,7 @@
 
     <div class="flex gap-2">
       <button (click)="showFilters.set(!showFilters())"
-              class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+              class="inline-flex items-center px-4 py-2 textsize-cnf font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors border border-blue-600 dark:border-blue-700">
         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
         </svg>
@@ -86,7 +86,7 @@
         
         <div class="flex gap-2">
           <button (click)="clearSelection()"
-                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                  class="inline-flex items-center px-4 py-2 textsize-cnf font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
             <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
             </svg>
@@ -94,7 +94,7 @@
           </button>
           
           <button (click)="confirmBulkDelete()"
-                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 transition-colors">
+                  class="inline-flex items-center px-4 py-2 textsize-cnf font-medium rounded-lg text-white bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 transition-colors">
             <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
             </svg>
@@ -107,32 +107,26 @@
 
   <!-- Filtros -->
   @if (showFilters()) {
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6 mb-8">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-3 xs:p-6 mb-8">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Filtros y Ordenación</h3>
           <p class="text-gray-600 dark:text-gray-400 text-sm">Personaliza la visualización de invitaciones</p>
         </div>
         
-        <div class="flex gap-2">
+        <div class="flex items-center gap-2 textsize-cnf font-medium">
           <button (click)="onFilterChange()"
-                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
-            </svg>
+                  class="px-4 py-2 rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
             Aplicar Filtros
           </button>
           
           <button (click)="resetFilters()"
-                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-            </svg>
+                  class="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
             Limpiar Todo
           </button>
           
           <button (click)="showAdvancedFilters.set(!showAdvancedFilters())"
-                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                  class="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
             {{ showAdvancedFilters() ? 'Filtros Básicos' : 'Filtros Avanzados' }}
           </button>
         </div>
@@ -151,7 +145,7 @@
             [(ngModel)]="selectedFilters().search"
             (ngModelChange)="onFilterChange()"
             placeholder="Buscar en test, mensaje, token..."
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+            class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
         </div>     
         
@@ -163,7 +157,7 @@
           <select 
             [(ngModel)]="selectedFilters().status"
             (ngModelChange)="onFilterChange()"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+            class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
             @for (status of statusOptions; track status.value) {
               <option [value]="status.value">{{ status.label }}</option>
@@ -179,7 +173,7 @@
           <select 
             [(ngModel)]="selectedFilters().is_guest"
             (ngModelChange)="onFilterChange()"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+            class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
             <option [value]="undefined">Todos los tipos</option>
             <option [value]="true">Solo invitaciones para invitados</option>
@@ -195,7 +189,7 @@
           <select 
             [(ngModel)]="selectedFilters().is_used"
             (ngModelChange)="onFilterChange()"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+            class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
             <option [value]="undefined">Todas</option>
             <option [value]="true">Solo usadas</option>
@@ -220,7 +214,7 @@
                 type="date"
                 [(ngModel)]="selectedFilters().start_date"
                 (ngModelChange)="onFilterChange()"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+                class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
               >
             </div>
 
@@ -232,7 +226,7 @@
                 type="date"
                 [(ngModel)]="selectedFilters().end_date"
                 (ngModelChange)="onFilterChange()"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+                class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
               >
             </div>
           </div>
@@ -249,7 +243,7 @@
           <select 
             [(ngModel)]="selectedFilters().sort_by"
             (ngModelChange)="setSortBy($event)"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+            class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
             @for (option of sortOptions; track option.value) {
               <option [value]="option.value">{{ option.label }}</option>
@@ -265,7 +259,7 @@
           <div class="flex">
             <button 
               (click)="toggleSortOrder()"
-              class="w-full flex items-center justify-center px-4 py-[6px] rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              class="textsize-cnf w-full flex items-center justify-center px-4 py-[6px] rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
             >
               @if (selectedFilters().sort_order === 'desc') {
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -415,7 +409,7 @@
 
   <!-- Información de invitaciones -->
   @if (!loading() && totalItems() > 0) {
-    <div class="mb-4 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+    <div class="mb-4 md:flex md:items-center md:justify-between text-sm font-medium text-gray-600 dark:text-gray-400">
       <div class="flex items-center gap-4">
         <div>
           Mostrando 
@@ -439,17 +433,105 @@
       
       <div>
         Orden: 
-        <span class="font-medium text-gray-800 dark:text-gray-200">
+        <span class="text-gray-800 dark:text-gray-200">
           {{ getCurrentSortLabel() }} {{ getSortOrderIcon() }}
         </span>
       </div>
     </div>
   }
 
-  <!-- Tabla de invitaciones -->
+  <!-- Lista/Tabla de invitaciones -->
   @if (!loading() && totalItems() > 0) {
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
-      <div class="overflow-x-auto">
+      
+      <!-- Vista móvil: tarjetas -->
+      <div class="block sm:hidden divide-y divide-gray-200 dark:divide-gray-700">
+        @for (invitation of invitationsData(); track invitation.id) {
+          <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+            <!-- Checkbox y cabecera -->
+            <div class="flex items-center">
+              <input type="checkbox"
+                      [checked]="selectedInvitations().has(invitation.id)"
+                      (change)="toggleInvitationSelection(invitation.id)"
+                      class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 mr-3">
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                  {{ invitation.test_title }}
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-3 text-xs text-gray-500 dark:text-gray-400 py-2">
+              <span>ID Invitación: {{ invitation.id }}</span>
+              <span>ID Test: {{ invitation.test_id }}</span>
+            </div>
+
+            <!-- Información del creador -->
+            <div class="mb-3 text-sm">
+               Creada por: 
+              <button (click)="openUserProfile(invitation.invited_by)"
+                      class="text-xs px-2 py-0.5 rounded text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                  @{{ invitation.inviter_name }}
+              </button>               
+               
+              @if (invitation.message) {
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">
+                  "{{ invitation.message }}"
+                </div>
+              }
+            </div>
+
+            <!-- Información del invitado (si existe) -->
+            @if (invitation.guest_name && invitation.guest_user_id) {
+              <button (click)="openUserProfile(invitation.guest_user_id)"
+                      class="mb-3 {{ getStatusBadgeClass(invitation.status) }}">
+                  @{{ invitation.guest_name }}
+              </button>
+            }
+
+            <!-- Fechas -->
+            <div class="mb-3 p-2 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <div class="text-gray-500 dark:text-gray-400">Creada</div>
+                  <div class="text-gray-900 dark:text-gray-100">{{ formatDateTime(invitation.created_at) }}</div>
+                </div>
+                <div>
+                  <div class="text-gray-500 dark:text-gray-400">Expira</div>
+                  <div [class]="isInvitationExpired(invitation.expires_at) ? 'text-red-500 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'">
+                    {{ formatDateTime(invitation.expires_at) }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="grid grid-cols-2 gap-2 mt-3 textsize-cnf font-medium">
+              <button 
+                (click)="copyToClipboard(invitation.invitation_url)"
+                class="inline-flex items-center justify-center px-3 py-2 rounded text-emerald-700 bg-emerald-100 hover:bg-emerald-200 dark:text-emerald-300 dark:bg-emerald-900 dark:hover:bg-emerald-800 transition-colors">
+                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
+                  <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/>
+                </svg>
+                Copiar URL
+              </button>
+              
+              <button 
+                (click)="confirmDeleteInvitation(invitation)"
+                class="inline-flex items-center justify-center px-3 py-2 rounded text-red-700 bg-red-100 hover:bg-red-200 dark:text-red-300 dark:bg-red-900 dark:hover:bg-red-800 transition-colors">
+                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                Eliminar
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Vista desktop: tabla -->
+      <div class="hidden sm:block overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-900">
             <tr>
@@ -490,43 +572,40 @@
                   <div class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
                     {{ invitation.test_title }}
                   </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400">
-                    ID: {{ invitation.test_id }}
+                  <div class="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
+                    <span>ID Invitación: {{ invitation.id }}</span>
+                    <span>ID Test: {{ invitation.test_id }}</span>
                   </div>
                 </td>
                 
                 <!-- Columna Información -->
                 <td class="px-4 py-4">
-                  <div class="flex items-center gap-2">
-                    <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      Creada por: {{ invitation.inviter_name }}
-                    </div>
-                    <app-id-with-icon-button
-                      (statsClick)="openUserProfile(invitation.invited_by)">
-                    </app-id-with-icon-button>
+                  <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                    Creada por: 
+                    <button (click)="openUserProfile(invitation.invited_by)"
+                            class="text-xs px-2 py-0.5 rounded text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                        @{{ invitation.inviter_name }}
+                    </button>
+
                   </div>
                   @if (invitation.message) {
                     <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate max-w-xs">
                       {{ invitation.message }}
                     </div>
                   }
+                  @if (invitation.guest_name && invitation.guest_user_id) {
+                    <button (click)="openUserProfile(invitation.guest_user_id)"
+                            class="{{ getStatusBadgeClass(invitation.status) }}">
+                        @{{ invitation.guest_name }}
+                    </button>
+                  }
                 </td>
                 
                 <!-- Columna Estado -->
                 <td class="px-4 py-4">
-                    <div class="{{ getStatusBadgeClass(invitation.status) }}">
-                        {{ getStatusLabel(invitation.status) }}
-                    </div>                    
-                    @if (invitation.guest_name && invitation.guest_user_id) {
-                      <div class="flex items-center gap-2">
-                        <div class="text-xs text-gray-500 dark:text-gray-400">
-                          @{{ invitation.guest_name }}
-                        </div>       
-                        <app-id-with-icon-button
-                          (statsClick)="openUserProfile(invitation.guest_user_id)">
-                        </app-id-with-icon-button>
-                      </div>                              
-                    }
+                  <div class="{{ getStatusBadgeClass(invitation.status) }}">
+                    {{ getStatusLabel(invitation.status) }}
+                  </div>
                 </td>
                 
                 <!-- Columna Fechas -->
@@ -534,15 +613,9 @@
                   <div class="text-xs text-gray-500 dark:text-gray-400">
                     Creada: {{ formatDateTime(invitation.created_at) }}
                   </div>
-                  @if (isInvitationExpired(invitation.expires_at)) {
-                    <div class="text-xs text-red-500 dark:text-red-400">
-                      Expirada: {{ formatDateTime(invitation.expires_at) }}
-                    </div>
-                  } @else { 
-                  <div class="text-xs text-gray-500 dark:text-gray-400">
+                  <div [class]="isInvitationExpired(invitation.expires_at) ? 'text-xs text-red-500 dark:text-red-400' : 'text-xs text-gray-500 dark:text-gray-400'">
                     Expira: {{ formatDateTime(invitation.expires_at) }}
                   </div>
-                  }
                 </td>
                 
                 <!-- Columna Acciones -->
@@ -581,16 +654,16 @@
     @if (showPagination()) {
       <div class="mt-8">
         <nav class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div class="text-sm text-gray-600 dark:text-gray-400">
+          <div class="text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1 text-center sm:text-left">
             Página {{ currentPage() }} de {{ totalPages() }}
           </div>
           
-          <div class="flex items-center justify-center">
+          <div class="flex items-center justify-center order-1 sm:order-2">
             <div class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
               <!-- Botón Anterior -->
               <button (click)="previousPage()"
                       [disabled]="currentPage() === 1"
-                      class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-l-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                      class="relative inline-flex items-center px-3 py-2 sm:px-2 sm:py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-l-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <span class="sr-only">Anterior</span>
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
@@ -601,8 +674,8 @@
               @for (page of getPageNumbers(); track page) {
                 <button (click)="goToPage(page)"
                         [class]="currentPage() === page 
-                          ? 'z-10 text-white bg-blue-600 dark:bg-blue-700 border border-blue-500 dark:border-blue-600 relative inline-flex items-center px-4 py-2 text-sm font-medium'
-                          : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 relative inline-flex items-center px-4 py-2 text-sm font-medium transition-colors'">
+                          ? 'z-10 text-white bg-blue-600 dark:bg-blue-700 border border-blue-500 dark:border-blue-600 relative inline-flex items-center px-4 py-2 sm:px-4 sm:py-2 text-sm font-medium'
+                          : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 relative inline-flex items-center px-4 py-2 sm:px-4 sm:py-2 text-sm font-medium transition-colors'">
                   {{ page }}
                 </button>
               }
@@ -610,7 +683,7 @@
               <!-- Botón Siguiente -->
               <button (click)="nextPage()"
                       [disabled]="!hasMore()"
-                      class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-r-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                      class="relative inline-flex items-center px-3 py-2 sm:px-2 sm:py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-r-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <span class="sr-only">Siguiente</span>
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
@@ -619,7 +692,7 @@
             </div>
           </div>
           
-          <div class="text-sm text-gray-600 dark:text-gray-400">
+          <div class="text-sm text-gray-600 dark:text-gray-400 order-3 text-center sm:text-right">
             {{ selectedFilters().page_size }} invitaciones por página
           </div>
         </nav>
@@ -639,6 +712,19 @@
   (confirm)="deleteInvitation()"
   (cancel)="showDeleteModal.set(false)"
   (closed)="showDeleteModal.set(false)">
+  
+  <!-- Contenido adicional del modal -->
+  <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+    <div class="flex items-center">
+      <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+      </svg>
+      <div class="text-sm text-yellow-700 dark:text-yellow-300">
+        <p class="font-medium">¡Atención!</p>
+        <p class="mt-1">Esta acción eliminará permanentemente esta invitación y no se puede deshacer.</p>
+      </div>
+    </div>
+  </div>
 </app-modal>
 
 <!-- Modal para eliminación masiva -->
@@ -652,6 +738,19 @@
   (confirm)="deleteSelectedInvitations()"
   (cancel)="showBulkDeleteModal.set(false)"
   (closed)="showBulkDeleteModal.set(false)">
+  
+  <!-- Contenido adicional del modal -->
+  <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+    <div class="flex items-center">
+      <svg class="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+      </svg>
+      <div class="text-sm text-yellow-700 dark:text-yellow-300">
+        <p class="font-medium">¡Atención!</p>
+        <p class="mt-1">Estás a punto de eliminar {{ selectedCount() }} invitaciones. Esta acción no se puede deshacer.</p>
+      </div>
+    </div>
+  </div>
 </app-modal>
 
 <!-- Modal para perfil de usuario -->

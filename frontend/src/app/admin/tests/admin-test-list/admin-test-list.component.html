@@ -16,28 +16,19 @@
         <div class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1 sm:mb-0 sm:mr-2">
           Crear Test:
         </div>
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap gap-2 textsize-cnf font-medium">
           <a routerLink="/admin/tests/create"
-            class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-white bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-600 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>
-            </svg>
+            class="px-4 py-2.5 rounded-lg text-white bg-emerald-600 dark:bg-emerald-700 hover:bg-emerald-700 dark:hover:bg-emerald-600 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
             Manual
           </a>
           
           <a routerLink="/admin/tests/json-create"
-            class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M12.586 4.586a2 2 0 112.828 2.828l-3 3a2 2 0 01-2.828 0 1 1 0 00-1.414 1.414 4 4 0 005.656 0l3-3a4 4 0 00-5.656-5.656l-1.5 1.5a1 1 0 101.414 1.414l1.5-1.5zm-5 5a2 2 0 012.828 0 1 1 0 101.414-1.414 4 4 0 00-5.656 0l-3 3a4 4 0 105.656 5.656l1.5-1.5a1 1 0 10-1.414-1.414l-1.5 1.5a2 2 0 11-2.828-2.828l3-3z" clip-rule="evenodd"/>
-            </svg>
-            Desde JSON
+            class="px-4 py-2.5 rounded-lg text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
+            Con JSON
           </a>
 
           <a routerLink="/generate-test"
-            class="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-800/50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
-            </svg>
+            class="px-4 py-2.5 rounded-lg text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-800/50 focus:outline-hidden focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow transition-all">
             Con IA
           </a>
         </div>
@@ -49,7 +40,7 @@
       <!-- Botón para mostrar/ocultar filtros -->
       <div class="flex">
         <button (click)="showFilters.set(!showFilters())"
-                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors border border-blue-600 dark:border-blue-700">
+                class="inline-flex items-center px-4 py-2 textsize-cnf font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors border border-blue-600 dark:border-blue-700">
           <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
           </svg>
@@ -61,16 +52,16 @@
 
   <!-- Filtros (expandibles) -->
   @if (showFilters()) {
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6 mb-8">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-3 xs:p-6 mb-8">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Filtros y Ordenación</h3>
           <p class="text-gray-600 dark:text-gray-400 text-sm">Personaliza la visualización de tests</p>
         </div>
         
-        <div class="flex gap-2">
+        <div class="flex gap-2 textsize-cnf font-medium">
           <button (click)="onFilterChange()"
-                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+                  class="inline-flex items-center px-4 py-2 rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
             <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
             </svg>
@@ -78,7 +69,7 @@
           </button>
           
           <button (click)="resetFilters()"
-                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                  class="inline-flex items-center px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
             <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
             </svg>
@@ -99,7 +90,7 @@
             [(ngModel)]="selectedFilters().search"
             (ngModelChange)="onFilterChange()"
             placeholder="Buscar por título, descripción..."
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+            class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
         </div>
 
@@ -111,7 +102,7 @@
           <select 
             [(ngModel)]="selectedFilters().main_topic"
             (ngModelChange)="updateFilter('main_topic', $event)"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+            class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
             <option value="">Todos los temas</option>
             @for (topic of filterOptions().main_topics; track topic) {
@@ -128,7 +119,7 @@
           <select 
             [(ngModel)]="selectedFilters().sub_topic"
             (ngModelChange)="updateFilter('sub_topic', $event)"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+            class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
             <option value="">Todos los subtemas</option>
             @for (subTopic of filterOptions().sub_topics; track subTopic) {
@@ -148,7 +139,7 @@
           <select 
             [(ngModel)]="selectedFilters().level"
             (ngModelChange)="updateFilter('level', $event)"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+            class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
             <option value="">Todos los niveles</option>
             @for (level of filterOptions().levels; track level) {
@@ -165,7 +156,7 @@
           <select 
             [(ngModel)]="selectedFilters().sort_by"
             (ngModelChange)="setSortBy($event)"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+            class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
             @for (option of sortOptions; track option.value) {
               <option [value]="option.value">{{ option.label }}</option>
@@ -181,7 +172,7 @@
           <div class="flex">
             <button 
               (click)="toggleSortOrder()"
-              class="w-full flex items-center justify-center px-4 py-[6px] rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+              class="textsize-cnf w-full flex items-center justify-center px-4 py-[6px] rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
             >
               @if ((selectedFilters().sort_order || 'desc') === 'desc') {
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -316,7 +307,7 @@
 
   <!-- Información de resultados -->
   @if (!loading() && totalFilteredTests() > 0) {
-    <div class="mb-4 flex items-center justify-between text-sm font-medium text-gray-600 dark:text-gray-400">
+    <div class="mb-4 md:flex md:items-center md:justify-between text-sm font-medium text-gray-600 dark:text-gray-400">
         Mostrando 
         {{ getStartIndex() }} a {{ getEndIndex() }} de {{ totalFilteredTests()}} test(s) filtrados ({{ totalTests() }} totales)
       <div>
@@ -331,7 +322,109 @@
   <!-- Tabla de tests -->
   @if (!loading() && totalFilteredTests() > 0) {
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mb-8">
-      <div class="overflow-x-auto">
+      <!-- Vista móvil: tarjetas -->
+      <div class="block sm:hidden divide-y divide-gray-200 dark:divide-gray-700">
+        @for (test of tests(); track test.id) {
+          <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+            <!-- Cabecera con título y estado -->
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                  @if (test.is_active) {
+                    <svg class="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                    </svg>
+                  }
+                  <span class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                    {{ test.title }}
+                  </span>
+                </div>
+                <div class="flex gap-2 text-xs text-gray-500 dark:text-gray-400 space-y-0.5">
+                  <div>ID test: {{ test.id }}</div>
+                  <div>ID creador: {{ test.created_by }}</div>
+                </div>
+              </div>
+              <span class="{{ getLevelBadgeClass(test.level) }} ml-2 flex-shrink-0">
+                {{ test.level }}
+              </span>
+            </div>
+
+            <!-- Información de temas -->
+            <div class="mb-3 text-sm">
+              <div class="text-gray-900 dark:text-gray-100 font-medium">{{ test.main_topic }}</div>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                @if (test.sub_topic && test.sub_topic !== 'General') {
+                  <span>› {{ test.sub_topic }}</span>
+                } @else {
+                  <span>Sin subtema</span>
+                }
+                @if (test.specific_topic && test.specific_topic !== 'General') {
+                  <span class="block ml-2">› {{ test.specific_topic }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- Grid de información -->
+            <div class="flex justify-between gap-3 mb-3 text-xs">
+              <div>
+                <div class="text-gray-500 dark:text-gray-400">Preguntas</div>
+                <div class="text-gray-900 dark:text-gray-100 font-medium">{{ test.question_count || 0 }}</div>
+              </div>
+              <div>
+                <div class="text-gray-500 dark:text-gray-400">Creado</div>
+                <div class="text-gray-900 dark:text-gray-100">{{ formatDate(test.created_at) }}</div>
+              </div>
+              @if (test.created_at < test.updated_at) {
+                <div>
+                  <div class="text-gray-500 dark:text-gray-400">Actualizado</div>
+                  <div class="text-gray-900 dark:text-gray-100">{{ formatDate(test.updated_at) }}</div>
+                </div>
+              }
+            </div>
+
+            <!-- Acciones en grid -->
+            <div class="grid grid-cols-2 gap-2 mt-3 textsize-cnf font-medium">
+              <a [routerLink]="['/admin/tests/edit', test.id]"
+                class="inline-flex items-center justify-center px-3 py-2 rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:text-blue-300 dark:bg-blue-900 dark:hover:bg-blue-800 transition-colors">
+                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                </svg>
+                Editar
+              </a>
+              <a [routerLink]="['/tests', test.id, 'start-single']"
+                class="inline-flex items-center justify-center px-3 py-2 rounded text-emerald-700 bg-emerald-100 hover:bg-emerald-200 dark:text-emerald-300 dark:bg-emerald-900 dark:hover:bg-emerald-800 transition-colors">
+                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd"/>
+                </svg>
+                Realizar
+              </a>
+              <button 
+                (click)="openInviteModal(test)"
+                class="inline-flex items-center justify-center px-3 py-2 rounded text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-700/30 hover:bg-purple-200 dark:hover:bg-purple-700/50 transition-colors">
+                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
+                </svg>
+                Invitar
+              </button>
+              <button 
+                (click)="prepareDeleteTest(test)"
+                class="inline-flex items-center justify-center px-3 py-2 rounded text-red-700 bg-red-100 hover:bg-red-200 dark:text-red-300 dark:bg-red-900 dark:hover:bg-red-800 transition-colors">
+                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                Eliminar
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Vista desktop: tabla -->
+      <div class="hidden sm:block overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead class="bg-gray-50 dark:bg-gray-900">
             <tr>
@@ -366,7 +459,6 @@
                           <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
                           </svg>
-
                         } @else {
                           <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
@@ -446,14 +538,14 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                   <div class="flex gap-2">
                     <a [routerLink]="['/admin/tests/edit', test.id]"
-                       class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:text-blue-300 dark:bg-blue-900 dark:hover:bg-blue-800 transition-colors">
+                      class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 dark:text-blue-300 dark:bg-blue-900 dark:hover:bg-blue-800 transition-colors">
                       <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
                       </svg>
                       Editar
                     </a>
                     <a [routerLink]="['/tests', test.id, 'start-single']"
-                       class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-emerald-700 bg-emerald-100 hover:bg-emerald-200 dark:text-emerald-300 dark:bg-emerald-900 dark:hover:bg-emerald-800 transition-colors">
+                      class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-emerald-700 bg-emerald-100 hover:bg-emerald-200 dark:text-emerald-300 dark:bg-emerald-900 dark:hover:bg-emerald-800 transition-colors">
                       <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd"/>
                       </svg>
@@ -490,16 +582,16 @@
     @if (showPagination()) {
       <div class="mt-8">
         <nav class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div class="text-sm text-gray-600 dark:text-gray-400">
+          <div class="text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1 text-center sm:text-left">
             Página {{ selectedFilters().page }} de {{ totalPages() }}
           </div>
           
-          <div class="flex items-center justify-center">
+          <div class="flex items-center justify-center order-1 sm:order-2">
             <div class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
               <!-- Botón Anterior -->
               <button (click)="previousPage()"
                       [disabled]="selectedFilters().page === 1"
-                      class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-l-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                      class="relative inline-flex items-center px-3 py-2 sm:px-2 sm:py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-l-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <span class="sr-only">Anterior</span>
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
@@ -510,8 +602,8 @@
               @for (page of getPageNumbers(); track page) {
                 <button (click)="goToPage(page)"
                         [class]="selectedFilters().page === page 
-                          ? 'z-10 text-white bg-blue-600 dark:bg-blue-700 border border-blue-500 dark:border-blue-600 relative inline-flex items-center px-4 py-2 text-sm font-medium'
-                          : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 relative inline-flex items-center px-4 py-2 text-sm font-medium transition-colors'">
+                          ? 'z-10 text-white bg-blue-600 dark:bg-blue-700 border border-blue-500 dark:border-blue-600 relative inline-flex items-center px-4 py-2 sm:px-4 sm:py-2 text-sm font-medium'
+                          : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 relative inline-flex items-center px-4 py-2 sm:px-4 sm:py-2 text-sm font-medium transition-colors'">
                   {{ page }}
                 </button>
               }
@@ -519,7 +611,7 @@
               <!-- Botón Siguiente -->
               <button (click)="nextPage()"
                       [disabled]="!hasMore()"
-                      class="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-r-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                      class="relative inline-flex items-center px-3 py-2 sm:px-2 sm:py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-r-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <span class="sr-only">Siguiente</span>
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
@@ -528,7 +620,7 @@
             </div>
           </div>
           
-          <div class="text-sm text-gray-600 dark:text-gray-400">
+          <div class="text-sm text-gray-600 dark:text-gray-400 order-3 text-center sm:text-right">
             {{ selectedFilters().page_size || 10 }} tests por página
           </div>
         </nav>

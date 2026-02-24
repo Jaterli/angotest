@@ -75,7 +75,7 @@
     }
     
     <!-- Información de la cuenta (solo lectura) -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-6 mb-8 border border-gray-200 dark:border-gray-700">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-3 xs:p-6 mb-8 border border-gray-200 dark:border-gray-700">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Información de la Cuenta</h2>
       <div class="space-y-4">
         @if (user()) {
@@ -131,7 +131,7 @@
     <!-- Formulario de perfil o completar perfil para guest -->
     @if (user()?.role === 'guest') {
       <!-- Formulario completo para usuarios guest -->
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-6 mb-8 border border-gray-200 dark:border-gray-700">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-3 xs:p-6 mb-8 border border-gray-200 dark:border-gray-700">
         <div class="mb-6">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Completar Perfil para Usuario Permanente</h2>
           <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -471,7 +471,7 @@
             <button 
               type="submit" 
               [disabled]="guestCompleteForm.invalid || loadingGuestUpdate()"
-              class="w-full py-4 bg-emerald-600 dark:bg-emerald-700 text-white font-semibold rounded-lg hover:bg-emerald-700 dark:hover:bg-emerald-600 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-lg"
+              class="w-full py-4 bg-emerald-600 dark:bg-emerald-700 text-white font-semibold rounded-lg hover:bg-emerald-700 dark:hover:bg-emerald-600 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm xs:text-lg"
             >
               @if (loadingGuestUpdate()) {
                 <svg class="w-6 h-6 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -486,7 +486,7 @@
                 Convertirse en Usuario Permanente
               }
             </button>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-3 text-center">
+            <p class="text-xs xs:text-sm text-gray-500 dark:text-gray-400 mt-3 text-center">
               Al completar este formulario, tu cuenta de invitado será convertida en una cuenta permanente.
             </p>
           </div>
@@ -494,7 +494,7 @@
       </div>
     } @else {
       <!-- Formulario de perfil normal (para usuarios no guest) -->
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-6 mb-8 border border-gray-200 dark:border-gray-700">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-3 xs:p-6 mb-8 border border-gray-200 dark:border-gray-700">
         <div class="mb-6">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Información Personal</h2>        
         </div>
@@ -701,7 +701,7 @@
             <button
               type="button"
               (click)="toggleEmailPasswordForm()"
-              class="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 py-2 px-4 rounded-lg transition-colors"
+              class="flex items-center gap-2 text-gray-400 dark:text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 font-medium text-sm xs:text-base py-2 transition-colors"
             >
               @if (showEmailPasswordForm()) {
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -721,7 +721,7 @@
 
       <!-- Formulario de cambio de email y contraseña (solo visible cuando se activa) -->
       @if (showEmailPasswordForm()) {
-        <div id="change_email_password" class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-6 mb-8 border border-gray-200 dark:border-gray-700">
+        <div id="change_email_password" class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-3 xs:p-6 mb-8 border border-gray-200 dark:border-gray-700">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Cambiar Email y/o Contraseña</h2>
           
           <!-- Mensajes de éxito/error -->

@@ -43,28 +43,24 @@
                 {{ resultDetails()!.user!.email }}
               </p>
             </div>
+          </div>    
+          <div class="text-right text-xs text-gray-500 dark:text-gray-400">
+            {{ formatDate(resultDetails()!.result.started_at) }} › {{ formatDate(resultDetails()!.result.updated_at) }}
           </div>
-          
-          <div class="text-right">
-            <div class="text-xs text-gray-500 dark:text-gray-400">
-              {{ formatDate(resultDetails()!.result.started_at) }} &raquo; {{ formatDate(resultDetails()!.result.updated_at) }}
-            </div>
-            <div class="flex items-center gap-2 justify-end mt-1">
-              <div [class]="getLevelBadgeClass(resultDetails()!.test.level)">
-                {{ resultDetails()!.test.level }}
-              </div>
-              <div [class]="getStatusBadgeClass(resultDetails()!.result.status)">
-                {{ getStatusLabel(resultDetails()!.result.status) }}
-              </div>
-            </div>
-          </div>
+
         </div>
 
         <!-- Título del test en una línea -->
         <div class="mb-3">
-          <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
+          <h2 class="text-lg inline mr-2 font-bold text-gray-900 dark:text-gray-100">
             {{ resultDetails()!.test.title }}
           </h2>
+          <span class="mr-2" [class]="getLevelBadgeClass(resultDetails()!.test.level)">
+            {{ resultDetails()!.test.level }}
+          </span>  
+          <span [class]="getStatusBadgeClass(resultDetails()!.result.status)">
+            {{ getStatusLabel(resultDetails()!.result.status) }}
+          </span>                  
           @if (resultDetails()!.test.description) {
             <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
               {{ resultDetails()!.test.description }}
@@ -74,7 +70,7 @@
                  
         <!-- Topics en línea -->
         <div class="text-xs text-gray-500 dark:text-gray-400">
-          {{ resultDetails()!.test.main_topic }} &raquo; {{ resultDetails()!.test.sub_topic }} &raquo; {{ resultDetails()!.test.specific_topic }}
+          {{ resultDetails()!.test.main_topic }} › {{ resultDetails()!.test.sub_topic }} › {{ resultDetails()!.test.specific_topic }}
         </div>
       </div>
 
