@@ -77,7 +77,10 @@ export class RegisterComponent {
       ]],
       birthDate: ['', [
         Validators.required
-      ]]
+      ]],
+      terms: ['', [
+        Validators.requiredTrue
+      ]],
     }, {
       validators: [this.passwordMatchValidator]
     });
@@ -142,6 +145,7 @@ export class RegisterComponent {
   get address() { return this.registerForm.get('address'); }
   get country() { return this.registerForm.get('country'); }  
   get birthDate() { return this.registerForm.get('birthDate'); }
+  get terms() { return this.registerForm.get('terms'); }  
 
   // Calcular edad mínima (18 años)
   getMinBirthDate(): string {
@@ -183,8 +187,9 @@ export class RegisterComponent {
       last_name: this.registerForm.value.lastName,
       phone: this.registerForm.value.phone || '',
       address: this.registerForm.value.address || '',
-      country: this.registerForm.value.country,      
-      birth_date: formattedDate
+      country: this.registerForm.value.country,            
+      birth_date: formattedDate,
+      terms: this.registerForm.value.terms,
     };
 
     this.authService.register(formData).subscribe({
@@ -192,12 +197,12 @@ export class RegisterComponent {
         this.loading.set(false);
         this.success.set(true);
         
-        // Redirigir al login después de 3 segundos
+        // Redirigir al login después de 5 segundos
         setTimeout(() => {
           this.router.navigate(['/login'], { 
             queryParams: { registered: 'true' } 
           });
-        }, 5000); // ✅ Cambiado a 3 segundos (más razonable)
+        }, 5000); 
       },
       error: (err: any) => {
         this.loading.set(false);

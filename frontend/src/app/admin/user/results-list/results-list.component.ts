@@ -61,7 +61,7 @@ export class ResultsListComponent implements OnInit {
   hasMore = signal(false);
   
   // Estado de la UI
-  showFilters = signal(true);
+  showFilters = signal(false);
   showAdvancedFilters = signal(false);
 
   // Ordenamiento
@@ -412,6 +412,10 @@ export class ResultsListComponent implements OnInit {
 
   getScoreBadgeClass(score: number): string {
     return this.sharedUtilsService.getSharedScoreBadgeClass(score);
+  }
+
+  getScoreColor(score: number): string {
+    return this.sharedUtilsService.getSharedScoreColor(score);
   }
 
   formatDate(dateString: string): string {

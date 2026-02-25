@@ -168,16 +168,18 @@
             </div>
           </div>
 
-          <!-- Información adicional -->
-          <div class="flex flex-wrap justify-between text-sm text-gray-500 dark:text-gray-400 mb-4">
+          <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-4">
             <div>
               ID: #{{ config.id }}
-            </div>            
+            </div> 
+            <!-- Fechas -->
             <div>
-              Creado: {{ config.created_at | date:'dd/MM/yyyy' }}
-            </div>
-            <div>
-              Actualizado: {{ config.updated_at | date:'dd/MM/yyyy' }}
+              <div>
+                Creado: {{ config.created_at | date:'dd/MM/yyyy' }}
+              </div>
+              <div>
+                Actualizado: {{ config.updated_at | date:'dd/MM/yyyy' }}
+              </div>
             </div>
           </div>
 

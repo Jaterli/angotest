@@ -126,15 +126,19 @@
         
         <div class="flex items-center gap-2 textsize-cnf font-medium">
           <button (click)="onFilterChange()"
-                  class="px-4 py-2 rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+                  class="inline-flex items-center px-4 py-2 rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+            <svg class="hidden sm:block w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+            </svg>
             Aplicar Filtros
-          </button>
-          
+          </button>        
           <button (click)="resetFilters()"
-                  class="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                  class="inline-flex items-center px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+            <svg class="hidden sm:block w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+            </svg>
             Limpiar Todo
           </button>
-          
           <button (click)="showAdvancedFilters.set(!showAdvancedFilters())"
                   class="px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
             {{ showAdvancedFilters() ? 'Filtros Básicos' : 'Filtros Avanzados' }}
@@ -540,28 +544,36 @@
         @for (result of adminResultsData(); track result.id) {
           <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
             <!-- Checkbox y cabecera -->
-            <div class="flex items-start justify-between mb-3">
+            <div class="flex justify-between mb-3">
               <div class="flex items-center flex-1 min-w-0">
                 <input type="checkbox"
                        [checked]="selectedResults().has(result.id)"
                        (change)="toggleResultSelection(result.id)"
                        class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 mr-3">
-                <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium" 
-                  [class]="getRoleBadgeClass(result.user_role)">
-                  {{ result.user_role[0].toUpperCase() }}
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                  ID: {{ result.id }} 
                 </span>
-                <div class="ml-2 flex-1 min-w-0">
-                  <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                    {{ getUserFullName(result) }}
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                    {{ result.user_email }}
-                  </div>
-                </div>
               </div>
               <span class="{{ getStatusBadgeClass(result.status) }} ml-2 flex-shrink-0">
                 {{ getStatusLabel(result.status) }}
               </span>
+            </div>
+
+            <!-- User info -->
+            <div class="flex items-center flex-1 min-w-0 mb-2"> 
+              <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium" 
+                [class]="getRoleBadgeClass(result.user_role)">
+                {{ result.user_role[0].toUpperCase() }}
+              </span>
+
+              <div class="ml-2 flex-1 min-w-0">              
+                <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                  {{ getUserFullName(result) }}
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {{ result.user_email }}
+                </div>
+              </div>
             </div>
 
             <!-- Información del test -->
@@ -576,28 +588,29 @@
               </div>
             </div>
 
-            <!-- Grid de resultados -->
-            <div class="grid grid-cols-2 gap-3 mb-3 text-xs">
-              <div>
-                <div class="text-gray-500 dark:text-gray-400">Puntuación</div>
-                <div class="text-gray-900 dark:text-gray-100 font-medium">
-                  @if (result.status === 'completed') {
-                    <span class="{{ getScoreBadgeClass(result.score) }}">
-                      {{ result.score.toFixed(1) }}%
-                    </span>
-                  } @else {
-                    <span class="text-gray-400">N/A</span>
-                  }
+            <div class="mb-3 p-2 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+
+              <!-- Grid de resultados -->
+              <div class="grid grid-cols-2 gap-3 mb-3 text-xs">
+                <div>
+                  <div class="text-gray-500 dark:text-gray-400">Puntuación</div>
+                  <div class="text-gray-900 dark:text-gray-100 font-medium">
+                    @if (result.status === 'completed') {
+                      <span class="{{ getScoreColor(result.score) }}">
+                        {{ result.score.toFixed(1) }}%
+                      </span>
+                    } @else {
+                      <span class="text-gray-400">N/A</span>
+                    }
+                  </div>
+                </div>
+                <div>
+                  <div class="text-gray-500 dark:text-gray-400">Tiempo</div>
+                  <div class="text-gray-900 dark:text-gray-100">{{ formatTime(result.time_taken) }}</div>
                 </div>
               </div>
-              <div>
-                <div class="text-gray-500 dark:text-gray-400">Tiempo</div>
-                <div class="text-gray-900 dark:text-gray-100">{{ formatTime(result.time_taken) }}</div>
-              </div>
-            </div>
-
-            <!-- Fechas -->
-            <div class="mb-3 p-2 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+  
+              <!-- Fechas -->
               <div class="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <div class="text-gray-500 dark:text-gray-400">Inició</div>

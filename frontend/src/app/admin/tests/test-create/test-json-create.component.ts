@@ -6,6 +6,7 @@ import { AuthService } from '../../../shared/services/auth.service';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { TestsManagementService } from '../../services/tests-management.service';
 import { TopicsViewerComponent } from './topics-viewer.component';
+import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
 
 @Component({
   selector: 'app-test-json-create',
@@ -41,6 +42,7 @@ export class TestJsonCreateComponent {
   constructor(
     private testsManagementService: TestsManagementService,
     private authService: AuthService,
+    private sharedUtilsService: SharedUtilsService,
     private router: Router
   ) {}
 
@@ -318,6 +320,10 @@ export class TestJsonCreateComponent {
     }
   }
 
+  getLevelBadgeClass(level: string): string {
+    return this.sharedUtilsService.getSharedLevelBadgeClass(level);
+  }
+
   // Método para ir a la lista de tests
   goToList(): void {
     this.router.navigate(['/admin/tests']);
@@ -331,6 +337,16 @@ export class TestJsonCreateComponent {
       this.router.navigate(['/admin/tests']);
     }, 300);
   }
+
+  onCancelModalConfirm(): void {
+    this.showSuccessModal.set(false);
+    this.clearForm();
+    // Redirigir después de cerrar el modal    
+    setTimeout(() => {
+      this.router.navigate(['/admin/json-create']);
+    }, 300);
+  }
+
 
   onErrorModalConfirm(): void {
     this.showErrorModal.set(false);

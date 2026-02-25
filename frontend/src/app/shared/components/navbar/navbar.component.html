@@ -35,7 +35,7 @@
         @else {
           <!-- Menú para Administradores (solo desktop) -->
           @if (shouldShowAdminMenu()) {
-            <div class="hidden md:flex items-center space-x-4">
+            <div class="hidden lg:flex items-center space-x-4">
               <a routerLink="/admin/dashboard" 
                  [class]="classes.link"
                  [routerLinkActive]="activeClasses.link">
@@ -76,7 +76,7 @@
 
           <!-- Menú para Usuarios normales (solo desktop) -->
           @if (shouldShowUserMenu() && userRole !== 'guest') {
-            <div class="hidden md:flex items-center space-x-4">
+            <div class="hidden lg:flex items-center space-x-4">
               <!-- Dashboard -->
               <a routerLink="/dashboard" 
                  [class]="classes.link"
@@ -110,7 +110,7 @@
           <!-- Para usuarios guest (solo desktop) - SOLO enlaces en progreso y completados -->
           @if (userRole === 'guest') {
 
-            <div class="hidden md:flex items-center space-x-4 whitespace-nowrap">
+            <div class="hidden lg:flex items-center space-x-4 whitespace-nowrap">
               <a routerLink="/tests/in-progress" 
                  [class]="classes.link"
                  [routerLinkActive]="activeClasses.link">
@@ -125,11 +125,11 @@
           }
 
           <!-- Dropdown del usuario (solo desktop) -->
-          <div class="hidden md:block relative group" (mouseenter)="showUserDropdown.set(true)" (mouseleave)="showUserDropdown.set(false)">
+          <div class="hidden lg:block relative group" (mouseenter)="showUserDropdown.set(true)" (mouseleave)="showUserDropdown.set(false)">
             <!-- Botón del usuario -->
             <button [class]="classes.userButton">
               <!-- Avatar o iniciales -->
-              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center shadow-sm">
+              <div class="w-8 h-8 rounded-full flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center shadow-sm">
                 @if (userProfilePic()) {
                   <img [src]="userProfilePic()" alt="Avatar" class="w-full h-full rounded-full object-cover">
                 } @else {
@@ -161,7 +161,7 @@
                 <!-- Header del dropdown -->
                 <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                   <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 text-xs rounded-full bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center shadow-sm">
+                    <div class="w-8 h-8 text-xs rounded-full flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center shadow-sm">
                       @if (userProfilePic()) {
                         <img [src]="userProfilePic()" alt="Avatar" class="w-full h-full rounded-full object-cover">
                       } @else {
@@ -205,12 +205,33 @@
         }
 
         <!-- Toggle de tema -->
-        <div class="border-l border-gray-200 dark:border-gray-700 pl-4">
+        <div class="hidden lg:block border-l border-gray-200 dark:border-gray-700 pl-4">
           <app-theme-toggle></app-theme-toggle>
         </div>
 
+        <!-- Avatar o iniciales - Grupo con tooltip -->
+        <div class="relative group lg:hidden">
+          <!-- Tooltip -->
+          <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full mb-2 hidden group-hover:block z-10">
+            <div class="bg-gray-900 text-white text-sm rounded-md py-1 px-3 whitespace-nowrap shadow-lg dark:bg-gray-700">
+              {{ getUserDisplayName() }}
+              <!-- Flecha del tooltip -->
+              <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-45 w-2 h-2 bg-gray-900 dark:bg-gray-700"></div>
+            </div>
+          </div>
+          
+          <!-- Avatar o iniciales -->
+          <div class="w-8 h-8 rounded-full flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center shadow-sm cursor-default">
+            @if (userProfilePic()) {
+              <img [src]="userProfilePic()" alt="Avatar" class="w-full h-full rounded-full object-cover">
+            } @else {
+              <span class="text-white font-semibold text-sm">{{ getUserInitials() }}</span>
+            }
+          </div>
+        </div>
+
         <!-- Menú hamburguesa para móvil -->
-        <div class="md:hidden">
+        <div class="lg:hidden">
           <button (click)="toggleMobileMenu()"
                   [class]="classes.mobileMenuButton">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -223,134 +244,146 @@
 
     <!-- Menú móvil desplegable -->
     @if (showMobileMenu()) {
-      <div class="md:hidden border-t border-gray-200 dark:border-gray-700">
-        <div class="px-2 pt-2 pb-3 space-y-1">
-          
-          @if (!isLoggedIn) {
-            <!-- Login en móvil -->
-            <a routerLink="/login" 
-               (click)="closeMobileMenu()"
-               [class]="classes.mobileLink"
-               [routerLinkActive]="activeClasses.mobile">
-              Login
-            </a>
-          }
-          
-          @else {
-            <!-- Perfil y Cerrar sesión (siempre primeros en móvil) -->
-            <a routerLink="/user/profile" 
-               (click)="closeMobileMenu()"
-               [class]="classes.mobileLink"
-               [routerLinkActive]="activeClasses.mobile"
-               class="font-semibold">
-              <span class="flex items-center">
+      <div class="lg:hidden border-t border-gray-200 dark:border-gray-700">
+        <div class="px-2 pt-2 pb-3 space-y-1">    
+            @if (!isLoggedIn) {
+
+              <div class="flex justify-between">
+                <!-- Toggle de tema -->
+                <div class="border-l border-gray-200 dark:border-gray-700 pl-4">
+                  <app-theme-toggle></app-theme-toggle>
+                </div>
+                <!-- Login en móvil -->
+                <a routerLink="/login" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  Login
+                </a>
+              </div>
+            } @else {
+
+              <div class="flex justify-between">
+                <!-- Perfil y Cerrar sesión (siempre primeros en móvil) -->
+                <a routerLink="/user/profile" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile"
+                  class="font-semibold">
+                  <span class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                    </svg>
+                    Mi Perfil
+                  </span>
+                </a>
+
+                <!-- Toggle de tema -->
+                <div class="border-l border-gray-200 dark:border-gray-700 pl-4">
+                  <app-theme-toggle></app-theme-toggle>
+                </div>
+
+              </div>
+              <button (click)="logout(); closeMobileMenu()"
+                      class="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                  <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
                 </svg>
-                Mi Perfil
-              </span>
-            </a>
-            
-            <button (click)="logout(); closeMobileMenu()"
-                    class="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-              <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
-              </svg>
-              Cerrar Sesión
-            </button>
-            
-            <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
-            
-            <!-- Menú Admin en móvil -->
-            @if (shouldShowAdminMenu()) {
-              <a routerLink="/admin/dashboard" 
-                 (click)="closeMobileMenu()"
-                 [class]="classes.mobileLink"
-                 [routerLinkActive]="activeClasses.mobile">
-                Dashboard
-              </a>
-              <a routerLink="/admin/tests" 
-                 (click)="closeMobileMenu()"
-                 [class]="classes.mobileLink"
-                 [routerLinkActive]="activeClasses.mobile">
-                Tests
-              </a>
-              <a routerLink="/admin/users/stats" 
-                 (click)="closeMobileMenu()"
-                 [class]="classes.mobileLink"
-                 [routerLinkActive]="activeClasses.mobile">
-                Usuarios
-              </a>
-              <a routerLink="/admin/results" 
-                 (click)="closeMobileMenu()"
-                 [class]="classes.mobileLink"
-                 [routerLinkActive]="activeClasses.mobile">
-                Resultados
-              </a>
-              <a routerLink="/admin/invitations" 
-                 (click)="closeMobileMenu()"
-                 [class]="classes.mobileLink"
-                 [routerLinkActive]="activeClasses.mobile">
-                Invitaciones
-              </a>              
-              <a routerLink="/admin/quotas" 
-                 (click)="closeMobileMenu()"
-                 [class]="classes.mobileLink"
-                 [routerLinkActive]="activeClasses.mobile">
-                Quotas
-              </a>                 
-              <a routerLink="/admin/system-config" 
-                 (click)="closeMobileMenu()"
-                 [class]="classes.mobileLink"
-                 [routerLinkActive]="activeClasses.mobile">
-                Configuración
-              </a>
+                Cerrar Sesión
+              </button>
+              
+              <div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+              
+              <!-- Menú Admin en móvil -->
+              @if (shouldShowAdminMenu()) {
+                <a routerLink="/admin/dashboard" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  Dashboard
+                </a>
+                <a routerLink="/admin/tests" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  Tests
+                </a>
+                <a routerLink="/admin/users/stats" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  Usuarios
+                </a>
+                <a routerLink="/admin/results" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  Resultados
+                </a>
+                <a routerLink="/admin/invitations" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  Invitaciones
+                </a>              
+                <a routerLink="/admin/quotas" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  Quotas
+                </a>                 
+                <a routerLink="/admin/system-config" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  Configuración
+                </a>
+              }
+              
+              <!-- Menú Usuario normal en móvil (no guest) -->
+              @if (shouldShowUserMenu() && userRole !== 'guest') {
+                <a routerLink="/dashboard" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  Dashboard
+                </a>
+                <a routerLink="/tests/not-started" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  Tests disponibles
+                </a>
+                <a routerLink="/tests/in-progress" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  En Progreso
+                </a>
+                <a routerLink="/tests/completed" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  Completados
+                </a>
+              }
+              
+              <!-- Menú Guest en móvil - SOLO en progreso y completados -->
+              @if (userRole === 'guest') {
+                <a routerLink="/tests/in-progress" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  En Progreso
+                </a>
+                <a routerLink="/tests/completed" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  Completados
+                </a>
+              }
             }
-            
-            <!-- Menú Usuario normal en móvil (no guest) -->
-            @if (shouldShowUserMenu() && userRole !== 'guest') {
-              <a routerLink="/dashboard" 
-                 (click)="closeMobileMenu()"
-                 [class]="classes.mobileLink"
-                 [routerLinkActive]="activeClasses.mobile">
-                Dashboard
-              </a>
-              <a routerLink="/tests/not-started" 
-                 (click)="closeMobileMenu()"
-                 [class]="classes.mobileLink"
-                 [routerLinkActive]="activeClasses.mobile">
-                Tests disponibles
-              </a>
-              <a routerLink="/tests/in-progress" 
-                 (click)="closeMobileMenu()"
-                 [class]="classes.mobileLink"
-                 [routerLinkActive]="activeClasses.mobile">
-                En Progreso
-              </a>
-              <a routerLink="/tests/completed" 
-                 (click)="closeMobileMenu()"
-                 [class]="classes.mobileLink"
-                 [routerLinkActive]="activeClasses.mobile">
-                Completados
-              </a>
-            }
-            
-            <!-- Menú Guest en móvil - SOLO en progreso y completados -->
-            @if (userRole === 'guest') {
-              <a routerLink="/tests/in-progress" 
-                 (click)="closeMobileMenu()"
-                 [class]="classes.mobileLink"
-                 [routerLinkActive]="activeClasses.mobile">
-                En Progreso
-              </a>
-              <a routerLink="/tests/completed" 
-                 (click)="closeMobileMenu()"
-                 [class]="classes.mobileLink"
-                 [routerLinkActive]="activeClasses.mobile">
-                Completados
-              </a>
-            }
-          }
         </div>        
       </div>
     }

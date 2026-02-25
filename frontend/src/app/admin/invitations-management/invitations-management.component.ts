@@ -39,7 +39,7 @@ export class InvitationsManagementComponent implements OnInit {
   hasMore = signal(false);
   
   // Estado de la UI
-  showFilters = signal(true);
+  showFilters = signal(false);
   showAdvancedFilters = signal(false);
   
   // Ordenamiento

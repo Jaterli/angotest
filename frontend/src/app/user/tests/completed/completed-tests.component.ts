@@ -66,8 +66,8 @@ export class CompletedTestsComponent implements OnInit {
   // Datos para el modal
   selectedResult: any = null;
   incorrectQuestions = signal<any[]>([]);
+  showCorrectAnswer = true; // true para mostrar también las respuestas correctas en el modal
   reviewSummary = signal<any>(null);
-  showCorrectAnswer = false;
   
   // Modal para la invitación
   showInviteModal = signal(false);

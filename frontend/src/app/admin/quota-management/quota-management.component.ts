@@ -46,7 +46,7 @@ export class QuotaManagementComponent implements OnInit {
   hasMore = signal(false);
 
   // Estado de la UI
-  showFilters = signal(true);
+  showFilters = signal(false);
   showAdvancedFilters = signal(false);
   viewMode = signal<'table' | 'cards'>('table');
 

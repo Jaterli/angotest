@@ -198,7 +198,7 @@ export class SharedUtilsService {
   }
 
   getSharedLevelBadgeClass(level: string): string {
-    var commonClasses = 'inline-flex px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap';
+    var commonClasses = 'inline-flex px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ';
     switch (level?.toLowerCase()) {
       case 'principiante': return commonClasses + 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300';
       case 'intermedio': return commonClasses + 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300';

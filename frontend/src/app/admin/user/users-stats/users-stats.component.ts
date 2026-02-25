@@ -54,7 +54,7 @@ export class UsersStatsComponent implements OnInit {
   ]);
 
   // Estado de la UI
-  showFilters = signal(true);
+  showFilters = signal(false);
 
   // Memoria de filtros (localStorage)
   private readonly FILTER_STORAGE_KEY = 'admin_users_filters';
