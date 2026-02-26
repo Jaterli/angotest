@@ -159,15 +159,15 @@ export class SharedUtilsService {
     switch(status) {
       case 'completed': 
         case 'used':
-          return commonClasses + 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300';
+          return commonClasses + 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300';
       case 'in_progress':
         case 'active':
-          return commonClasses + 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
+          return commonClasses + 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
       case 'abandoned':
         case 'expired':
-          return commonClasses + 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
+          return commonClasses + 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
       default:
-        return commonClasses + 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+        return commonClasses + 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
     }
   }
 
@@ -182,7 +182,6 @@ export class SharedUtilsService {
       default: return status;
     }
   }
-
 
   getSharedActivityStatusBgColor(status: string): string {
     switch (status) {
@@ -201,7 +200,7 @@ export class SharedUtilsService {
     var commonClasses = 'inline-flex px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ';
     switch (level?.toLowerCase()) {
       case 'principiante': return commonClasses + 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300';
-      case 'intermedio': return commonClasses + 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300';
+      case 'intermedio': return commonClasses + 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
       case 'avanzado': return commonClasses + 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
       default: return commonClasses + 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
     }
@@ -217,7 +216,7 @@ export class SharedUtilsService {
     return new Date(dateString).toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'  
+      year: '2-digit', // 'numeric'  
     });
   }
 
@@ -226,7 +225,7 @@ export class SharedUtilsService {
     return date.toLocaleDateString('es-ES', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric',
+      year: '2-digit', // 'numeric'  
       hour: '2-digit',
       minute: '2-digit'
     });

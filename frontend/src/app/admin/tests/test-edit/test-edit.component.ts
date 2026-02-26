@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription, debounceTime, distinctUntilChanged, filter, tap } from 'rxjs';
-import { Test } from '../../../shared/models/test.model';
+import { Test } from '../../../shared/models/test.models';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { TestsManagementService } from '../../services/tests-management.service';
 import { TopicsService } from '../../../shared/services/topics.service';

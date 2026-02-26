@@ -15,7 +15,7 @@
     <!-- Quota -->
     @if (quota()) {
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-4 mb-6">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex flex-col items-center sm:flex-row sm:justify-between gap-4">
           <div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Límite Mensual</h3>
             <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -42,7 +42,7 @@
 
     <!-- FORMULARIO -->
     @if (!loading()) {
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-3 sm:p-6">
         <form [formGroup]="generateForm" (ngSubmit)="onSubmit()" class="space-y-6">
 
           <!-- MODO (solo admin) -->
@@ -95,7 +95,7 @@
               } @else {
                 <select
                   formControlName="main_topic"
-                  class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+                  class="textsize-cnf w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
                   [class.border-red-500]="generateForm.get('main_topic')?.invalid && generateForm.get('main_topic')?.touched"
                 >
                   <option value="" disabled selected>Selecciona un tema principal</option>
@@ -150,7 +150,7 @@
               } @else {
                 <select
                   formControlName="sub_topic"
-                  class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+                  class="textsize-cnf w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
                   [class.border-red-500]="generateForm.get('sub_topic')?.invalid && generateForm.get('sub_topic')?.touched"
                 >
                   <option value="" disabled selected>Selecciona un subtema</option>
@@ -205,7 +205,7 @@
               } @else {
                 <select
                   formControlName="specific_topic"
-                  class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+                  class="textsize-cnf w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
                   [class.border-red-500]="generateForm.get('specific_topic')?.invalid && generateForm.get('specific_topic')?.touched"
                 >
                   <option value="" disabled>Selecciona un tema específico</option>
@@ -228,7 +228,7 @@
           <!-- Resumen dinámico -->
           <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
             <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-3">Resumen del Test</h4>
-            <div class="space-y-3">
+            <div class="space-y-3 textsize-cnf">
               <div class="flex items-center justify-between">
                 <span class="text-gray-500 dark:text-gray-400">Tema Principal</span>
                 <span class="font-medium text-gray-900 dark:text-gray-100">
@@ -264,7 +264,7 @@
                 formControlName="ai_prompt"
                 rows="6"
                 placeholder="Ej: Genera un test avanzado sobre criptografía aplicada a blockchain, con preguntas prácticas..."
-                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
+                class="textsize-cnf w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
                 [class.border-red-500]="generateForm.get('ai_prompt')?.invalid && generateForm.get('ai_prompt')?.touched"
               ></textarea>
               <p class="text-xs text-gray-500 dark:text-gray-400">
@@ -294,7 +294,7 @@
                   [class]="generateForm.get('level')?.value === level
                     ? 'bg-blue-600 dark:bg-blue-700 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'"
-                  class="py-3 rounded-lg font-medium transition-colors"
+                  class="py-3 rounded-lg textsize-cnf font-medium transition-colors"
                 >
                   {{ level }}
                 </button>
@@ -353,7 +353,7 @@
             <select
               id="language"
               formControlName="language"
-              class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
+              class="textsize-cnf w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
             >
               @for (lang of languages; track lang.code) {
                 <option [value]="lang.code">{{ lang.name }}</option>
@@ -378,7 +378,7 @@
             <button
               type="button"
               (click)="resetForm()"
-              class="flex-1 py-3 px-4 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-hidden focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all flex items-center justify-center gap-2"
+              class="flex sm:flex-1 py-3 px-4 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 textsize-cnf font-semibold rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-hidden focus:ring-2 focus:ring-gray-500 dark:focus:ring-gray-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all flex items-center justify-center gap-2"
             >
               <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
@@ -389,7 +389,7 @@
             <button
               type="submit"
               [disabled]="loading() || generateForm.invalid || (quota() && quota()!.remaining_requests <= 0)"
-              class="flex-1 py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-600 dark:hover:to-purple-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              class="flex-1 py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-700 dark:to-purple-700 text-white textsize-cnf font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-600 dark:hover:to-purple-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               @if (loading()) {
                 <svg class="w-5 h-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -398,7 +398,7 @@
                 </svg>
                 <span>Procesando...</span>
               } @else {
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <svg class="hidden sm:block w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd"/>
                 </svg>
                 Generar Test con IA

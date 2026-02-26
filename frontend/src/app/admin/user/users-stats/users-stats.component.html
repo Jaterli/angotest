@@ -33,7 +33,7 @@
         <div class="flex gap-2 textsize-cnf font-medium">
           <button (click)="onFilterChange()"
                   class="inline-flex items-center px-4 py-2 rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="hidden sm:block w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
             </svg>
             Aplicar Filtros
@@ -41,7 +41,7 @@
           
           <button (click)="resetFilters()"
                   class="inline-flex items-center px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="hidden sm:block w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
             </svg>
             Limpiar Todo
@@ -214,7 +214,7 @@
       <!-- Vista móvil: tarjetas -->
       <div class="block sm:hidden divide-y divide-gray-200 dark:divide-gray-700">
         @for (user of usersData(); track user.id) {
-          <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+          <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
             <!-- Cabecera con usuario y rol -->
             <div class="flex items-start justify-between mb-3">
               <div class="flex items-center flex-1 min-w-0">
@@ -224,25 +224,23 @@
                 </span>
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                    {{ user.username }}
+                      {{ user.first_name }} {{ user.last_name }}
                   </div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">
-                    ID: {{ user.id }}
+                      @{{ user.username }}
                   </div>
+
                 </div>
               </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                ID: {{ user.id }}
+              </div>              
             </div>
 
-            <!-- Información de contacto -->
-            <div class="mb-3 text-sm">
-              <div class="text-gray-900 dark:text-gray-100 break-words">{{ user.email }}</div>
-              <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                @if (user.first_name && user.last_name) {
-                  {{ user.first_name }} {{ user.last_name }}
-                } @else {
-                  Sin nombre completo
-                }
-              </div>
+            <!-- Email -->
+            <div class="text-gray-500 text-xs dark:text-gray-400">Email</div>
+            <div class="mb-3 text-xs text-gray-900 dark:text-gray-100 break-words">
+              {{ user.email }}
             </div>
 
             <!-- Grid de información -->

@@ -4,32 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/smtp"
-	"os"
 )
 
-// Configuración de email
-type EmailConfig struct {
-	Host     string
-	Port     string
-	Username string
-	Password string
-	From     string
-	FromName string
-}
-
-func getEmailConfig() *EmailConfig {
-	return &EmailConfig{
-		Host:     os.Getenv("SMTP_HOST"),
-		Port:     os.Getenv("SMTP_PORT"),
-		Username: os.Getenv("SMTP_USERNAME"),
-		Password: os.Getenv("SMTP_PASSWORD"),
-		From:     os.Getenv("SMTP_FROM_EMAIL"),
-		FromName: os.Getenv("SMTP_FROM_NAME"),
-	}
-}
 
 func SendPasswordResetEmail(toEmail, resetLink string) error {
-	config := getEmailConfig()
+	config := GetEmailConfig()
 	
 	// Validar configuración
 	if config.Host == "" || config.Port == "" || config.Username == "" {

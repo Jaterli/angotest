@@ -2,7 +2,7 @@ import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TopicsService } from '../../../shared/services/topics.service';
-import { TopicHierarchy, TopicStructure } from '../../../shared/models/test.model';
+import { TopicHierarchy, TopicStructure } from '../../../shared/models/test.models';
 
 @Component({
   selector: 'app-topics-viewer',
@@ -228,7 +228,7 @@ import { TopicHierarchy, TopicStructure } from '../../../shared/models/test.mode
                   
                   <div class="divide-y divide-gray-200 dark:divide-gray-700">
                     @for (subTopic of mainTopic.subTopics; track subTopic.name) {
-                      <div class="px-6 py-3 bg-gray-50 dark:bg-gray-900/30">
+                      <div class="px-6 py-3 bg-gray-50 dark:bg-gray-900">
                         <div class="font-medium text-gray-700 dark:text-gray-300">
                           ↳ {{ subTopic.name }}
                           <span class="ml-2 text-xs font-normal text-gray-600 dark:text-gray-400">
@@ -258,7 +258,7 @@ import { TopicHierarchy, TopicStructure } from '../../../shared/models/test.mode
       }
 
       <!-- Información adicional -->
-      <div class="bg-gray-50 dark:bg-gray-900/30 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+      <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
         <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
           <svg class="w-5 h-5 mr-2 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>

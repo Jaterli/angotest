@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router } from '@angular/router';
 import { AITestService } from '../../services/generate-test.service';
 import { TopicsService } from '../../../shared/services/topics.service';
-import { GenerateTestRequest, CurrentUserQuota } from '../../models/generate-test.model';
+import { GenerateTestRequest, CurrentUserQuota } from '../../models/generate-test.models';
 import { AuthService } from '../../services/auth.service';
 
 @Component({

@@ -5,7 +5,7 @@ import { ModalComponent } from '../../../shared/components/modal.component';
 import { UserResultsService } from '../../services/user-results.service';
 import { UserResultDetailsModalService } from '../../services/user-result-details-modal.service';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
-import { ResultDetailsResponse } from '../../models/user-results.model';
+import { UserResultDetailsResponse, UserResultsResponse } from '../../models/user-results.models';
 
 @Component({
   selector: 'app-user-result-details-modal',
@@ -25,7 +25,7 @@ export class UserResultDetailsModalComponent implements OnInit, OnDestroy {
   resultId: number | null = null;
 
   // Datos tipados
-  resultDetails = signal<ResultDetailsResponse | null>(null);
+  resultDetails = signal<UserResultDetailsResponse | null>(null);
   selectedResult = signal<any>(null);
   
   isLoading = signal(true);
@@ -72,7 +72,7 @@ export class UserResultDetailsModalComponent implements OnInit, OnDestroy {
     this.resultDetails.set(null);
 
     this.userResultsService.getResultDetails(userId, resultId).subscribe({
-      next: (data: ResultDetailsResponse) => {
+      next: (data: UserResultDetailsResponse) => {
         this.resultDetails.set(data);
         this.isLoading.set(false);
       },

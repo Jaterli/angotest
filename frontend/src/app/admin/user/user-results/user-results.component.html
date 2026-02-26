@@ -11,7 +11,7 @@
             @{{ user()?.username || 'Usuario' }}
           </span>
         </p>
-        <span [class]="getRoleBadgeClass(user()?.role)">
+        <span [class]="getRoleBadgeClass(user()!.role)">
           {{ user()?.role }}
         </span>
       </div>
@@ -38,22 +38,27 @@
 
   <!-- Información del usuario -->
   @if (user() && !loadingUser()) {
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6 mb-8">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="flex items-center space-x-4">
-          <div class="flex-shrink-0 w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-            <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
-            </svg>
-          </div>
-          <div>
-            <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {{ user()?.first_name }} {{ user()?.last_name }}
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-3 sm:p-6 mb-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+       
+        <!-- Usuario y rol -->
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex items-center flex-1 min-w-0">
+            <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-3" 
+              [class]="getRoleBadgeClass(user()!.role)">
+              {{ user()!.role[0].toUpperCase() || '' }}
+            </span>
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                {{ user()?.first_name }} {{ user()?.last_name }}
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">
+                @{{ user()?.username }}
+              </div>
             </div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">@{{ user()?.username }}</div>
           </div>
-        </div>
-        
+        </div>       
+              
         <div>
           <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">Email</div>
           <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ user()?.email }}</div>
@@ -62,13 +67,13 @@
         <div>
           <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">Miembro desde</div>
           <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-            {{ formatDate(user()?.created_at || '') }}
+            {{ formatDate(user()?.registered_at || '') }}
           </div>
         </div>
         
         <div>
           <div class="text-sm text-gray-500 dark:text-gray-400 mb-1">ID de usuario</div>
-          <div class="text-sm font-mono font-medium text-gray-900 dark:text-gray-100">#{{ user()?.id }}</div>
+          <div class="text-sm font-mono font-medium text-gray-900 dark:text-gray-100">{{ user()?.id }}</div>
         </div>
       </div>
     </div>
@@ -76,62 +81,63 @@
 
   <!-- Estadísticas generales -->
   @if (stats() && !loading()) {
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-5">
-        <div class="flex items-center">
-          <div class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 mr-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-5 shadow-sm border border-gray-200 dark:border-gray-700 mt-4 sm:mt-0">
+        <div class="flex flex-col sm:flex-row items-center sm:items-center">
+          <div class="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg -mt-8 mb-2 sm:mt-0 sm:mb-0 sm:mr-4">
             <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
             </svg>
           </div>
-          <div>
-            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats()?.completed_tests }} de {{ stats()?.total_tests }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Tests Completados</div>
+          <div class="text-center sm:text-left">
+            <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats()?.completed_tests }} de {{ stats()?.total_results }}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Tests Completados</div>
           </div>
         </div>
       </div>
       
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-5">
-        <div class="flex items-center">
-          <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 mr-4">
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-5 shadow-sm border border-gray-200 dark:border-gray-700 mt-4 sm:mt-0">
+        <div class="flex flex-col sm:flex-row items-center sm:items-center">
+          <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg -mt-8 mb-2 sm:mt-0 sm:mb-0 sm:mr-4">
             <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
             </svg>
           </div>
-          <div>
+          <div class="text-center sm:text-left">
             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ formatTimeTaken(stats()?.total_time_spent || 0) }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Tiempo Total</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Tiempo Total</div>
           </div>
         </div>
       </div>
       
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-5">
-        <div class="flex items-center">
-          <div class="p-2 rounded-lg mr-4"
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-5 shadow-sm border border-gray-200 dark:border-gray-700 mt-4 sm:mt-0">
+        <div class="flex flex-col sm:flex-row items-center sm:items-center">
+          <div class="p-2 rounded-lg -mt-8 mb-2 sm:mt-0 sm:mb-0 sm:mr-4"
             [class]="getScoreBgColor(stats()?.average_score || 0)">
             <svg class="w-6 h-6" [class]="getScoreColor(stats()?.average_score || 0)" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
             </svg>
           </div>
-          <div>
+          <div class="text-center sm:text-left">
             <div [class]="'text-2xl font-bold ' + getScoreColor(stats()?.average_score || 0)">
               {{ (stats()?.average_score || 0) | number:'1.1-1' }}%
             </div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Puntuación Promedio</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Puntuación Promedio</div>
           </div>
         </div>
       </div>
       
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-5">
-        <div class="flex items-center">
-          <div class="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 mr-4">
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-5 shadow-sm border border-gray-200 dark:border-gray-700 mt-4 sm:mt-0">
+        <div class="flex flex-col sm:flex-row items-center sm:items-center">
+          <div class="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg -mt-8 mb-2 sm:mt-0 sm:mb-0 sm:mr-4">
             <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
             </svg>
           </div>
-          <div>
+          <div class="text-center sm:text-left">
             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats()?.total_questions_answered }}</div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Preguntas Respondidas</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Preguntas Respondidas</div>
           </div>
         </div>
       </div>
@@ -266,60 +272,52 @@
   <!-- Lista de resultados -->
   @if (!loading() && userResults().length > 0) {
     <div class="space-y-4">
+
       <!-- Información de resultados -->
-      <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
-        <div>
+      <div class="mb-4 md:flex md:items-center md:justify-between text-sm font-medium text-gray-600 dark:text-gray-400">
           Mostrando 
-          <span class="font-medium">{{ getStartIndex() }}</span> a 
-          <span class="font-medium">{{ getEndIndex() }}</span> de 
-          <span class="font-medium">{{ totalUserResults() }}</span> resultado{{ totalUserResults() !== 1 ? 's' : '' }}
-        </div>
+          {{ getStartIndex() }} a {{ getEndIndex() }} de {{ totalUserResults() }} test(s) filtrados ({{ totalUserResults() }} totales)
         <div>
-          Ordenado por: 
-          <span class="font-medium text-gray-800 dark:text-gray-200">
-            {{ currentSortLabel() }}
-          </span>
-          <span class="mx-2">•</span>
           Orden: 
-          <span class="font-medium text-gray-800 dark:text-gray-200">
-            {{ currentSortOrderLabel() }}
+          <span class="text-gray-800 dark:text-gray-200">
+            {{ currentSortLabel() }} {{ currentSortOrderLabel() }}
           </span>
         </div>
       </div>
 
       <!-- Cards de resultados -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        @for (result of userResults(); track result.result_id) {
-          <div class="bg-white dark:bg-gray-800 rounded-xl shadow dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-5">
+        @for (result of userResults(); track result.id) {
+          <div class="bg-white dark:bg-gray-800 rounded-xl shadow dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-3">
             
-            <!-- Header de la card -->
-            <div class="flex items-start justify-between mb-4">
-              <div class="flex-1">
-                <div class="flex items-center space-x-2 mb-2">
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    {{ result.title }}
-                  </h3>
-                  <span [class]="getLevelBadgeClass(result.level)">
-                    {{ result.level }}
-                  </span>                  
-                  <span [class]="getStatusBadgeClass(result.status)">
-                    {{ getStatusLabel(result.status) }}
-                  </span>
-                </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
-                  {{ result.description }}
+            <!-- Información del test y estado -->
+            <div class="mb-3">
+              <h2 class="text-lg inline mr-2 font-bold text-gray-900 dark:text-gray-100">
+                {{ result.test_title }}
+              </h2>
+              <span class="mr-2" [class]="getLevelBadgeClass(result.test_level)">
+                {{ result.test_level }}
+              </span>  
+              <span [class]="getStatusBadgeClass(result.status)">
+                {{ getStatusLabel(result.status) }}
+              </span>                  
+              @if (result.test_description) {
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  {{ result.test_description }}
                 </p>
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ result.main_topic }} › {{ result.sub_topic }} › {{ result.specific_topic }}
-                </div>
-              </div>
+              }
             </div>
+
+            <!-- Topics en línea -->
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ result.test_main_topic }} › {{ result.test_sub_topic }} › {{ result.test_specific_topic }}
+            </div>          
 
             <!-- Estadísticas -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
               <!-- Puntuación -->
               <div class="text-center">
-                <div class="text-2xl font-bold" [class]="getScoreColor(result.score)">
+                <div class="textsize_cnf font-bold" [class]="getScoreColor(result.score)">
                   @if (result.status == 'completed') {
                     {{ result.score | number:'1.1-1' }}%
                   } @else {
@@ -331,7 +329,7 @@
               
               <!-- Respuestas correctas/incorrectas -->
               <div class="text-center">
-                <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <div class="textsize_cnf font-bold text-gray-900 dark:text-gray-100">
                   @if (result.status == 'completed') {
                     <span class="text-emerald-600 dark:text-emerald-400">{{ result.correct_answers }}</span>
                     <span class="text-gray-400 mx-1">/</span>
@@ -345,7 +343,7 @@
               
               <!-- Tiempo -->
               <div class="text-center">
-                <div class="text-xl font-bold text-gray-900 dark:text-gray-100">
+                <div class="textsize_cnf font-bold text-gray-900 dark:text-gray-100">
                   {{ formatTimeTaken(result.time_taken) }}
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400">Tiempo</div>
@@ -353,7 +351,7 @@
               
               <!-- Fecha -->
               <div class="text-center">
-                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <div class="textsize_cnf font-medium text-gray-900 dark:text-gray-100">
                   {{ formatDate(result.updated_at) }}
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400">Última actualización</div>
@@ -379,8 +377,8 @@
             <!-- Footer -->
             <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <div class="text-xs text-gray-500 dark:text-gray-400">
-                Test ID: #{{ result.test_id }}<br />
-                Resultado ID: #{{ result.result_id }}
+                Test ID: {{ result.test_id }}<br />
+                Resultado ID: {{ result.id }}
               </div>
               <div class="flex gap-2">
                 <button 
@@ -464,4 +462,4 @@
 </app-modal>
 
 <!-- Modal de detalles del resultado -->
-<app-user-result-details-modal></app-user-result-details-modal>
+<app-user-result-details-modal></app-user-result-details-modal> 

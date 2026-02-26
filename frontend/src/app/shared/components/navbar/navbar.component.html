@@ -33,49 +33,75 @@
         
         <!-- Usuario autenticado -->
         @else {
-          <!-- Menú para Administradores (solo desktop) -->
+          <!-- Menú para Administradores con submenú de usuario (solo desktop) -->
           @if (shouldShowAdminMenu()) {
-            <div class="hidden lg:flex items-center space-x-4">
-              <a routerLink="/admin/dashboard" 
-                 [class]="classes.link"
-                 [routerLinkActive]="activeClasses.link">
-                Dashboard
-              </a>
-              <a routerLink="/admin/tests" 
-                 [class]="classes.link"
-                 [routerLinkActive]="activeClasses.link">
-                Tests
-              </a>
-              <a routerLink="/admin/users/stats" 
-                 [class]="classes.link"
-                 [routerLinkActive]="activeClasses.link">
-                Usuarios
-              </a>
-              <a routerLink="/admin/results" 
-                 [class]="classes.link"
-                 [routerLinkActive]="activeClasses.link">
-                Resultados
-              </a>
-              <a routerLink="/admin/invitations" 
-                 [class]="classes.link"
-                 [routerLinkActive]="activeClasses.link">
-                Invitaciones
-              </a>
-              <a routerLink="/admin/quotas" 
-                 [class]="classes.link"
-                 [routerLinkActive]="activeClasses.link">
-                Quotas
-              </a>                            
-              <a routerLink="/admin/system-config" 
-                 [class]="classes.link"
-                 [routerLinkActive]="activeClasses.link">
-                Configuración
-              </a>
+            <div class="hidden lg:block space-y-1">
+              <div class="flex justify-end space-x-4">
+                <!-- Menú principal de Admin -->
+                <a routerLink="/admin/dashboard" 
+                  [class]="classes.link"
+                  [routerLinkActive]="activeClasses.link">
+                  Dashboard
+                </a>
+                <a routerLink="/admin/tests" 
+                  [class]="classes.link"
+                  [routerLinkActive]="activeClasses.link">
+                  Tests
+                </a>
+                <a routerLink="/admin/users/stats" 
+                  [class]="classes.link"
+                  [routerLinkActive]="activeClasses.link">
+                  Usuarios
+                </a>
+                <a routerLink="/admin/results" 
+                  [class]="classes.link"
+                  [routerLinkActive]="activeClasses.link">
+                  Resultados
+                </a>
+                <a routerLink="/admin/invitations" 
+                  [class]="classes.link"
+                  [routerLinkActive]="activeClasses.link">
+                  Invitaciones
+                </a>
+                <a routerLink="/admin/quotas" 
+                  [class]="classes.link"
+                  [routerLinkActive]="activeClasses.link">
+                  Quotas
+                </a>                            
+                <a routerLink="/admin/system-config" 
+                  [class]="classes.link"
+                  [routerLinkActive]="activeClasses.link">
+                  Configuración
+                </a>
+              </div>
+              <!-- Menú de Usuario para Admin (segundo plano) -->
+              <div class="flex justify-end space-x-4 opacity-75">
+                <a routerLink="/dashboard" 
+                    [class]="classes.link" class="text-xs"                    
+                    [routerLinkActive]="activeClasses.link">
+                  Dashboard
+                </a>
+                <a routerLink="/tests/not-started" 
+                    [class]="classes.link" class="text-xs"
+                    [routerLinkActive]="activeClasses.link">
+                  Tests disponibles
+                </a>
+                <a routerLink="/tests/in-progress" 
+                    [class]="classes.link" class="text-xs"
+                    [routerLinkActive]="activeClasses.link">
+                  En Progreso
+                </a>
+                <a routerLink="/tests/completed" 
+                    [class]="classes.link" class="text-xs"
+                    [routerLinkActive]="activeClasses.link">
+                  Completados
+                </a>
+              </div>
             </div>
           }
 
           <!-- Menú para Usuarios normales (solo desktop) -->
-          @if (shouldShowUserMenu() && userRole !== 'guest') {
+          @if (shouldShowUserMenu() && userRole !== 'guest' && !shouldShowAdminMenu()) {
             <div class="hidden lg:flex items-center space-x-4">
               <!-- Dashboard -->
               <a routerLink="/dashboard" 
@@ -109,7 +135,6 @@
 
           <!-- Para usuarios guest (solo desktop) - SOLO enlaces en progreso y completados -->
           @if (userRole === 'guest') {
-
             <div class="hidden lg:flex items-center space-x-4 whitespace-nowrap">
               <a routerLink="/tests/in-progress" 
                  [class]="classes.link"
@@ -139,7 +164,7 @@
               
               <!-- Nombre de usuario -->
               <div class="flex flex-col items-start">
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
                   {{ getUserDisplayName() }}
                 </span>
                 <span class="text-xs text-gray-500 dark:text-gray-400">
@@ -158,23 +183,7 @@
             <!-- Dropdown menu -->
             @if (showUserDropdown()) {
               <div class="absolute right-0 mt-0 w-64 rounded-xl shadow-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden z-50 animate-fadeIn">
-                <!-- Header del dropdown -->
-                <div class="px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-                  <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 text-xs rounded-full flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center shadow-sm">
-                      @if (userProfilePic()) {
-                        <img [src]="userProfilePic()" alt="Avatar" class="w-full h-full rounded-full object-cover">
-                      } @else {
-                        <span class="text-white font-semibold">{{ getUserInitials() }}</span>
-                      }
-                    </div>
-                    <div class="truncate">
-                      <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">{{ getUserDisplayName() }}</p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400 truncate">@{{ userName }}</p>
-                    </div>
-                  </div>
-                </div>
-                
+
                 <!-- Opciones del menú -->
                 <div class="py-1">
                   <a routerLink="/user/profile" 
@@ -208,26 +217,14 @@
         <div class="hidden lg:block border-l border-gray-200 dark:border-gray-700 pl-4">
           <app-theme-toggle></app-theme-toggle>
         </div>
-
-        <!-- Avatar o iniciales - Grupo con tooltip -->
-        <div class="relative group lg:hidden">
-          <!-- Tooltip -->
-          <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full mb-2 hidden group-hover:block z-10">
-            <div class="bg-gray-900 text-white text-sm rounded-md py-1 px-3 whitespace-nowrap shadow-lg dark:bg-gray-700">
-              {{ getUserDisplayName() }}
-              <!-- Flecha del tooltip -->
-              <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-45 w-2 h-2 bg-gray-900 dark:bg-gray-700"></div>
-            </div>
-          </div>
-          
-          <!-- Avatar o iniciales -->
-          <div class="w-8 h-8 rounded-full flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center shadow-sm cursor-default">
-            @if (userProfilePic()) {
-              <img [src]="userProfilePic()" alt="Avatar" class="w-full h-full rounded-full object-cover">
-            } @else {
-              <span class="text-white font-semibold text-sm">{{ getUserInitials() }}</span>
-            }
-          </div>
+    
+        <!-- Avatar o iniciales -->
+        <div class="lg:hidden w-8 h-8 rounded-full flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center shadow-sm cursor-default">
+          @if (userProfilePic()) {
+            <img [src]="userProfilePic()" [alt]="getUserDisplayName()" class="w-full h-full rounded-full object-cover">
+          } @else {
+            <span class="text-white font-semibold text-sm" [title]="getUserDisplayName()">{{ getUserInitials() }}</span>
+          }
         </div>
 
         <!-- Menú hamburguesa para móvil -->
@@ -245,7 +242,7 @@
     <!-- Menú móvil desplegable -->
     @if (showMobileMenu()) {
       <div class="lg:hidden border-t border-gray-200 dark:border-gray-700">
-        <div class="px-2 pt-2 pb-3 space-y-1">    
+        <div class="pt-2 pb-3 space-y-1">    
             @if (!isLoggedIn) {
 
               <div class="flex justify-between">
@@ -285,7 +282,7 @@
 
               </div>
               <button (click)="logout(); closeMobileMenu()"
-                      class="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                      class="flex items-center w-full py-2 rounded-md text-base font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"/>
                 </svg>
@@ -296,52 +293,91 @@
               
               <!-- Menú Admin en móvil -->
               @if (shouldShowAdminMenu()) {
-                <a routerLink="/admin/dashboard" 
-                  (click)="closeMobileMenu()"
-                  [class]="classes.mobileLink"
-                  [routerLinkActive]="activeClasses.mobile">
-                  Dashboard
-                </a>
-                <a routerLink="/admin/tests" 
-                  (click)="closeMobileMenu()"
-                  [class]="classes.mobileLink"
-                  [routerLinkActive]="activeClasses.mobile">
-                  Tests
-                </a>
-                <a routerLink="/admin/users/stats" 
-                  (click)="closeMobileMenu()"
-                  [class]="classes.mobileLink"
-                  [routerLinkActive]="activeClasses.mobile">
-                  Usuarios
-                </a>
-                <a routerLink="/admin/results" 
-                  (click)="closeMobileMenu()"
-                  [class]="classes.mobileLink"
-                  [routerLinkActive]="activeClasses.mobile">
-                  Resultados
-                </a>
-                <a routerLink="/admin/invitations" 
-                  (click)="closeMobileMenu()"
-                  [class]="classes.mobileLink"
-                  [routerLinkActive]="activeClasses.mobile">
-                  Invitaciones
-                </a>              
-                <a routerLink="/admin/quotas" 
-                  (click)="closeMobileMenu()"
-                  [class]="classes.mobileLink"
-                  [routerLinkActive]="activeClasses.mobile">
-                  Quotas
-                </a>                 
-                <a routerLink="/admin/system-config" 
-                  (click)="closeMobileMenu()"
-                  [class]="classes.mobileLink"
-                  [routerLinkActive]="activeClasses.mobile">
-                  Configuración
-                </a>
+                <div class="grid grid-cols-2 gap-2">
+                  <!-- Sección Admin -->
+                  <div class="space-y-1">
+                    <div class="py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Administración
+                    </div>
+                    <a routerLink="/admin/dashboard" 
+                      (click)="closeMobileMenu()"
+                      [class]="classes.mobileLink"
+                      [routerLinkActive]="activeClasses.mobile">
+                      Dashboard
+                    </a>
+                    <a routerLink="/admin/tests" 
+                      (click)="closeMobileMenu()"
+                      [class]="classes.mobileLink"
+                      [routerLinkActive]="activeClasses.mobile">
+                      Tests
+                    </a>
+                    <a routerLink="/admin/users/stats" 
+                      (click)="closeMobileMenu()"
+                      [class]="classes.mobileLink"
+                      [routerLinkActive]="activeClasses.mobile">
+                      Usuarios
+                    </a>
+                    <a routerLink="/admin/results" 
+                      (click)="closeMobileMenu()"
+                      [class]="classes.mobileLink"
+                      [routerLinkActive]="activeClasses.mobile">
+                      Resultados
+                    </a>
+                    <a routerLink="/admin/invitations" 
+                      (click)="closeMobileMenu()"
+                      [class]="classes.mobileLink"
+                      [routerLinkActive]="activeClasses.mobile">
+                      Invitaciones
+                    </a>              
+                    <a routerLink="/admin/quotas" 
+                      (click)="closeMobileMenu()"
+                      [class]="classes.mobileLink"
+                      [routerLinkActive]="activeClasses.mobile">
+                      Quotas
+                    </a>                 
+                    <a routerLink="/admin/system-config" 
+                      (click)="closeMobileMenu()"
+                      [class]="classes.mobileLink"
+                      [routerLinkActive]="activeClasses.mobile">
+                      Configuración
+                    </a>
+                  </div>
+
+                  <!-- Sección Usuario para Admin -->
+                  <div class="space-y-1">
+                    <div class="py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Modo Usuario
+                    </div>
+                    <a routerLink="/dashboard" 
+                      (click)="closeMobileMenu()"
+                      [class]="classes.mobileLink"
+                      [routerLinkActive]="activeClasses.mobile">
+                      Dashboard
+                    </a>
+                    <a routerLink="/tests/not-started" 
+                      (click)="closeMobileMenu()"
+                      [class]="classes.mobileLink"
+                      [routerLinkActive]="activeClasses.mobile">
+                      Tests disponibles
+                    </a>
+                    <a routerLink="/tests/in-progress" 
+                      (click)="closeMobileMenu()"
+                      [class]="classes.mobileLink"
+                      [routerLinkActive]="activeClasses.mobile">
+                      En Progreso
+                    </a>
+                    <a routerLink="/tests/completed" 
+                      (click)="closeMobileMenu()"
+                      [class]="classes.mobileLink"
+                      [routerLinkActive]="activeClasses.mobile">
+                      Completados
+                    </a>
+                  </div>
+                </div>
               }
               
-              <!-- Menú Usuario normal en móvil (no guest) -->
-              @if (shouldShowUserMenu() && userRole !== 'guest') {
+              <!-- Menú Usuario normal en móvil (no guest y no admin) -->
+              @if (shouldShowUserMenu() && userRole !== 'guest' && !shouldShowAdminMenu()) {
                 <a routerLink="/dashboard" 
                   (click)="closeMobileMenu()"
                   [class]="classes.mobileLink"

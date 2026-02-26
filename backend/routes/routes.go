@@ -39,6 +39,7 @@ func SetupRoutes(r *gin.Engine) {
 			public.POST("/auth/reset-password", shared.ResetPassword)
 			public.GET("/auth/validate-reset-token", shared.ValidateResetToken)
 
+			public.POST("/contact", shared.HandleContact)
 		}	
 
 		api.GET("/ping", func(c *gin.Context) {
@@ -103,7 +104,7 @@ func SetupRoutes(r *gin.Engine) {
 		adminRoutes.GET("/users/:user_id/profile", admin.GetUserProfile)
 		adminRoutes.DELETE("/users/:user_id/delete", admin.DeleteUser)  // Eliminar usuario y dependencias
 		adminRoutes.GET("/users/:user_id/results", admin.GetUserResults)
-		adminRoutes.GET("/users/:user_id/results/:result_id/details", admin.GetUserResultDetails)
+		adminRoutes.GET("/users/:user_id/results/:result_id", admin.GetUserResultDetails)
 
 		// Listado de results
 		adminRoutes.GET("/results", admin.GetResultsList)

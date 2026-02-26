@@ -20,7 +20,7 @@
 
   <form [formGroup]="testForm" (ngSubmit)="submit()" class="space-y-8">
     <!-- Información básica del test -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900 border border-gray-200 dark:border-gray-700 p-6">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Información General</h2>
     
       <!-- Título -->
@@ -350,7 +350,7 @@
             </div>
             <div>
               <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
                   <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                   </svg>
@@ -396,7 +396,7 @@
     </div>
 
     <!-- Preguntas -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900 border border-gray-200 dark:border-gray-700 p-6">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Preguntas</h2>
         <button
@@ -413,11 +413,11 @@
 
       <div formArrayName="questions" id="cuestions" class="space-y-6">
         @for (q of questions.controls; let i = $index; track i) {
-          <div [formGroupName]="i" class="bg-gray-50 dark:bg-gray-900/30 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div [formGroupName]="i" class="bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <!-- Encabezado de pregunta -->
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center space-x-3">
-                <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
                   <span class="text-sm font-semibold text-blue-700 dark:text-blue-300">{{ i + 1 }}</span>
                 </div>
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Pregunta {{ i + 1 }}</h3>
@@ -465,7 +465,7 @@
                 <button
                   type="button"
                   (click)="addAnswer(i)"
-                  class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800 transition-colors"
+                  class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800/50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800 transition-colors"
                 >
                   <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd"/>

@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { ModalComponent } from '../modal.component';
 import { InvitationService } from '../../services/invitation.service';
 import { Subscription } from 'rxjs';
-import { CreateInvitationInput } from '../../models/invitation.model';
+import { CreateInvitationInput } from '../../models/invitation.models';
 
 
 @Component({

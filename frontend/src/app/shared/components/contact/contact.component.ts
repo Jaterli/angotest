@@ -1,7 +1,9 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ContactService } from '../../services/contact.service';
+import { ContactFormData } from '../../models/contact.models';
 
 @Component({
   selector: 'app-contact',
@@ -10,9 +12,13 @@ import { RouterLink } from '@angular/router';
   templateUrl: './contact.component.html'
 })
 export class ContactComponent {
+  private fb = inject(FormBuilder);
+  private contactService = inject(ContactService);
+  
   contactForm: FormGroup;
   isSubmitting = signal<boolean>(false);
   submitStatus = signal<'idle' | 'success' | 'error'>('idle');
+  errorMessage = signal<string>('');
   
   // Opciones para el selector de asunto
   subjectOptions = [
@@ -30,7 +36,7 @@ export class ContactComponent {
     return message.length;
   });
 
-  constructor(private fb: FormBuilder) {
+  constructor() {
     this.contactForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
@@ -54,36 +60,34 @@ export class ContactComponent {
 
     this.isSubmitting.set(true);
     this.submitStatus.set('idle');
+    this.errorMessage.set('');
 
-    // Simular envío a API
-    setTimeout(() => {
-      console.log('Formulario enviado:', this.contactForm.value);
-      
-      // Simular éxito (en un caso real, aquí se llamaría a un servicio)
-      const success = Math.random() > 0.2; // 80% de éxito para simulación
-      
-      if (success) {
+    const formData: ContactFormData = this.contactForm.value;
+
+    this.contactService.sendContactEmail(formData).subscribe({
+      next: (response) => {
+        console.log('Email enviado:', response);
         this.submitStatus.set('success');
-        this.contactForm.reset({
-          name: '',
-          email: '',
-          subject: '',
-          message: '',
-          consent: false
-        });
-      } else {
+        this.resetForm();
+        this.isSubmitting.set(false);
+        
+        // Auto-ocultar mensaje de éxito después de 5 segundos
+        setTimeout(() => {
+          this.submitStatus.set('idle');
+        }, 5000);
+      },
+      error: (error) => {
+        console.error('Error al enviar email:', error);
         this.submitStatus.set('error');
-      }
-      
-      this.isSubmitting.set(false);
-      
-      // Auto-ocultar mensaje de éxito después de 5 segundos
-      if (success) {
+        this.errorMessage.set(error.error?.message || 'Error al enviar el mensaje. Por favor, inténtalo de nuevo más tarde.');
+        this.isSubmitting.set(false);
+        
+        // Auto-ocultar mensaje de error después de 5 segundos
         setTimeout(() => {
           this.submitStatus.set('idle');
         }, 5000);
       }
-    }, 1500);
+    });
   }
 
   /**
@@ -97,7 +101,6 @@ export class ContactComponent {
       message: '',
       consent: false
     });
-    this.submitStatus.set('idle');
   }
 
   /**

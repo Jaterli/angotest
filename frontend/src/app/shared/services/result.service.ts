@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { IncorrectAnswersResponse } from '../models/result.model';
+import { IncorrectAnswersResponse } from '../models/result.models';
 import { environment } from '../../../environments/environment';
 
 interface AnswerSubmit {

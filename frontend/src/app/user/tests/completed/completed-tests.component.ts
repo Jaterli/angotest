@@ -4,13 +4,13 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TestService } from '../../../shared/services/test.service';
 import { AuthService } from '../../../shared/services/auth.service';
-import { User } from '../../../shared/models/user.model';
+import { User } from '../../../shared/models/user.models';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
-import { CompletedTestResponse, CompletedTestsStats, CompletedTestsFilter } from '../../../shared/models/test.model';
+import { CompletedTestResponse, CompletedTestsStats, CompletedTestsFilter } from '../../../shared/models/test.models';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { ResultService } from '../../../shared/services/result.service';
 import { InvitationCreateComponent } from '../../../shared/components/invitation/invitation-create.component';
-import { CreateInvitationInput } from '../../../shared/models/invitation.model';
+import { CreateInvitationInput } from '../../../shared/models/invitation.models';
 
 @Component({
   selector: 'app-completed-tests',

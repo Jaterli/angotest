@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { SystemConfigService } from '../services/system-config.service';
-import { SystemConfig, CreateSystemConfigDTO, UpdateSystemConfigDTO } from '../models/system-config.model';
+import { SystemConfig, CreateSystemConfigDTO, UpdateSystemConfigDTO } from '../models/system-config.models';
 import { ModalComponent } from '../../shared/components/modal.component';
 
 @Component({

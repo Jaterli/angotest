@@ -2,7 +2,7 @@ import { Component, OnInit, signal, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TestService } from '../../../shared/services/test.service';
-import { Test, ResumeTestResponse, QuestionWithAnswers, NextQuestionResponse, SaveResultInput } from '../../../shared/models/test.model';
+import { Test, ResumeTestResponse, QuestionWithAnswers, NextQuestionResponse, SaveResultInput } from '../../../shared/models/test.models';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
 import { Observable, Subject, switchMap, takeUntil, tap, throwError } from 'rxjs';

@@ -20,7 +20,7 @@ export class NavbarComponent {
   classes = {
     logo: 'text-xl font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer',
     link: 'text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors',
-    mobileLink: 'block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors',
+    mobileLink: 'block py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors',
     dropdownLink: 'flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors',
     userButton: 'flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors',
     mobileMenuButton: 'inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-blue-500'
@@ -55,15 +55,15 @@ export class NavbarComponent {
 
   getUserDisplayName(): string {
     if (!this.currentUser) return 'Usuario';
-    
-    // Preferir nombre completo
+      
+    // Preferido
+    if (this.currentUser.username) {
+      return '@'+this.currentUser.username;
+    }
+      
+    // Secundario
     if (this.currentUser.first_name && this.currentUser.last_name) {
       return `${this.currentUser.first_name} ${this.currentUser.last_name}`;
-    }
-    
-    // Si no, usar username
-    if (this.currentUser.username) {
-      return this.currentUser.username;
     }
     
     // Si no, usar email (recortado)

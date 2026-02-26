@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common';
 import { Observable, tap, shareReplay, of, catchError, firstValueFrom, map } from 'rxjs';
-import { User, RegisterData, ForgotPasswordResponse, ResetPasswordRequest } from '../models/user.model';
+import { User, RegisterData, ForgotPasswordResponse, ResetPasswordRequest } from '../models/user.models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })

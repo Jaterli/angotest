@@ -4,9 +4,9 @@ import { RouterModule } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../shared/services/auth.service';
 import { DashboardService } from '../../shared/services/user-dashboard.service';
-import { DashboardStats, RankingsResponse, LEVELS } from '../../shared/models/user-dashboard.model';
+import { DashboardStats, RankingsResponse, LEVELS } from '../../shared/models/user-dashboard.models';
 import { SharedUtilsService } from '../../shared/services/shared-utils.service';
-import { User } from '../../shared/models/user.model';
+import { User } from '../../shared/models/user.models';
 
 @Component({
   selector: 'app-dashboard',

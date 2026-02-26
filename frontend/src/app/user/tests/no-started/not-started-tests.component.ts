@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TestService } from '../../../shared/services/test.service';
-import { NotStartedTestsFilter, Test, TestsStats, } from '../../../shared/models/test.model';
+import { NotStartedTestsFilter, Test, TestsStats, } from '../../../shared/models/test.models';
 import { AuthService } from '../../../shared/services/auth.service';
-import { User } from '../../../shared/models/user.model';
+import { User } from '../../../shared/models/user.models';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
 
 @Component({

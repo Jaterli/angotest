@@ -1,7 +1,7 @@
 import { catchError, Observable, of, throwError } from "rxjs";
 import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { DashboardStats, RankingsResponse } from "../models/user-dashboard.model";
+import { DashboardStats, RankingsResponse } from "../models/user-dashboard.models";
 import { environment } from "../../../environments/environment";
 
 @Injectable({

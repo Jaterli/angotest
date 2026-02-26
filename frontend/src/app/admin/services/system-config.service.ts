@@ -6,7 +6,7 @@ import {
   CreateSystemConfigDTO, 
   UpdateSystemConfigDTO,
   BulkUpdateConfigDTO
-} from '../models/system-config.model';
+} from '../models/system-config.models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({

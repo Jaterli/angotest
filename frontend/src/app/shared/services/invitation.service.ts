@@ -6,7 +6,7 @@ import {
   CreateInvitationInput, 
   CheckInvitationResponse,
   AcceptInvitationResponse
-} from '../models/invitation.model';
+} from '../models/invitation.models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({

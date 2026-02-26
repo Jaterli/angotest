@@ -4,13 +4,13 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TestService } from '../../../shared/services/test.service';
 import { AuthService } from '../../../shared/services/auth.service';
-import { User } from '../../../shared/models/user.model';
+import { User } from '../../../shared/models/user.models';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
 import { 
   InProgressTestResponse, 
   TestsStats,
   InProgressTestsFilter 
-} from '../../../shared/models/test.model';
+} from '../../../shared/models/test.models';
 
 @Component({
   selector: 'app-in-progress-tests',

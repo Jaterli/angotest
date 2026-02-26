@@ -5,10 +5,15 @@ import { FormsModule } from '@angular/forms';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { UserResultsService } from '../../services/user-results.service';
 import { UsersManagementService } from '../../services/users-management.service';
-import { UserResultDetail, UserResultsData, UserResultsFilters } from '../../models/user-results.model';
+import { 
+  UserResultItem, 
+  UserResultsResponse, 
+  UserResultsRequest,
+} from '../../models/user-results.models';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
 import { UserResultDetailsModalService } from '../../services/user-result-details-modal.service';
 import { UserResultDetailsModalComponent } from '../user-result-details-modal/user-result-details-modal.component';
+import { User } from '../../../shared/models/user.models';
 
 @Component({
   selector: 'app-user-results',
@@ -33,12 +38,12 @@ export class UserResultsComponent implements OnInit {
   loading = signal(true);
   loadingUser = signal(true);
   userId = signal<number | null>(null);
-  user = signal<any>(null);
-  userResults = signal<UserResultDetail[]>([]);
-  resultsData = signal<UserResultsData | null>(null);
+  user = signal<User | null>(null);
+  userResults = signal<UserResultItem[]>([]);
+  resultsData = signal<UserResultsResponse | null>(null);
   
   // Filtros
-  filters = signal<UserResultsFilters>({
+  filters = signal<UserResultsRequest>({
     page: 1,
     page_size: 20,
     level: '',
@@ -48,7 +53,6 @@ export class UserResultsComponent implements OnInit {
     sort_order: 'desc'
   });
 
- 
   // Modales
   showDeleteModal = signal(false);
   deleteInProgress = signal(false);
@@ -58,20 +62,26 @@ export class UserResultsComponent implements OnInit {
   modalMessage = signal('');
 
   // Resultado individual para eliminar
-  resultToDelete = signal<UserResultDetail | null>(null);
+  resultToDelete = signal<UserResultItem | null>(null);
 
-  // UI states - ELIMINAR showDetailsModal y resultDetails
+  // UI states
   showFilters = signal(false);
   
   // Computed values
-  totalUserResults = computed(() => this.resultsData()?.data.total_results || 0);
-  totalPages = computed(() => this.resultsData()?.data.total_pages || 0);
-  currentPage = computed(() => this.resultsData()?.data.current_page || 1);
-  pageSize = computed(() => this.resultsData()?.data.page_size || 20);
-  hasMore = computed(() => this.resultsData()?.data.has_more || false);
+  totalUserResults = computed(() => this.resultsData()?.stats.total_filtered_results || 0);
+  totalResults = computed(() => this.resultsData()?.stats.total_results || 0);
+  totalPages = computed(() => {
+    const data = this.resultsData();
+    if (!data) return 0;
+    return Math.ceil(data.stats.total_filtered_results / (data.filters_applied.page_size || 20));
+  });
+
+  currentPage = computed(() => this.resultsData()?.filters_applied.page || 1);
+  pageSize = computed(() => this.resultsData()?.filters_applied.page_size || 20);
+  hasMore = computed(() => this.currentPage() < this.totalPages());
   
-  stats = computed(() => this.resultsData()?.data.stats || null);
-  appliedFilters = computed(() => this.resultsData()?.data.filters || null);
+  stats = computed(() => this.resultsData()?.stats || null);
+  appliedFilters = computed(() => this.resultsData()?.filters_applied || null);
 
   // Opciones para filtros
   statusOptions = [
@@ -82,7 +92,7 @@ export class UserResultsComponent implements OnInit {
 
   sortOptions = [
     { value: 'updated_at', label: 'Fecha de Actualización' },
-    { value: 'created_at', label: 'Fecha de Creación' },
+    { value: 't_created_at', label: 'Fecha de Creación' }, // Nota: cambiado de created_at a t_created_at
     { value: 'title', label: 'Título' },
     { value: 'level', label: 'Nivel' },
     { value: 'average_score', label: 'Puntuación' },
@@ -99,7 +109,7 @@ export class UserResultsComponent implements OnInit {
   });
 
   currentSortOrderLabel = computed(() => {
-    return this.filters().sort_order === 'asc' ? 'Ascendente' : 'Descendente';
+    return this.filters().sort_order === 'asc' ? '↑' : '↓';
   });
 
   constructor() {}
@@ -136,7 +146,7 @@ export class UserResultsComponent implements OnInit {
     this.userResultsService.getUserResults(this.userId()!, this.filters()).subscribe({
       next: (res) => {
         this.resultsData.set(res);
-        this.userResults.set(res.data.results);        
+        this.userResults.set(res.results); // Nota: directamente res.results, no res.data.results
         this.loading.set(false);
       },
       error: (error) => {
@@ -158,7 +168,13 @@ export class UserResultsComponent implements OnInit {
       page_size: 20,
       status: 'all',
       sort_by: 'updated_at',
-      sort_order: 'desc'
+      sort_order: 'desc',
+      level: '',
+      main_topic: '',
+      sub_topic: '',
+      search: '',
+      from_date: '',
+      to_date: ''
     });
     this.loadResults();
   }
@@ -177,7 +193,7 @@ export class UserResultsComponent implements OnInit {
       // Ordenar por nuevo campo
       this.filters.set({
         ...currentFilters,
-        sort_by: sortBy,
+        sort_by: sortBy as UserResultsRequest['sort_by'],
         sort_order: 'desc',
         page: 1
       });
@@ -187,10 +203,10 @@ export class UserResultsComponent implements OnInit {
   }
 
   // Métodos para eliminar
-  confirmDeleteResult(result: UserResultDetail): void {
+  confirmDeleteResult(result: UserResultItem): void {
     this.resultToDelete.set(result);
     this.modalTitle.set('Confirmar eliminación');
-    this.modalMessage.set(`¿Estás seguro de que deseas eliminar el resultado con id "${result.result_id}" en el test "${result.title}"? Esta acción no se puede deshacer.`);
+    this.modalMessage.set(`¿Estás seguro de que deseas eliminar el resultado con id "${result.id}" en el test "${result.test_title}"? Esta acción no se puede deshacer.`);
     this.showDeleteModal.set(true);
   }
 
@@ -200,11 +216,11 @@ export class UserResultsComponent implements OnInit {
     
     this.deleteInProgress.set(true);
     
-    this.userResultsService.deleteResult(result.result_id).subscribe({
+    this.userResultsService.deleteResult(result.id).subscribe({
       next: () => {
         // Eliminar de la lista local
         this.userResults.update(results => 
-          results.filter(r => r.result_id !== result.result_id)
+          results.filter(r => r.id !== result.id)
         );
         
         // Cerrar modal y resetear estado
@@ -246,10 +262,10 @@ export class UserResultsComponent implements OnInit {
   }
 
   // Método para mostrar detalles usando el servicio
-  showResultDetails(result: UserResultDetail): void {
+  showResultDetails(result: UserResultItem): void {
     if (!this.userId()) return;
     
-    this.resultDetailsModalService.open(this.userId()!, result.result_id);
+    this.resultDetailsModalService.open(this.userId()!, result.id);
   }
 
   // Helper methods
@@ -308,5 +324,4 @@ export class UserResultsComponent implements OnInit {
   goBack(): void {
     this.router.navigate(['/admin/users/stats']);
   }
-
 }

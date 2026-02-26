@@ -1,4 +1,4 @@
-import { Result } from "./test.model";
+import { Result } from "./test.models";
 
 export interface IncorrectAnswer {
   question_id: number;

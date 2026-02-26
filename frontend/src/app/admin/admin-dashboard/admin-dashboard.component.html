@@ -1,6 +1,6 @@
 <div class="container mx-auto p-4 md:p-6 lg:p-8">
   
-  <!-- Header con título -->
+  <!-- Header con título y botón de filtros -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
     <div>
       <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Dashboard de Administración</h2>
@@ -9,79 +9,92 @@
       </p>
     </div>
     
-    <!-- Fecha y hora actual -->
-    <div class="text-sm text-gray-500 dark:text-gray-400">
-      {{ getDateAgo(filters().months_back || 6) }} - Actual
-    </div>
-  </div>
-
-  <!-- Filtros y controles -->
-  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-3 sm:p-6 mb-6">
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
-      <div>
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Filtros del Dashboard</h3>
-        <p class="text-gray-600 dark:text-gray-400 text-sm">Configura los parámetros para las métricas</p>
-      </div>
+    <div class="text-right">
+      <!-- Botón para mostrar/ocultar filtros -->
+      <button (click)="showFilters.set(!showFilters())"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors border border-blue-600 dark:border-blue-700">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+        </svg>
+        {{ showFilters() ? 'Ocultar Filtros' : 'Mostrar Filtros' }}
+      </button>
       
-      <!-- Botón para recargar -->
-       <div>
-        <button (click)="applyFilters()"
-                class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
-          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-          </svg>
-          Aplicar Filtros
-        </button>
-      </div>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <!-- Filtro de meses hacia atrás -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Período de análisis
-        </label>
-        <select
-          [ngModel]="filters().months_back"
-          (ngModelChange)="updateFilters('months_back', $event)"
-          class="textsize-cnf w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
-        >
-          @for (months of monthsBackOptions; track months) {
-            <option [value]="months">Últimos {{ months }} mes{{ months !== 1 ? 'es' : '' }}</option>
-          }
-        </select>
-      </div>
-      
-      <!-- Filtro de límite de resultados -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Resultados por lista
-        </label>
-        <select
-          [ngModel]="filters().limit"
-          (ngModelChange)="updateFilters('limit', $event)"
-          class="textsize-cnf w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
-        >
-          @for (limit of limitOptions; track limit) {
-            <option [value]="limit">Top {{ limit }}</option>
-          }
-        </select>
-      </div>
-           
-      <!-- Resetear filtros -->
-      <div class="flex items-end">
-        <button (click)="resetFilters()"
-                class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-          <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-          </svg>
-          Restablecer Filtros
-        </button>
+      <!-- Fecha y hora actual -->
+      <div class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+        {{ getDateAgo(filters().months_back || 6) }} - Actual
       </div>
     </div>
   </div>
 
-  <!-- Pestañas de navegación -->
+  <!-- Filtros y controles (ahora ocultables) -->
+  @if (showFilters()) {
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-3 sm:p-6 mb-6">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Filtros del Dashboard</h3>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">Configura los parámetros para las métricas</p>
+        </div>
+        
+        <!-- Botón para recargar -->
+         <div>
+          <button (click)="applyFilters()"
+                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+            </svg>
+            Aplicar Filtros
+          </button>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Filtro de meses hacia atrás -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Período de análisis
+          </label>
+          <select
+            [ngModel]="filters().months_back"
+            (ngModelChange)="updateFilters('months_back', $event)"
+            class="textsize-cnf w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+          >
+            @for (months of monthsBackOptions; track months) {
+              <option [value]="months">Últimos {{ months }} mes{{ months !== 1 ? 'es' : '' }}</option>
+            }
+          </select>
+        </div>
+        
+        <!-- Filtro de límite de resultados -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Resultados por lista
+          </label>
+          <select
+            [ngModel]="filters().limit"
+            (ngModelChange)="updateFilters('limit', $event)"
+            class="textsize-cnf w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+          >
+            @for (limit of limitOptions; track limit) {
+              <option [value]="limit">Top {{ limit }}</option>
+            }
+          </select>
+        </div>
+             
+        <!-- Resetear filtros -->
+        <div class="flex items-end">
+          <button (click)="resetFilters()"
+                  class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+            </svg>
+            Restablecer Filtros
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Pestañas de navegación (se mantienen igual) -->
   <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
     <nav class="sm:flex text-center -mb-px space-x-4">
       <button (click)="setActiveTab('overview')"
@@ -116,7 +129,7 @@
     </nav>
   </div>
 
-  <!-- Estado de carga -->
+  <!-- Estado de carga (se mantiene igual) -->
   @if (isLoading()) {
     <div class="flex flex-col items-center justify-center min-h-[400px] space-y-4">
       <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -124,7 +137,7 @@
     </div>
   }
 
-  <!-- Error en la carga -->
+  <!-- Error en la carga (se mantiene igual) -->
   @if (!isLoading() && !dashboardData()) {
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-8 text-center">
       <div class="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4">
@@ -142,6 +155,7 @@
       </button>
     </div>
   }
+
 
   <!-- Contenido principal -->
   @if (dashboardData() && !isLoading()) {

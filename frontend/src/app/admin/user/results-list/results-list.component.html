@@ -542,7 +542,7 @@
       <!-- Vista móvil: tarjetas -->
       <div class="block sm:hidden divide-y divide-gray-200 dark:divide-gray-700">
         @for (result of adminResultsData(); track result.id) {
-          <div class="p-4 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
+          <div class="p-3 hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors">
             <!-- Checkbox y cabecera -->
             <div class="flex justify-between mb-3">
               <div class="flex items-center flex-1 min-w-0">
@@ -557,23 +557,6 @@
               <span class="{{ getStatusBadgeClass(result.status) }} ml-2 flex-shrink-0">
                 {{ getStatusLabel(result.status) }}
               </span>
-            </div>
-
-            <!-- User info -->
-            <div class="flex items-center flex-1 min-w-0 mb-2"> 
-              <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium" 
-                [class]="getRoleBadgeClass(result.user_role)">
-                {{ result.user_role[0].toUpperCase() }}
-              </span>
-
-              <div class="ml-2 flex-1 min-w-0">              
-                <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                  {{ getUserFullName(result) }}
-                </div>
-                <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  {{ result.user_email }}
-                </div>
-              </div>
             </div>
 
             <!-- Información del test -->
@@ -621,6 +604,23 @@
                     {{ result.status === 'completed' ? 'Completado' : 'Actualizado' }}
                   </div>
                   <div class="text-gray-900 dark:text-gray-100">{{ formatDateTime(result.updated_at) }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- User info -->
+            <div class="flex items-center flex-1 min-w-0 mb-2"> 
+              <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium" 
+                [class]="getRoleBadgeClass(result.user_role)">
+                {{ result.user_role[0].toUpperCase() }}
+              </span>
+
+              <div class="ml-2 flex-1 min-w-0">              
+                <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                  {{ getUserFullName(result) }}
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  @{{ result.user_username }}
                 </div>
               </div>
             </div>

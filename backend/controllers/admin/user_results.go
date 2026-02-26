@@ -29,60 +29,40 @@ type UserResultsRequest struct {
 	ToDate   string `form:"to_date" binding:"omitempty"`
 }
 
-// Estructura para respuesta de resultados del usuario
-type UserResultDetail struct {
-	ResultID      uint      `json:"result_id"`
+// Estructura para respuesta de resultados del usuario (similar a AdminResultItem)
+type UserResultItem struct {
+	// Result
+	ResultID      uint      `json:"id"`
 	TestID        uint      `json:"test_id"`
-	Title         string    `json:"title"`
-	Description   string    `json:"description"`
-	MainTopic     string    `json:"main_topic"`
-	SubTopic      string    `json:"sub_topic"`
-	SpecificTopic string    `json:"specific_topic"`
-	Level         string    `json:"level"`
-	TotalQuestions int      `json:"total_questions"`
 	CorrectAnswers int      `json:"correct_answers"`
 	WrongAnswers   int      `json:"wrong_answers"`
+	TotalQuestions int      `json:"total_questions"`
 	Score          float64  `json:"score"`
 	TimeTaken      int      `json:"time_taken"` // en segundos
 	Status         string   `json:"status"`
 	StartedAt     time.Time `json:"started_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
-	CreatedAt     time.Time `json:"t_created_at"`
+	
+	// Test
+	Title         string    `json:"test_title"`
+	Description   string    `json:"test_description,omitempty"`
+	MainTopic     string    `json:"test_main_topic"`
+	SubTopic      string    `json:"test_sub_topic"`
+	SpecificTopic string    `json:"test_specific_topic"`
+	Level         string    `json:"test_level"`
+	CreatedAt     time.Time `json:"test_created_at"`
+	
+	// Additional
 	AnsweredCount int `json:"answered_count"`
 }
 
-// Estructura para respuesta con estadísticas de usuario
+// Estructura para respuesta de resultados del usuario (formato similar a AdminResultsResponse)
 type UserResultsResponse struct {
-	Results    []UserResultDetail `json:"results"`
-	TotalResults int              `json:"total_results"`
-	TotalPages   int              `json:"total_pages"`
-	CurrentPage  int              `json:"current_page"`
-	PageSize     int              `json:"page_size"`
-	HasMore      bool             `json:"has_more"`
-	
-	// Estadísticas generales
-	Stats struct {
-		TotalTests        int     `json:"total_tests"`
-		CompletedTests    int     `json:"completed_tests"`
-		InProgressTests   int     `json:"in_progress_tests"`
-		AverageScore      float64 `json:"average_score"`
-		TotalTimeSpent    int     `json:"total_time_spent"` // en segundos
-		TotalQuestionsAnswered int `json:"total_questions_answered"`
-		TotalCorrectAnswers    int `json:"total_correct_answers"`
-	} `json:"stats"`
-	
-	// Filtros aplicados
-	Filters struct {
-		Status   string `json:"status,omitempty"`
-		Level    string `json:"level,omitempty"`
-		MainTopic string `json:"main_topic,omitempty"`
-		SubTopic  string `json:"sub_topic,omitempty"`
-		FromDate string `json:"from_date,omitempty"`
-		ToDate   string `json:"to_date,omitempty"`
-		Search   string `json:"search,omitempty"`
-		SortBy   string `json:"sort_by"`
-		SortOrder string `json:"sort_order"`
-	} `json:"filters"`
+	User             gin.H           `json:"user"`
+	Results          []UserResultItem `json:"results"`
+	FiltersApplied   gin.H           `json:"filters_applied"`
+	AvailableFilters gin.H           `json:"available_filters"`
+	Stats            gin.H           `json:"stats"`
 }
 
 // Obtener resultados de tests de un usuario específico
@@ -91,7 +71,7 @@ func GetUserResults(c *gin.Context) {
 	
 	// Verificar que el usuario existe
 	var user models.User
-	if err := config.DB.Select("id, username, email, first_name, last_name").
+	if err := config.DB.Select("id, username, email, first_name, last_name, role, registered_at").
 		First(&user, userID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "usuario no encontrado"})
 		return
@@ -109,7 +89,7 @@ func GetUserResults(c *gin.Context) {
 	if req.SortBy == "" { req.SortBy = "updated_at" }
 	if req.SortOrder == "" { req.SortOrder = "desc" }
 
-	// Construir consulta base MEJORADA - ahora incluye answers para calcular answered_count
+	// Construir consulta base para resultados filtrados
 	baseQuery := `
 		SELECT 
 			r.id as result_id,
@@ -168,7 +148,6 @@ func GetUserResults(c *gin.Context) {
 	
 	if req.FromDate != "" {
 		if fromDate, err := time.Parse("2006-01-02", req.FromDate); err == nil {
-			// Usar >= directamente sin DATE() para aprovechar índices
 			conditions = append(conditions, "r.started_at >= ?")
 			queryParams = append(queryParams, fromDate)
 		}
@@ -176,7 +155,6 @@ func GetUserResults(c *gin.Context) {
 	
 	if req.ToDate != "" {
 		if toDate, err := time.Parse("2006-01-02", req.ToDate); err == nil {
-			// Usar < (día siguiente) para incluir todo el día
 			nextDay := toDate.Add(24 * time.Hour)
 			conditions = append(conditions, "r.started_at < ?")
 			queryParams = append(queryParams, nextDay)
@@ -188,18 +166,26 @@ func GetUserResults(c *gin.Context) {
 		baseQuery += " AND " + strings.Join(conditions, " AND ")
 	}
 	
-	// Contar total de resultados (separado para mejor rendimiento)
-	countQuery := "SELECT COUNT(*) FROM results r JOIN tests t ON t.id = r.test_id WHERE r.user_id = ?"
-	countParams := []interface{}{userID}
-	
-	if len(conditions) > 0 {
-		countQuery += " AND " + strings.Join(conditions, " AND ")
-		countParams = append(countParams, queryParams[1:]...)
+	// ===== CONTAR TOTAL DE RESULTADOS (sin filtros) =====
+	var totalResults int64
+	countAllQuery := "SELECT COUNT(*) FROM results WHERE user_id = ?"
+	if err := config.DB.Raw(countAllQuery, userID).Scan(&totalResults).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "error al contar total de resultados: " + err.Error()})
+		return
 	}
 	
-	var totalResults int64
-	if err := config.DB.Raw(countQuery, countParams...).Scan(&totalResults).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "error al contar resultados: " + err.Error()})
+	// ===== CONTAR RESULTADOS FILTRADOS =====
+	countFilteredQuery := "SELECT COUNT(*) FROM results r JOIN tests t ON t.id = r.test_id WHERE r.user_id = ?"
+	countFilteredParams := []interface{}{userID}
+	
+	if len(conditions) > 0 {
+		countFilteredQuery += " AND " + strings.Join(conditions, " AND ")
+		countFilteredParams = append(countFilteredParams, queryParams[1:]...)
+	}
+	
+	var totalFilteredResults int64
+	if err := config.DB.Raw(countFilteredQuery, countFilteredParams...).Scan(&totalFilteredResults).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "error al contar resultados filtrados: " + err.Error()})
 		return
 	}
 	
@@ -207,7 +193,6 @@ func GetUserResults(c *gin.Context) {
 	orderClause := "ORDER BY "
 	switch req.SortBy {
 	case "average_score":
-		// Calcular score usando subquery
 		orderClause += "(r.correct_answers::float / NULLIF((SELECT COUNT(*) FROM questions WHERE test_id = t.id), 0) * 100) " + req.SortOrder
 	case "title":
 		orderClause += "t.title " + req.SortOrder
@@ -243,7 +228,7 @@ func GetUserResults(c *gin.Context) {
 		WrongAnswers   int       `gorm:"column:wrong_answers"`
 		TimeTaken      int       `gorm:"column:time_taken"`
 		Status         string    `gorm:"column:status"`
-		Answers        string    `gorm:"column:answers"` // Campo añadido para calcular answered_count
+		Answers        string    `gorm:"column:answers"`
 		StartedAt      time.Time `gorm:"column:started_at"`
 		UpdatedAt      time.Time `gorm:"column:updated_at"`
 		CreatedAt      time.Time `gorm:"column:t_created_at"`
@@ -255,27 +240,25 @@ func GetUserResults(c *gin.Context) {
 	}
 	
 	// Convertir resultados
-	userResults := make([]UserResultDetail, len(results))
+	userResults := make([]UserResultItem, len(results))
 	for i, r := range results {
 		score := 0.0
 		if r.TotalQuestions > 0 {
 			score = float64(r.CorrectAnswers) / float64(r.TotalQuestions) * 100
 		}
 		
-		// Calcular answered_count basado en el campo answers (similar al primer endpoint)
+		// Calcular answered_count
 		answeredCount := 0
 		if r.Status == "completed" {
-			// Para tests completados, answered_count es la suma de correct_answers + wrong_answers
 			answeredCount = r.CorrectAnswers + r.WrongAnswers
 		} else if r.Status == "in_progress" && r.Answers != "" {
-			// Para tests en progreso, contar respuestas desde el mapa JSON
 			var answers map[uint]uint
 			if err := json.Unmarshal([]byte(r.Answers), &answers); err == nil {
 				answeredCount = len(answers)
 			}
 		}
 		
-		userResults[i] = UserResultDetail{
+		userResults[i] = UserResultItem{
 			ResultID:       r.ResultID,
 			TestID:         r.TestID,
 			Title:          r.Title,
@@ -293,24 +276,21 @@ func GetUserResults(c *gin.Context) {
 			StartedAt:      r.StartedAt,
 			UpdatedAt:      r.UpdatedAt,
 			CreatedAt:      r.CreatedAt,
-			AnsweredCount:  answeredCount, // Campo añadido
+			AnsweredCount:  answeredCount,
 		}
 	}
 	
-	// Obtener estadísticas generales MEJORADO
+	// Obtener estadísticas detalladas (usando los mismos filtros)
 	var stats struct {
-		TotalTests        int64   `gorm:"column:total_tests"`
 		CompletedTests    int64   `gorm:"column:completed_tests"`
 		InProgressTests   int64   `gorm:"column:in_progress_tests"`
 		TotalTimeSpent    int64   `gorm:"column:total_time_spent"`
-		TotalQuestions    int64   `gorm:"column:total_questions"`
-		TotalCorrect      int64   `gorm:"column:total_correct"`
+		TotalQuestionsAnswered int64 `gorm:"column:total_questions"`
+		TotalCorrectAnswers    int64 `gorm:"column:total_correct"`
 	}
 	
-	// Crear estadísticas solo con los filtros que aplican para stats
 	statsQuery := `
 		SELECT 
-			COUNT(*) as total_tests,
 			SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_tests,
 			SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress_tests,
 			COALESCE(SUM(time_taken), 0) as total_time_spent,
@@ -322,7 +302,7 @@ func GetUserResults(c *gin.Context) {
 	
 	statsParams := []interface{}{userID}
 	
-	// Solo aplicar filtros de status y fecha a las estadísticas
+	// Aplicar mismos filtros a estadísticas
 	var statsConditions []string
 	if req.Status != "" && req.Status != "all" {
 		statsConditions = append(statsConditions, "status = ?")
@@ -349,57 +329,63 @@ func GetUserResults(c *gin.Context) {
 	}
 	
 	if err := config.DB.Raw(statsQuery, statsParams...).Scan(&stats).Error; err != nil {
-		// Log error pero continuar
 		fmt.Printf("Error obteniendo estadísticas: %v\n", err)
 	}
 
 	// Calcular promedio de score
 	avgScore := 0.0
-	if stats.CompletedTests > 0 && stats.TotalQuestions > 0 {
-		avgScore = float64(stats.TotalCorrect) / float64(stats.TotalQuestions) * 100
+	if stats.CompletedTests > 0 && stats.TotalQuestionsAnswered > 0 {
+		avgScore = float64(stats.TotalCorrectAnswers) / float64(stats.TotalQuestionsAnswered) * 100
 		avgScore = math.Round(avgScore*10) / 10
 	}
 
-	// Calcular paginación
-	totalPages := int(math.Ceil(float64(totalResults) / float64(req.PageSize)))
-	hasMore := req.Page < totalPages
+	// Obtener topics disponibles para filtros
+	mainTopics, _ := models.GetMainTopics()
 
-	// Construir respuesta
+	// Construir respuesta en el formato deseado
 	response := UserResultsResponse{
-		Results:      userResults,
-		TotalResults: int(totalResults),
-		TotalPages:   totalPages,
-		CurrentPage:  req.Page,
-		PageSize:     req.PageSize,
-		HasMore:      hasMore,
+		User: gin.H{
+			"id":           user.ID,
+			"username":     user.Username,
+			"email":        user.Email,
+			"first_name":   user.FirstName,
+			"last_name":    user.LastName,
+			"role":         user.Role,
+			"registered_at": user.RegisteredAt,
+		},
+		Results: userResults,
+		FiltersApplied: gin.H{
+			"page":        req.Page,
+			"page_size":   req.PageSize,
+			"sort_by":     req.SortBy,
+			"sort_order":  req.SortOrder,
+			"status":      req.Status,
+			"level":       req.Level,
+			"main_topic":  req.MainTopic,
+			"sub_topic":   req.SubTopic,
+			"from_date":   req.FromDate,
+			"to_date":     req.ToDate,
+			"search":      req.Search,
+		},
+		AvailableFilters: gin.H{
+			"main_topics": mainTopics,
+			"levels":      models.GetPredefinedLevels(),
+			"statuses":    []string{"all", "completed", "in_progress"},
+		},
+		Stats: gin.H{
+			"total_results":           totalResults,
+			"total_filtered_results":  totalFilteredResults,
+			"completed_tests":         stats.CompletedTests,
+			"in_progress_tests":       stats.InProgressTests,
+			"average_score":           avgScore,
+			"total_time_spent":        stats.TotalTimeSpent,
+			"total_questions_answered": stats.TotalQuestionsAnswered,
+			"total_correct_answers":   stats.TotalCorrectAnswers,
+		},
 	}
 
-	// Llenar estadísticas
-	response.Stats.TotalTests = int(stats.TotalTests)
-	response.Stats.CompletedTests = int(stats.CompletedTests)
-	response.Stats.InProgressTests = int(stats.InProgressTests)
-	response.Stats.AverageScore = avgScore
-	response.Stats.TotalTimeSpent = int(stats.TotalTimeSpent)
-	response.Stats.TotalQuestionsAnswered = int(stats.TotalQuestions)
-	response.Stats.TotalCorrectAnswers = int(stats.TotalCorrect)
-
-	// Llenar filtros aplicados
-	response.Filters.Status = req.Status
-	response.Filters.Level = req.Level
-	response.Filters.MainTopic = req.MainTopic
-	response.Filters.SubTopic = req.SubTopic
-	response.Filters.FromDate = req.FromDate
-	response.Filters.ToDate = req.ToDate
-	response.Filters.Search = req.Search
-	response.Filters.SortBy = req.SortBy
-	response.Filters.SortOrder = req.SortOrder
-
-	c.JSON(http.StatusOK, gin.H{
-		"user": user,
-		"data": response,
-	})
+	c.JSON(http.StatusOK, response)
 }
-
 
 // Obtener detalles específicos de un resultado - Adaptado para Angular
 func GetUserResultDetails(c *gin.Context) {

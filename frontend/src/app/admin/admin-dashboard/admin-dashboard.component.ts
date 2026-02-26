@@ -24,13 +24,15 @@ export class AdminDashboardComponent implements OnInit {
 
   constructor(private testStatsModalService: TestStatsModalService, private userModalService: UserModalService) {}
 
-
   // Datos del dashboard
   dashboardData = signal<DashboardResponse | null>(null);
   
   // Estados de carga
   isLoading = signal(true);
   activeTab = signal<'overview' | 'tests' | 'users'>('overview');
+  
+  // Control de visibilidad de filtros
+  showFilters = signal(false);
   
   // Filtros
   filters = signal<DashboardFilters>({
@@ -52,8 +54,64 @@ export class AdminDashboardComponent implements OnInit {
   errorMessage = signal('');
   showErrorModal = signal(false);
 
+  // Clave para localStorage
+  private readonly FILTER_STORAGE_KEY = 'dashboard_filters';
+  private readonly FILTER_VISIBILITY_KEY = 'dashboard_filters_visible';
+
   ngOnInit() {
+    this.loadSavedFilters();
+    this.loadSavedFilterVisibility();
     this.loadDashboard();
+  }
+
+  // Cargar filtros guardados
+  loadSavedFilters(): void {
+    try {
+      const savedFilters = localStorage.getItem(this.FILTER_STORAGE_KEY);
+      if (savedFilters) {
+        const filters = JSON.parse(savedFilters);
+        // Asegurar que solo se carguen propiedades válidas
+        const validFilters: DashboardFilters = {
+          months_back: filters.months_back || 6,
+          limit: filters.limit || 10,
+        };
+        this.filters.set(validFilters);
+      }
+    } catch (error) {
+      console.error('Error loading saved filters:', error);
+    }
+  }
+
+  // Guardar filtros en localStorage
+  saveFilters(): void {
+    const filters = {
+      ...this.filters(),
+      timestamp: new Date().getTime()
+    };
+    localStorage.setItem(this.FILTER_STORAGE_KEY, JSON.stringify(filters));
+  }
+
+  // Cargar visibilidad de filtros
+  loadSavedFilterVisibility(): void {
+    try {
+      const savedVisibility = localStorage.getItem(this.FILTER_VISIBILITY_KEY);
+      if (savedVisibility !== null) {
+        this.showFilters.set(JSON.parse(savedVisibility));
+      }
+    } catch (error) {
+      console.error('Error loading filter visibility:', error);
+    }
+  }
+
+  // Guardar visibilidad de filtros
+  saveFilterVisibility(): void {
+    localStorage.setItem(this.FILTER_VISIBILITY_KEY, JSON.stringify(this.showFilters()));
+  }
+
+  // Toggle visibilidad de filtros
+  toggleFilters(): void {
+    this.showFilters.update(value => !value);
+    this.saveFilterVisibility();
   }
 
   // Cargar dashboard
@@ -64,6 +122,7 @@ export class AdminDashboardComponent implements OnInit {
       next: (data) => {
         this.dashboardData.set(data);
         this.isLoading.set(false);
+        this.saveFilters(); // Guardar filtros después de cargar exitosamente
       },
       error: (err) => {
         console.error('Error al cargar dashboard:', err);
@@ -86,6 +145,7 @@ export class AdminDashboardComponent implements OnInit {
   updateFilters(key: keyof DashboardFilters, value: any): void {
     const currentFilters = this.filters();
     this.filters.set({ ...currentFilters, [key]: value });
+    // No guardamos automáticamente aquí, solo cuando se aplican
   }
 
   // Cambiar pestaña
@@ -104,6 +164,7 @@ export class AdminDashboardComponent implements OnInit {
       months_back: 6,
       limit: 10,
     });
+    this.saveFilters(); // Guardar los filtros por defecto
     this.applyFilters();
   }
 

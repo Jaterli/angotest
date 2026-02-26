@@ -1,7 +1,7 @@
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TestAvailableFilters, TestFiltersApplied, TestWithCount } from '../../../shared/models/test.model';
+import { TestAvailableFilters, TestFiltersApplied, TestWithCount } from '../../../shared/models/test.models';
 import { RouterModule } from '@angular/router';
 import { ModalComponent } from '../../../shared/components/modal.component';
 import { TestsManagementService } from '../../services/tests-management.service';

@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { UpdateEmailPassword, UserUpdateData } from '../models/user.model';
+import { UpdateEmailPassword, UserUpdateData } from '../models/user.models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })

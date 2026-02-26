@@ -7,7 +7,7 @@ import { ModalComponent } from '../modal.component';
 import { AuthService } from '../../services/auth.service';
 import { InvitationService } from '../../services/invitation.service';
 import { InvitationTestInfoComponent } from './invitation-testinfo.component';
-import { CheckInvitationResponse } from '../../models/invitation.model';
+import { CheckInvitationResponse } from '../../models/invitation.models';
 
 @Component({
   selector: 'app-invitation-accept',

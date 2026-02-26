@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { AIRequestStatus, CurrentUserQuota, GenerateTestRequest } from "../models/generate-test.model";
+import { AIRequestStatus, CurrentUserQuota, GenerateTestRequest } from "../models/generate-test.models";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { environment } from "../../../environments/environment";

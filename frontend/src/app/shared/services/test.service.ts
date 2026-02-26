@@ -15,7 +15,7 @@ import {
   NotStartedTestsFilter,
   NotStartedTestsFullResponse,
   CompletedTestsFullResponse
-} from '../models/test.model';
+} from '../models/test.models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({

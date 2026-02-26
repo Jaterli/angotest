@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractContro
 import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { UserUpdateData } from '../../shared/models/user.model';
+import { UserUpdateData } from '../../shared/models/user.models';
 import { UserService } from '../../shared/services/user.service';
 import { ModalComponent } from '../../shared/components/modal.component';
 import { DeactivateAccountModalComponent } from '../delete-account/delete-account-modal.component';
