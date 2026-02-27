@@ -67,7 +67,7 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     });
 
     // Prevenir acciones de copia
-    this.setupCopyProtection();
+    //this.setupCopyProtection();
     
     // Prevenir navegación accidental
     this.setupNavigationProtection();

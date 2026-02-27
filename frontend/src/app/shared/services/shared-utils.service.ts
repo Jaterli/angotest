@@ -114,7 +114,7 @@ export class SharedUtilsService {
     if (progress >= 60) return commonClasses + 'bg-yellow-300 dark:bg-yellow-500';
     if (progress >= 40) return commonClasses + 'bg-amber-300 dark:bg-amber-500';
     if (progress >= 20) return commonClasses + 'bg-orange-300 dark:bg-orange-500';
-    return commonClasses + 'bg-red-300 dark:bg-red-500';
+    return commonClasses + 'bg-red-300 dark:bg-red-500';    
   }
 
   getSharedAccuracyColor(accuracy: number): string {

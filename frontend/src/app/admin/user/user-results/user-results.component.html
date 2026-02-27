@@ -36,6 +36,98 @@
     </div>
   </div>
 
+  <!-- Filtros (expandibles) -->
+  @if (showFilters()) {
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6 mb-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Estado -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Estado</label>
+          <select [(ngModel)]="filters().status" (ngModelChange)="applyFilters()"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
+            @for (option of statusOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+        
+        <!-- Nivel -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nivel</label>
+          <select [(ngModel)]="filters().level" (ngModelChange)="applyFilters()"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
+            <option value="">Todos los niveles</option>
+            @for (level of levelOptions; track level) {
+              <option [value]="level">{{ level }}</option>
+            }
+          </select>
+        </div>
+        
+        <!-- Tema Principal -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tema Principal</label>
+          <select [(ngModel)]="filters().main_topic" (ngModelChange)="applyFilters()"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
+            <option value="">Todos los temas</option>
+            @for (topic of mainTopicOptions; track topic) {
+              <option [value]="topic">{{ topic }}</option>
+            }
+          </select>
+        </div>
+        
+        <!-- Ordenar por -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ordenar por</label>
+          <select [(ngModel)]="filters().sort_by" (ngModelChange)="applyFilters()"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
+            @for (option of sortOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+        
+        <!-- Búsqueda -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Buscar</label>
+          <input type="text" [(ngModel)]="filters().search" (ngModelChange)="applyFilters()"
+                 placeholder="Buscar por título o descripción..."
+                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
+        </div>
+        
+        <!-- Fechas -->
+        <div class="md:col-span-2">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Desde</label>
+              <input type="date" [(ngModel)]="filters().from_date" (ngModelChange)="applyFilters()"
+                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Hasta</label>
+              <input type="date" [(ngModel)]="filters().to_date" (ngModelChange)="applyFilters()"
+                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
+            </div>
+          </div>
+        </div>
+        
+        <!-- Botones -->
+        <div class="flex items-end space-x-2">
+          <button (click)="applyFilters()"
+                  class="flex-1 inline-flex justify-center items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+            </svg>
+            Aplicar Filtros
+          </button>
+          <button (click)="clearFilters()"
+                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+            Limpiar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
   <!-- Información del usuario -->
   @if (user() && !loadingUser()) {
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-3 sm:p-6 mb-8">
@@ -139,98 +231,6 @@
             <div class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ stats()?.total_questions_answered }}</div>
             <div class="text-xs text-gray-500 dark:text-gray-400">Preguntas Respondidas</div>
           </div>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Filtros (expandibles) -->
-  @if (showFilters()) {
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-6 mb-8">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Estado -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Estado</label>
-          <select [(ngModel)]="filters().status" (ngModelChange)="applyFilters()"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
-            @for (option of statusOptions; track option.value) {
-              <option [value]="option.value">{{ option.label }}</option>
-            }
-          </select>
-        </div>
-        
-        <!-- Nivel -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nivel</label>
-          <select [(ngModel)]="filters().level" (ngModelChange)="applyFilters()"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
-            <option value="">Todos los niveles</option>
-            @for (level of levelOptions; track level) {
-              <option [value]="level">{{ level }}</option>
-            }
-          </select>
-        </div>
-        
-        <!-- Tema Principal -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tema Principal</label>
-          <select [(ngModel)]="filters().main_topic" (ngModelChange)="applyFilters()"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
-            <option value="">Todos los temas</option>
-            @for (topic of mainTopicOptions; track topic) {
-              <option [value]="topic">{{ topic }}</option>
-            }
-          </select>
-        </div>
-        
-        <!-- Ordenar por -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ordenar por</label>
-          <select [(ngModel)]="filters().sort_by" (ngModelChange)="applyFilters()"
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
-            @for (option of sortOptions; track option.value) {
-              <option [value]="option.value">{{ option.label }}</option>
-            }
-          </select>
-        </div>
-        
-        <!-- Búsqueda -->
-        <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Buscar</label>
-          <input type="text" [(ngModel)]="filters().search" (ngModelChange)="applyFilters()"
-                 placeholder="Buscar por título o descripción..."
-                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
-        </div>
-        
-        <!-- Fechas -->
-        <div class="md:col-span-2">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Desde</label>
-              <input type="date" [(ngModel)]="filters().from_date" (ngModelChange)="applyFilters()"
-                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Hasta</label>
-              <input type="date" [(ngModel)]="filters().to_date" (ngModelChange)="applyFilters()"
-                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all">
-            </div>
-          </div>
-        </div>
-        
-        <!-- Botones -->
-        <div class="flex items-end space-x-2">
-          <button (click)="applyFilters()"
-                  class="flex-1 inline-flex justify-center items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
-            </svg>
-            Aplicar Filtros
-          </button>
-          <button (click)="clearFilters()"
-                  class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-            Limpiar
-          </button>
         </div>
       </div>
     </div>
