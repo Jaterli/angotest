@@ -47,7 +47,8 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   
   // Para navegación
   isCompleted = false;
-  
+  isTextInfoExpanded = false; // Estado inicial: colapsado
+
   // Estado de carga
   savingProgress = signal(false);
   
@@ -209,7 +210,6 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     return shuffled;
 }
 
-
   updateAnsweredCount(count: number): void {
     // Este método es para sincronizar con el backend
     // El contador real sigue siendo el de selectedAnswers
@@ -240,6 +240,11 @@ export class TestSingleComponent implements OnInit, OnDestroy {
       });
     }
     return result;
+  }
+
+  // Alterna el estado de expansión
+  toggleExpand(): void {
+    this.isTextInfoExpanded = !this.isTextInfoExpanded;
   }
 
   getAnswerLetter(index: number): string {

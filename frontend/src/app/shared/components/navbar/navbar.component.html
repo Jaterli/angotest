@@ -211,13 +211,7 @@
               </div>
             }
           </div>
-        }
 
-        <!-- Toggle de tema -->
-        <div class="hidden lg:block border-l border-gray-200 dark:border-gray-700 pl-4">
-          <app-theme-toggle></app-theme-toggle>
-        </div>
-    
         <!-- Avatar o iniciales -->
         <div class="lg:hidden w-8 h-8 rounded-full flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 flex items-center justify-center shadow-sm cursor-default">
           @if (userProfilePic()) {
@@ -227,6 +221,13 @@
           }
         </div>
 
+        }
+
+        <!-- Toggle de tema -->
+        <div class="hidden lg:block border-l border-gray-200 dark:border-gray-700 pl-4">
+          <app-theme-toggle></app-theme-toggle>
+        </div>
+    
         <!-- Menú hamburguesa para móvil -->
         <div class="lg:hidden">
           <button (click)="toggleMobileMenu()"
@@ -243,21 +244,28 @@
     @if (showMobileMenu()) {
       <div class="lg:hidden border-t border-gray-200 dark:border-gray-700">
         <div class="pt-2 pb-3 space-y-1">    
-            @if (!isLoggedIn) {
-
+           
+          @if (!isLoggedIn) {
               <div class="flex justify-between">
+                <!-- Register en móvil -->
+                <a routerLink="/register" 
+                  (click)="closeMobileMenu()"
+                  [class]="classes.mobileLink"
+                  [routerLinkActive]="activeClasses.mobile">
+                  Registrate
+                </a>  
                 <!-- Toggle de tema -->
                 <div class="border-l border-gray-200 dark:border-gray-700 pl-4">
                   <app-theme-toggle></app-theme-toggle>
                 </div>
-                <!-- Login en móvil -->
-                <a routerLink="/login" 
-                  (click)="closeMobileMenu()"
-                  [class]="classes.mobileLink"
-                  [routerLinkActive]="activeClasses.mobile">
-                  Login
-                </a>
               </div>
+              <!-- Login en móvil -->
+              <a routerLink="/login" 
+                (click)="closeMobileMenu()"
+                [class]="classes.mobileLink"
+                [routerLinkActive]="activeClasses.mobile">
+                Login
+              </a>
             } @else {
 
               <div class="flex justify-between">

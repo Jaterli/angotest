@@ -12,44 +12,55 @@
     
     <!-- Header fijo -->
     <header class="sticky top-0 z-50 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 shadow-sm">
-      <div class="container mx-auto px-4 py-4">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div class="flex-1 min-w-0">
-            <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ test.title }}</h1>
-            <div class="flex items-center gap-3">
-              <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                {{ test.main_topic }} › {{ test.sub_topic }} › {{ test.specific_topic }}
+      <div class="container mx-auto px-4 py-4">         
+          
+        <!-- Título truncado -->
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <div class="truncate" [class.truncate]="!isTextInfoExpanded">
+            <h1 class="textsize-cnf mr-2 inline font-bold text-gray-900 dark:text-gray-100">
+              {{ test.title }}
+            </h1>
+            <span class="text-xs" [class]="getLevelBadgeClass(test.level)">
+              {{ test.level }}
+            </span>
+          </div>
+          <button 
+            (click)="toggleExpand()"
+            class="flex-shrink-0 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 whitespace-nowrap">
+            {{ isTextInfoExpanded ? 'Ver menos' : 'Ver más' }}
+          </button>
+        </div>
+        
+        <!-- Contenido expandible con animación -->
+        <div *ngIf="isTextInfoExpanded" 
+            class="mb-2 space-y-2 animate-slideDown">
+          <div class="text-xs text-gray-500 dark:text-gray-400">{{ test.description }}</div>          
+          <div class="text-xs text-blue-500 dark:text-blue-400">
+            {{ test.main_topic }} › {{ test.sub_topic }} › {{ test.specific_topic }}
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-4">
+          <!-- Progreso -->
+          <div class="w-full">
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div class="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                    [style.width.%]="getProgressPercentage()">
               </div>
-              <span class="text-xs"
-                    [class]="getLevelBadgeClass(test.level)">
-                {{ test.level }}
-              </span>
+            </div>
+            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {{ getAnsweredCount() }} respondidas • {{ getUnansweredQuestionsCount() }} pendientes
             </div>
           </div>
 
-          <div class="flex items-center gap-4">
-            <!-- Progreso -->
-            <div class="w-full sm:w-48">
-              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div class="bg-blue-600 dark:bg-blue-500 h-2 rounded-full transition-all duration-300" 
-                     [style.width.%]="getProgressPercentage()">
-                </div>
-              </div>
-              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {{ getAnsweredCount() }} respondidas • {{ getUnansweredQuestionsCount() }} pendientes
-              </div>
-            </div>
-
-            <!-- Tiempo -->
-             
-            <div class="flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
-              </svg>
-              <span class="font-mono font-semibold text-gray-900 dark:text-gray-100">
-                {{ getTimeElapsed() }}
-              </span>
-            </div>
+          <!-- Tiempo -->      
+          <div class="flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-lg">
+            <svg class="w-4 h-4 text-gray-600 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+            </svg>
+            <span class="font-mono font-semibold text-gray-900 dark:text-gray-100">
+              {{ getTimeElapsed() }}
+            </span>
           </div>
         </div>
       </div>
@@ -87,12 +98,10 @@
 
             <!-- Texto de la pregunta -->
             <div class="px-3 xs:px-6 py-8">
-              <div class="prose prose-lg dark:prose-invert max-w-none">
-                <p class="text-gray-900 dark:text-gray-100 text-lg font-medium leading-relaxed select-none"
-                   [class.select-none]="isContentProtected()">
-                  {{ currentQuestion.question_text }}
-                </p>
-              </div>
+              <p class="text-gray-900 dark:text-gray-100 text-lg/6 font-medium select-none"
+                  [class.select-none]="isContentProtected()">
+                {{ currentQuestion.question_text }}
+              </p>
             </div>
 
             <!-- Opciones de respuesta -->
