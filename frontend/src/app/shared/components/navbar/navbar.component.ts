@@ -1,5 +1,5 @@
 // src/app/components/navbar/navbar.component.ts
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ThemeToggleComponent } from '../theme-toggle.component';
@@ -11,10 +11,13 @@ import { AuthService } from '../../services/auth.service';
   imports: [CommonModule, RouterModule, ThemeToggleComponent],
   templateUrl: './navbar.component.html',
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnInit, OnDestroy {
   showMobileMenu = signal(false);
   showUserDropdown = signal(false);
-  userProfilePic = signal<string | null>(null); // Opcional: para avatar personalizado
+  userProfilePic = signal<string | null>(null);
+  
+  // Señal para controlar si el menú está compactado
+  isScrolled = signal(false);
   
   // Clases específicas para cada tipo de enlace
   classes = {
@@ -35,10 +38,28 @@ export class NavbarComponent {
 
   constructor(private authService: AuthService) {}
 
+  ngOnInit() {
+    // Verificar posición inicial del scroll
+    this.checkScroll();
+  }
+
+  ngOnDestroy() {
+    // Limpiar si es necesario
+  }
+
+  @HostListener('window:scroll')
+  onWindowScroll() {
+    this.checkScroll();
+  }
+
+  private checkScroll() {
+    // Cambiar el estado cuando el scroll sea mayor a 10px
+    const scrollPosition = window.scrollY || document.documentElement.scrollTop;
+    this.isScrolled.set(scrollPosition > 10);
+  }
   getUserInitials(): string {
     if (!this.currentUser) return 'U';
     
-    // Tomar iniciales del nombre y apellido
     const firstName = this.currentUser.first_name || '';
     const lastName = this.currentUser.last_name || '';
     
@@ -56,17 +77,14 @@ export class NavbarComponent {
   getUserDisplayName(): string {
     if (!this.currentUser) return 'Usuario';
       
-    // Preferido
     if (this.currentUser.username) {
       return '@'+this.currentUser.username;
     }
       
-    // Secundario
     if (this.currentUser.first_name && this.currentUser.last_name) {
       return `${this.currentUser.first_name} ${this.currentUser.last_name}`;
     }
     
-    // Si no, usar email (recortado)
     if (this.currentUser.email) {
       return this.currentUser.email.split('@')[0];
     }
@@ -83,7 +101,6 @@ export class NavbarComponent {
     this.showMobileMenu.set(false);      
   }
 
-  // Exponer señales y propiedades para template
   get isLoggedIn() {
     if (this.authService.currentUser()) { return true }
     return false;
@@ -118,9 +135,6 @@ export class NavbarComponent {
     }
   }
 
-  // Métodos para verificar roles específicos
-
-    // Helper para menús específicos
   shouldShowAdminMenu(): boolean {
     return this.isLoggedIn && this.currentUser?.role == 'admin';
   }

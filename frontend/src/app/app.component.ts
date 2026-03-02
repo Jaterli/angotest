@@ -9,7 +9,7 @@ import { FooterComponent } from './shared/components/footer/footer.component';
   imports: [RouterOutlet, NavbarComponent, FooterComponent],
   template: `
     <div class="min-h-screen flex flex-col">
-      <app-navbar></app-navbar>
+      <app-navbar class="sticky top-0 z-50 transition-all duration-300"></app-navbar>
       <main class="flex-1">
         <router-outlet></router-outlet>   
       </main>
