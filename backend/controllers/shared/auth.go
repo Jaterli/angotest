@@ -367,7 +367,7 @@ func ForgotPassword(c *gin.Context) {
 
 	// En un entorno real, aquí enviarías el email
 	// Por ahora, solo logueamos el token (en producción usarías un servicio de email)
-	resetLink := fmt.Sprintf("%s/reset-password?token=%s", os.Getenv("FRONTEND_URL"), token)
+	resetLink := fmt.Sprintf("https://%s/reset-password?token=%s", c.Request.Host, token)
 	
 	log.Printf("Password reset link for %s: %s", user.Email, resetLink)
 	

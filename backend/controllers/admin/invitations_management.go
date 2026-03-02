@@ -190,7 +190,7 @@ func GetInvitations(c *gin.Context) {
 			ExpiresAt:   inv.ExpiresAt,
 			CreatedAt:   inv.CreatedAt,
 			Status:      status,
-			InvitationURL: c.Request.Host + "/invitation/accept?token=" + inv.Token,
+			InvitationURL: "https://"+c.Request.Host + "/invitation/accept?token=" + inv.Token,
 		}
 		
 		if inv.GuestUser != nil {

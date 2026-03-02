@@ -109,7 +109,7 @@ func (ic *InvitationController) CreateInvitation(c *gin.Context) {
 	}
 
 	// Generar URL de invitación
-	invitationURL := c.Request.Host + "/invitation/accept?token=" + token
+	invitationURL := "https://"+c.Request.Host + "/invitation/accept?token=" + token
 
 	c.JSON(http.StatusCreated, gin.H{
 		"invitation": invitation,

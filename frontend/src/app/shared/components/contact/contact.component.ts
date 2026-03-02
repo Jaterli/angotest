@@ -1,9 +1,11 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ContactService } from '../../services/contact.service';
 import { ContactFormData } from '../../models/contact.models';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'app-contact',
@@ -30,12 +32,6 @@ export class ContactComponent {
     { value: 'otros', label: 'Otros' }
   ];
 
-  // Longitud del mensaje para el contador
-  messageLength = computed(() => {
-    const message = this.contactForm.get('message')?.value || '';
-    return message.length;
-  });
-
   constructor() {
     this.contactForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
@@ -43,7 +39,12 @@ export class ContactComponent {
       subject: ['', Validators.required],
       message: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
       consent: [false, Validators.requiredTrue]
+
     });
+  }
+
+  get messageLength(): number {
+    return this.contactForm?.get('message')?.value?.length || 0;
   }
 
   /**
