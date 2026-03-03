@@ -2,8 +2,8 @@ import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { ContactService } from '../../services/contact.service';
-import { ContactFormData } from '../../models/contact.models';
+import { ContactService } from '../../../services/contact.service';
+import { ContactFormData } from '../../../models/contact.models';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map, startWith } from 'rxjs/operators';
 

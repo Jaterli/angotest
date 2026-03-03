@@ -25,6 +25,18 @@
         
         <!-- Usuario no autenticado -->
         @if (!isLoggedIn) {
+          <a routerLink="/home" 
+             [class]="classes.link"
+             [routerLinkActive]="activeClasses.link"
+             class="hidden sm:block">
+            Home
+          </a>  
+          <a routerLink="/ai-integration" 
+             [class]="classes.link"
+             [routerLinkActive]="activeClasses.link"
+             class="hidden sm:block">
+            Generación de tests con IA
+          </a>           
           <a routerLink="/register" 
              [class]="classes.link"
              [routerLinkActive]="activeClasses.link"
@@ -250,16 +262,29 @@
            
           @if (!isLoggedIn) {
               <div class="flex justify-between">
-                <a routerLink="/register" 
+                <a routerLink="/home" 
                   (click)="closeMobileMenu()"
                   [class]="classes.mobileLink"
                   [routerLinkActive]="activeClasses.mobile">
-                  Registrate
+                  Home
                 </a>  
                 <div class="border-l border-gray-200 dark:border-gray-700 pl-4">
                   <app-theme-toggle></app-theme-toggle>
                 </div>
               </div>
+
+              <a routerLink="/ai-integration" 
+                (click)="closeMobileMenu()"
+                [class]="classes.mobileLink"
+                [routerLinkActive]="activeClasses.mobile">
+                Generación de tests con IA
+              </a> 
+              <a routerLink="/register" 
+                (click)="closeMobileMenu()"
+                [class]="classes.mobileLink"
+                [routerLinkActive]="activeClasses.mobile">
+                Registrate
+              </a>  
               <a routerLink="/login" 
                 (click)="closeMobileMenu()"
                 [class]="classes.mobileLink"

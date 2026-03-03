@@ -7,10 +7,12 @@ export const APP_ROUTES: Routes = [
   { path: 'login', loadComponent: () => import('./shared/components/login/login.component').then(m => m.LoginComponent) },
   { path: 'forgot-password', loadComponent: () => import('./shared/components/reset-password/forgot-password.component').then(m => m.ForgotPasswordComponent) },
   { path: 'reset-password', loadComponent: () => import('./shared/components/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
-  { path: 'privacy', loadComponent: () => import('./shared/components/privacy-policy/privacy-policy.component').then(m => m.PrivacyPolicyComponent) },  
-  { path: 'terms', loadComponent: () => import('./shared/components/terms-conditions/terms-conditions.component').then(m => m.TermsConditionsComponent) },
-  { path: 'contact', loadComponent: () => import('./shared/components/contact/contact.component').then(m => m.ContactComponent) },
-  { path: 'faqs', loadComponent: () => import('./shared/components/faqs/faqs.component').then(m => m.FaqsComponent) },  
+  { path: 'privacy', loadComponent: () => import('./shared/components/pages/privacy-policy/privacy-policy.component').then(m => m.PrivacyPolicyComponent) },  
+  { path: 'terms', loadComponent: () => import('./shared/components/pages/terms-conditions/terms-conditions.component').then(m => m.TermsConditionsComponent) },
+  { path: 'contact', loadComponent: () => import('./shared/components/pages/contact/contact.component').then(m => m.ContactComponent) },
+  { path: 'faqs', loadComponent: () => import('./shared/components/pages/faqs/faqs.component').then(m => m.FaqsComponent) },  
+  { path: 'ai-integration', loadComponent: () => import('./shared/components/pages/ai-integration/ai-integration.component').then(m => m.AiIntegrationComponent) },    
+  { path: 'home', loadComponent: () => import('./shared/components/pages/home/home.component').then(m => m.HomeComponent) },
 
   // Rutas de administración
   { path: 'admin/tests', loadComponent: () => import('./admin/tests/admin-test-list/admin-test-list.component').then(m => m.AdminTestListComponent), canActivate: [authGuard] },
@@ -46,7 +48,5 @@ export const APP_ROUTES: Routes = [
 
   { path: 'forbidden', loadComponent: () => import('./shared/components/forbidden/forbidden.component').then(m => m.ForbiddenComponent), canActivate: [authGuard] },
 
-  { path: '', loadComponent: () => import('./shared/components/home/home.component').then(m => m.HomeComponent) },
-
-  //{ path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: 'home' }
 ];
