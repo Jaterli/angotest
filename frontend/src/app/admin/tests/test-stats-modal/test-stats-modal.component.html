@@ -86,13 +86,13 @@
             </div>
         </div>
 
-        <!-- Tasa de Abandono -->
+        <!-- Tasa de Expiración -->
         <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
             <div class="text-center">
-            <div [class]="getScoreColor(100 - abandonmentRate())" class="text-2xl font-bold mb-1">
-                {{ formatPercentage(abandonmentRate()) }}
+            <div [class]="getScoreColor(100 - expirationRate())" class="text-2xl font-bold mb-1">
+                {{ formatPercentage(expirationRate()) }}
             </div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">Tasa de Abandono</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">Tasa de Expiración</div>
             </div>
         </div>
         </div>
@@ -162,15 +162,15 @@
             </div>
             </div>
 
-            <!-- Barra de progreso para abandonados -->
+            <!-- Barra de progreso para expiraciones -->
             <div>
             <div class="flex items-center justify-between text-xs mb-1">
-                <span class="text-red-600 dark:text-red-400 font-medium">Abandonados</span>
-                <span>{{ abandonedAttempts() }} ({{ formatPercentage(abandonmentRate()) }})</span>
+                <span class="text-red-600 dark:text-red-400 font-medium">Expirados</span>
+                <span>{{ expirationAttempts() }} ({{ formatPercentage(expirationRate()) }})</span>
             </div>
             <div [class]="getProgressBarEmpty()">
-                <div [class]="getProgressBarColor(abandonmentRate())"
-                    [style.width.%]="abandonmentRate()">
+                <div [class]="getProgressBarColor(expirationRate())"
+                    [style.width.%]="expirationRate()">
                 </div>
             </div>
             </div>

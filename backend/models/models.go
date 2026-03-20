@@ -108,7 +108,7 @@ type Result struct {
     CorrectAnswers int      `gorm:"not null;default:0" json:"correct_answers"`
     WrongAnswers   int      `gorm:"not null;default:0" json:"wrong_answers"`
     TimeTaken      int      `gorm:"not null;default:0" json:"time_taken"`
-    Status         string   `gorm:"type:varchar(20);default:'in_progress';index:idx_user_test_status;check:status IN ('in_progress', 'completed', 'abandoned')" json:"status"`
+    Status         string   `gorm:"type:varchar(20);default:'in_progress';index:idx_user_test_status;check:status IN ('in_progress', 'completed', 'expired')" json:"status"`
     Answers        string   `gorm:"type:json" json:"answers,omitempty"`
 	StartedAt      time.Time `gorm:"autoCreateTime" json:"started_at"`
     UpdatedAt      time.Time `gorm:"autoUpdateTime" json:"updated_at"`
@@ -201,7 +201,7 @@ func GetPredefinedLevels() []string {
 }
 
 func GetPredefinedStatus() []string {
-    return []string{"completed", "in_progress", "abandoned"}
+    return []string{"completed", "in_progress", "expired"}
 }
 
 func GetQuestionOptions() []int {

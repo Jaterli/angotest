@@ -149,7 +149,7 @@ export class DashboardComponent implements OnInit {
     const personal = this.personalData();
     if (!personal) return 0;
     
-    return personal.completed_tests + personal.in_progress_tests + personal.abandoned_tests;
+    return personal.completed_tests + personal.in_progress_tests + personal.expired_tests;
   });
 
   // Distribución de tests por nivel

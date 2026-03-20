@@ -100,7 +100,7 @@ export interface SaveResultInput {
   test_id: number;
   answers: Record<string, number>;
   time_taken: number;
-  status: 'in_progress' | 'completed' | 'abandoned';
+  status: 'in_progress' | 'completed' | 'expired';
 }
 
 export interface ResumeTestResponse {

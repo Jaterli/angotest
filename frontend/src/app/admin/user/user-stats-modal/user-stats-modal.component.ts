@@ -203,11 +203,11 @@ export class UserStatsModalComponent implements OnInit, OnDestroy {
     return this.calculatePercentage(this.stats()!.test_stats.in_progress_tests, this.stats()!.test_stats.total_tests);
   }
 
-  abandonedPercentage(): number {
+  expiredPercentage(): number {
     if (!this.stats() || this.stats()!.test_stats.total_tests === 0) {
       return 0;
     }
-    return this.calculatePercentage(this.stats()!.test_stats.abandoned_tests, this.stats()!.test_stats.total_tests);
+    return this.calculatePercentage(this.stats()!.test_stats.expired_tests, this.stats()!.test_stats.total_tests);
   }
 
 

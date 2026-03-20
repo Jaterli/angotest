@@ -44,7 +44,6 @@ export class SystemConfigComponent implements OnInit {
     sortOrder: 'asc'
   });
 
-
   isLoading = computed(() => this.loading());
 
   constructor() {}

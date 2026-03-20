@@ -11,7 +11,7 @@ export interface DashboardStats {
 export interface PersonalData {
   completed_tests: number;
   in_progress_tests: number;
-  abandoned_tests: number;
+  expired_tests: number;
   first_attempt: AttemptDataCategory;
   all_attempts: AttemptDataCategory;
 }

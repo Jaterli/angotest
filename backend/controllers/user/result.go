@@ -21,7 +21,7 @@ type SaveResultInput struct {
 	TestID      uint           `json:"test_id" binding:"required"`
 	Answers     map[uint]uint  `json:"answers"` // Cambiado a mapa en lugar de array
 	TimeTaken   int            `json:"time_taken"`
-	Status      string         `json:"status" binding:"required,oneof=in_progress completed abandoned"`
+	Status      string         `json:"status" binding:"required,oneof=in_progress completed expired"`
 }
 
 // SaveOrUpdateResult maneja guardado de progreso o finalización de test

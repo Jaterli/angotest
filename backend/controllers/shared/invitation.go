@@ -170,15 +170,15 @@ func (ic *InvitationController) CheckInvitation(c *gin.Context) {
     resultFound := false
     
     // Orden de prioridad corregido: 
-    // 1. Primero buscar 'in_progress' o 'abandoned' (puede retomar)
+    // 1. Primero buscar 'in_progress' o 'expired' (puede retomar)
     if err := config.DB.Where("user_id = ? AND test_id = ? AND status IN (?, ?)", 
-        resultUserID, invitation.TestID, "in_progress", "abandoned").
+        resultUserID, invitation.TestID, "in_progress", "expired").
         Order("updated_at DESC").
         First(&existingResult).Error; err == nil {
         response["result"] = existingResult
         resultFound = true
     } else {
-        // 2. Si no hay 'in_progress' o 'abandoned', buscar 'completed'
+        // 2. Si no hay 'in_progress' o 'expired', buscar 'completed'
         if err := config.DB.Where("user_id = ? AND test_id = ? AND status = ?", 
             resultUserID, invitation.TestID, "completed").
             Order("updated_at DESC").

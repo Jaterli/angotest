@@ -11,6 +11,8 @@ import { TestStatsModalService } from '../services/test-stats-modal.service';
 import { IdWithIconButtonComponent } from '../shared-components/id-with-icon-button.component';
 import { UserStatsModalComponent } from '../user/user-stats-modal/user-stats-modal.component';
 import { UserModalService } from '../services/user-modal.service';
+import { SystemConfigService } from '../services/system-config.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -20,6 +22,7 @@ import { UserModalService } from '../services/user-modal.service';
 })
 export class AdminDashboardComponent implements OnInit {
   private dashboardService = inject(DashboardService);
+  private systemConfigService = inject(SystemConfigService);
   private sharedUtilsService = inject(SharedUtilsService);
 
   constructor(private testStatsModalService: TestStatsModalService, private userModalService: UserModalService) {}
@@ -34,14 +37,14 @@ export class AdminDashboardComponent implements OnInit {
   // Control de visibilidad de filtros
   showFilters = signal(false);
   
-  // Filtros
+  // Filtros - Modificado para rango de fechas
   filters = signal<DashboardFilters>({
-    months_back: 6,
+    start_date: this.getDefaultStartDate(), // 6 meses atrás por defecto
+    end_date: this.getTodayDate(), // Hoy por defecto
     limit: 10,
   });
   
   // Opciones de filtro
-  monthsBackOptions = [1, 3, 6, 12];
   limitOptions = [5, 10, 20, 50];
 
   // Para el modal de estadísticas de test
@@ -58,10 +61,40 @@ export class AdminDashboardComponent implements OnInit {
   private readonly FILTER_STORAGE_KEY = 'dashboard_filters';
   private readonly FILTER_VISIBILITY_KEY = 'dashboard_filters_visible';
 
+  expiredDays = toSignal(
+    this.systemConfigService.getByKey("mark_in_progress_as_expired_after_days")
+  );
+
   ngOnInit() {
     this.loadSavedFilters();
     this.loadSavedFilterVisibility();
     this.loadDashboard();
+  }
+
+  // Método helper para obtener fecha por defecto (6 meses atrás)
+  private getDefaultStartDate(): string {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 6);
+    return this.formatDateForInput(date);
+  }
+
+  // Método helper para obtener fecha actual
+  getTodayDate(): string {
+    return this.formatDateForInput(new Date());
+  }
+
+  // Formatear fecha para input type="date" (YYYY-MM-DD)
+  private formatDateForInput(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  // Convertir fecha de input a formato para backend (opcional, si necesitas formato específico)
+  private formatDateForBackend(dateStr: string): string {
+    // Si el backend espera formato diferente, ajusta aquí
+    return dateStr; // Por ahora mantengo YYYY-MM-DD
   }
 
   // Cargar filtros guardados
@@ -72,7 +105,8 @@ export class AdminDashboardComponent implements OnInit {
         const filters = JSON.parse(savedFilters);
         // Asegurar que solo se carguen propiedades válidas
         const validFilters: DashboardFilters = {
-          months_back: filters.months_back || 6,
+          start_date: filters.start_date || this.getDefaultStartDate(),
+          end_date: filters.end_date || this.getTodayDate(),
           limit: filters.limit || 10,
         };
         this.filters.set(validFilters);
@@ -118,11 +152,22 @@ export class AdminDashboardComponent implements OnInit {
   loadDashboard(): void {
     this.isLoading.set(true);
     
-    this.dashboardService.getDashboard(this.filters()).subscribe({
+    // Validar que las fechas sean válidas
+    const filters = this.filters();
+    if (filters.start_date && filters.end_date) {
+      if (new Date(filters.start_date) > new Date(filters.end_date)) {
+        this.errorMessage.set('La fecha de inicio no puede ser mayor que la fecha de fin');
+        this.showErrorModal.set(true);
+        this.isLoading.set(false);
+        return;
+      }
+    }
+    
+    this.dashboardService.getDashboard(filters).subscribe({
       next: (data) => {
         this.dashboardData.set(data);
         this.isLoading.set(false);
-        this.saveFilters(); // Guardar filtros después de cargar exitosamente
+        this.saveFilters();
       },
       error: (err) => {
         console.error('Error al cargar dashboard:', err);
@@ -145,7 +190,6 @@ export class AdminDashboardComponent implements OnInit {
   updateFilters(key: keyof DashboardFilters, value: any): void {
     const currentFilters = this.filters();
     this.filters.set({ ...currentFilters, [key]: value });
-    // No guardamos automáticamente aquí, solo cuando se aplican
   }
 
   // Cambiar pestaña
@@ -161,13 +205,14 @@ export class AdminDashboardComponent implements OnInit {
   // Reiniciar filtros
   resetFilters(): void {
     this.filters.set({
-      months_back: 6,
+      start_date: this.getDefaultStartDate(),
+      end_date: this.getTodayDate(),
       limit: 10,
     });
-    this.saveFilters(); // Guardar los filtros por defecto
+    this.saveFilters();
     this.applyFilters();
   }
-
+ 
   // Helper methods
   formatNumber(num: number): string {
     return num.toLocaleString('es-ES');
@@ -181,10 +226,15 @@ export class AdminDashboardComponent implements OnInit {
     return this.sharedUtilsService.sharedFormatTime(seconds);
   }
 
-  getDateAgo(months: number): string {
-    const date = new Date();
-    date.setMonth(date.getMonth() - months);
-    return date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+  // Método actualizado para mostrar el rango de fechas
+  getDateRangeText(): string {
+    const filters = this.filters();
+    if (filters.start_date && filters.end_date) {
+      const startDate = new Date(filters.start_date).toLocaleDateString('es-ES');
+      const endDate = new Date(filters.end_date).toLocaleDateString('es-ES');
+      return `${startDate} - ${endDate}`;
+    }
+    return 'Rango de fechas no definido';
   }
 
   getRoleBadgeClass(role: string): string { 
@@ -214,4 +264,64 @@ export class AdminDashboardComponent implements OnInit {
     return this.sharedUtilsService.sharedCalculatePercentage(part, total);
   }
 
+  // Atajos de fechas
+  setLastWeek(): void {
+    const endDate = this.getTodayDate();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 7);
+    
+    this.filters.update(filters => ({
+      ...filters,
+      start_date: this.formatDateForInput(startDate),
+      end_date: endDate
+    }));
+    this.applyFilters();
+  }
+
+  setLastMonth(): void {
+    const endDate = this.getTodayDate();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 1);
+    
+    this.filters.update(filters => ({
+      ...filters,
+      start_date: this.formatDateForInput(startDate),
+      end_date: endDate
+    }));
+    this.applyFilters();
+  }
+
+  setLastQuarter(): void {
+    const endDate = this.getTodayDate();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 3);
+    
+    this.filters.update(filters => ({
+      ...filters,
+      start_date: this.formatDateForInput(startDate),
+      end_date: endDate
+    }));
+    this.applyFilters();
+  }
+
+  // Validación de fechas
+  validateDates(): boolean {
+    const filters = this.filters();
+    if (!filters.start_date || !filters.end_date) {
+      this.errorMessage.set('Debe seleccionar ambas fechas');
+      this.showErrorModal.set(true);
+      return false;
+    }
+    
+    const start = new Date(filters.start_date);
+    const end = new Date(filters.end_date);
+    
+    if (start > end) {
+      this.errorMessage.set('La fecha de inicio no puede ser mayor que la fecha de fin');
+      this.showErrorModal.set(true);
+      return false;
+    }
+    
+    return true;
+  }
 }

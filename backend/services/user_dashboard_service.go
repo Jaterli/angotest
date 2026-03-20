@@ -32,7 +32,7 @@ func (ss *DataService) GetPersonalData(userID uint) (types.PersonalData, error) 
 	var results struct {
 		TotalCompletedAllAttempts          int64   `gorm:"column:total_completed_all_attempts"`
 		TotalInProgress                    int64   `gorm:"column:total_in_progress"`
-		TotalAbandoned                     int64   `gorm:"column:total_abandoned"`
+		TotalExpired                       int64   `gorm:"column:total_expired"`
 		
 		// All Attempts
 		AllAttemptsTestsCount              int64   `gorm:"column:all_attempts_tests_count"`
@@ -64,7 +64,7 @@ func (ss *DataService) GetPersonalData(userID uint) (types.PersonalData, error) 
 			SELECT 
 				COUNT(CASE WHEN status = 'completed' THEN 1 END) as total_completed_all_attempts,
 				COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as total_in_progress,
-				COUNT(CASE WHEN status = 'abandoned' THEN 1 END) as total_abandoned
+				COUNT(CASE WHEN status = 'expired' THEN 1 END) as total_expired
 			FROM results 
 			WHERE user_id = ?
 		),
@@ -101,7 +101,7 @@ func (ss *DataService) GetPersonalData(userID uint) (types.PersonalData, error) 
 	// Asignar valores
 	data.CompletedTests = int(results.TotalCompletedAllAttempts)
 	data.InProgressTests = int(results.TotalInProgress)
-	data.AbandonedTests = int(results.TotalAbandoned)
+	data.ExpiredTests = int(results.TotalExpired)
 	
 	data.AllAttempts = types.AttemptDataCategory{
 		TestsCount:             int(results.AllAttemptsTestsCount),

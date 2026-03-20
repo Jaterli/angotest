@@ -9,7 +9,7 @@ export interface AdminResultResponse {
   total_questions: number;
   score: number;
   time_taken: number;
-  status: 'in_progress' | 'completed' | 'abandoned';
+  status: 'in_progress' | 'completed' | 'expired';
   answers?: string;
   started_at: string;
   updated_at: string;

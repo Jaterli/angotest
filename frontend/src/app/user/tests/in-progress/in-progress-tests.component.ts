@@ -11,6 +11,8 @@ import {
   TestsStats,
   InProgressTestsFilter 
 } from '../../../shared/models/test.models';
+import { SystemConfigService } from '../../../admin/services/system-config.service';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-in-progress-tests',
@@ -22,11 +24,15 @@ export class InProgressTestsComponent implements OnInit {
   private testService = inject(TestService);
   private authService = inject(AuthService);
   private sharedUtilsService = inject(SharedUtilsService);
+  private systemConfigService = inject(SystemConfigService);
 
   // Tests y estado
   inProgressTestsData = signal<InProgressTestResponse[]>([]);
+  expiredDays = toSignal(
+    this.systemConfigService.getByKey("mark_in_progress_as_expired_after_days")
+  );
   loading = signal(true);
-  
+
   // Filtros
   selectedMainTopic = signal<string>('all');
   selectedLevel = signal<string>('all');
@@ -203,6 +209,32 @@ export class InProgressTestsComponent implements OnInit {
 
   getPageNumbers(): number[] {
     return this.sharedUtilsService.getSharedPageNumbers(this.totalPages(), this.currentPage());
+  }
+
+  getExpiredDaysInfo(startedAt: string): { days: string, message: string } {
+    if (!this.expiredDays() || !startedAt) {
+      return { days: 'N/A', message: 'Días hasta su expiración' };
+    }
+    
+    const expiredDays = parseInt(this.expiredDays() || '0', 10);
+    if (expiredDays <= 0) {
+      return { days: '∞', message: 'Sin límite de expiración' };
+    }
+
+    const startDate = new Date(startedAt);
+    const currentDate = new Date();
+    
+    const diffTime = currentDate.getTime() - startDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const remainingDays = expiredDays - diffDays;
+    
+    console.log("diffDays: ", diffDays);
+
+    if (remainingDays <= 0) {
+      return { days: '0', message: 'Test marcado como expirado' };
+    } else {
+      return { days: remainingDays.toString(), message: `Días para expiración` };
+    }
   }
 
   // Métodos compartidos del servicio de utilidades

@@ -18,7 +18,7 @@ type AttemptRankings struct {
 type PersonalData struct {
 	CompletedTests    int                  `json:"completed_tests"`
 	InProgressTests   int                  `json:"in_progress_tests"`
-	AbandonedTests    int                  `json:"abandoned_tests"`
+	ExpiredTests      int                  `json:"expired_tests"`
 	FirstAttempt      AttemptDataCategory `json:"first_attempt"`
 	AllAttempts       AttemptDataCategory `json:"all_attempts"`
 }

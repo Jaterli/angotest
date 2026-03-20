@@ -27,12 +27,11 @@ type DashboardTotals struct {
     InactiveTests     int64 `json:"inactive_tests"`
     CompletedTests    int64 `json:"completed_tests"`
     InProgressTests   int64 `json:"in_progress_tests"`
-    AbandonedTests    int64 `json:"abandoned_tests"`
+    ExpiredTests      int64 `json:"expired_tests"`
     AdvancedTests     int64 `json:"advanced_tests"`
     IntermediateTests int64 `json:"intermediate_tests"`
     BeginnerTests     int64 `json:"beginner_tests"`
 }
-
 
 // TestWithCountForDashboard - Test con conteo
 type TestWithCountForDashboard struct {
@@ -45,12 +44,12 @@ type TestWithCountForDashboard struct {
 type TopTestsLists struct {
     MostCompleted        []TestWithCountForDashboard `json:"most_completed"`
     MostIncomplete       []TestWithCountForDashboard `json:"most_incomplete"`
-    MostAbandoned        []TestWithCountForDashboard `json:"most_abandoned"`
-    LeastStartedOldest   []TestWithDate  `json:"least_started_oldest"`
-    HighestAccuracy      []TestWithRate  `json:"highest_accuracy"`
-    LowestAccuracy       []TestWithRate  `json:"lowest_accuracy"`
-    HighestAvgTime       []TestWithTime  `json:"highest_avg_time"`
-    LowestAvgTime        []TestWithTime  `json:"lowest_avg_time"`
+    MostExpired          []TestWithCountForDashboard `json:"most_expired"`
+    LeastStartedOldest   []TestWithDate              `json:"least_started_oldest"`
+    HighestAccuracy      []TestWithRate              `json:"highest_accuracy"`
+    LowestAccuracy       []TestWithRate              `json:"lowest_accuracy"`
+    HighestAvgTime       []TestWithTime              `json:"highest_avg_time"`
+    LowestAvgTime        []TestWithTime              `json:"lowest_avg_time"`
 }
 
 // UserLists - Listas de usuarios
@@ -64,10 +63,10 @@ type UserLists struct {
 
 // TestWithDate - Test con fecha
 type TestWithDate struct {
-    ID      uint      `json:"id"`
-    Title   string    `json:"title"`
+    ID          uint      `json:"id"`
+    Title       string    `json:"title"`
     AttemptCount int64     `json:"attempt_count"`
-    Date    time.Time `json:"date"`	
+    Date        time.Time `json:"date"`	
 }
 
 // TestWithRate - Test con tasa de aciertos
@@ -100,12 +99,11 @@ type UserWithDate struct {
     Date     time.Time `json:"date"`
 }
 
-// DashboardFilters - Filtros para el dashboard
+// DashboardFilters - Filtros para el dashboard (MODIFICADO)
 type DashboardFilters struct {
-    MonthsBack      int    `form:"months_back" binding:"omitempty,min=1,max=12"`
-    Year            int    `form:"year" binding:"omitempty"`
-    UseTotal        bool   `form:"use_total" binding:"omitempty"`
-    Limit           int    `form:"limit" binding:"omitempty,min=1,max=50"`
+    StartDate   string `form:"start_date" binding:"omitempty,datetime=2006-01-02"`
+    EndDate     string `form:"end_date" binding:"omitempty,datetime=2006-01-02"`
+    Limit       int    `form:"limit" binding:"omitempty,min=1,max=50"`
 }
 
 // ====== Endpoint principal del dashboard ======
@@ -117,13 +115,9 @@ func GetAdminDashboard(c *gin.Context) {
     }
 
     // Configurar valores por defecto
-    if filters.MonthsBack == 0 {
-        filters.MonthsBack = 6 // Últimos 6 meses por defecto
-    }
     if filters.Limit == 0 {
         filters.Limit = 10 // Top 10 por defecto
     }
-
 
     // Preparar la respuesta
     dashboard := DashboardResponse{
@@ -162,69 +156,92 @@ func getDashboardTotals(c *gin.Context, totals *DashboardTotals, filters Dashboa
 
     dateCondition := getDateCondition(filters, "user")
 
-    // 1. Total de usuarios registrados
-    if err := db.Model(&models.User{}).
-        Count(&totals.TotalUsers).
-        Where(dateCondition).Error; err != nil {
+    // Total de usuarios registrados
+    query := db.Model(&models.User{})
+    if dateCondition != "" {
+        query = query.Where(dateCondition)
+    }
+    if err := query.Count(&totals.TotalUsers).Error; err != nil {
         return err
     }
 
-    // 2. Usuarios activos (con al menos activeThreshold tests completados)
-    if err := db.Model(&models.User{}).
-        Joins("JOIN results ON results.user_id = users.id AND results.status = 'completed'").
+    // Usuarios activos (con al menos activeThreshold tests completados)
+    activeQuery := db.Model(&models.User{}).
+        Joins("JOIN results ON results.user_id = users.id AND results.status = 'completed'")
+    if dateCondition != "" {
+        // Adaptar la condición para la tabla results
+        resultDateCondition := getDateCondition(filters, "result")
+        if resultDateCondition != "" {
+            activeQuery = activeQuery.Where(resultDateCondition)
+        }
+    }
+    if err := activeQuery.
         Group("users.id").
         Having("COUNT(results.id) >= ?", activeThreshold).
         Count(&totals.ActiveUsers).Error; err != nil {
         return err
     }
 
-    // 3. Tests desactivados
-    if err := db.Model(&models.Test{}).Where("is_active = ?", false).Count(&totals.InactiveTests).Error; err != nil {
-        return err
-    }
+    // Tests totales creados
+    // if err := db.Model(&models.Test{}).Count(&totals.TotalTests).Error; err != nil {
+    //     return err
+    // }
 
-    // 4-7. Tests completados, en progreso y abandonados
+    // Tests desactivados (no dependen de fecha)
+    // if err := db.Model(&models.Test{}).Where("is_active = ?", false).Count(&totals.InactiveTests).Error; err != nil {
+    //     return err
+    // }
+  
     var counts struct {
         Completed  int64
         InProgress int64
-        Abandoned  int64
+        Expired    int64
     }
     
-    dateCondition = getDateCondition(filters, "result")
+    resultDateCondition := getDateCondition(filters, "result")
+    resultQuery := db.Model(&models.Result{}).Table("results AS r")
+    if resultDateCondition != "" {
+        resultQuery = resultQuery.Where(resultDateCondition)
+    }
 
-    if err := db.Model(&models.Result{}).
-        Table("results AS r").
+    if err := resultQuery.
         Select(`
             SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-            SUM(CASE WHEN status = 'in_progress' AND updated_at >= NOW() - INTERVAL '30 DAY' THEN 1 ELSE 0 END) as in_progress,
-            SUM(CASE WHEN status IN ('abandoned', 'in_progress') AND updated_at < NOW() - INTERVAL '30 DAY' THEN 1 ELSE 0 END) as abandoned
+            SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress,
+            SUM(CASE WHEN status = 'expired' THEN 1 ELSE 0 END) as expired
         `).
-        Where(dateCondition).
         Scan(&counts).Error; err != nil {
         return err
     }
     
     totals.CompletedTests = counts.Completed
     totals.InProgressTests = counts.InProgress
-    totals.AbandonedTests = counts.Abandoned
+    totals.ExpiredTests = counts.Expired
 
-    dateCondition = getDateCondition(filters, "test")
+    testDateCondition := getDateCondition(filters, "test")
+    
+    testQuery := db.Model(&models.Test{})
+    if testDateCondition != "" {
+        testQuery = testQuery.Where(testDateCondition)
+    }
 
-    // 8-10. Tests por nivel
-    if err := db.Model(&models.Test{}).Where(dateCondition + " AND level = ?", "Avanzado").Count(&totals.AdvancedTests).Error; err != nil {
+    if err := testQuery.Count(&totals.TotalTests).Error; err != nil {
+        return err
+    }    
+
+    if err := testQuery.Model(&models.Test{}).Where("is_active = ?", false).Count(&totals.InactiveTests).Error; err != nil {
+        return err
+    }    
+
+    if err := testQuery.Where("level = ?", "Avanzado").Count(&totals.AdvancedTests).Error; err != nil {
         return err
     }
 
-    if err := db.Model(&models.Test{}).Where(dateCondition + " AND level = ?", "Intermedio").Count(&totals.IntermediateTests).Error; err != nil {
+    if err := testQuery.Where("level = ?", "Intermedio").Count(&totals.IntermediateTests).Error; err != nil {
         return err
     }
 
-    if err := db.Model(&models.Test{}).Where(dateCondition + " AND level = ?", "Principiante").Count(&totals.BeginnerTests).Error; err != nil {
-        return err
-    }
-
-    // 11. Total de tests
-    if err := db.Model(&models.Test{}).Where(dateCondition).Count(&totals.TotalTests).Error; err != nil {
+    if err := testQuery.Where("level = ?", "Principiante").Count(&totals.BeginnerTests).Error; err != nil {
         return err
     }
 
@@ -233,46 +250,43 @@ func getDashboardTotals(c *gin.Context, totals *DashboardTotals, filters Dashboa
 
 // getTopTestsLists - Obtiene las listas de tests
 func getTopTestsLists(c *gin.Context, lists *TopTestsLists, filters DashboardFilters) error {
-    // Calcular fechas límite según filtros
-    dateCondition := getDateCondition(filters, "result")
-
     // 1. Tests con más completados
-    if err := getMostCompletedTests(&lists.MostCompleted, dateCondition, filters.Limit); err != nil {
+    if err := getMostCompletedTests(&lists.MostCompleted, filters); err != nil {
         return err
     }
 
     // 2. Tests con más incompletos (en progreso)
-    if err := getMostIncompleteTests(&lists.MostIncomplete, dateCondition, filters.Limit); err != nil {
+    if err := getMostIncompleteTests(&lists.MostIncomplete, filters); err != nil {
         return err
     }
 
-    // 3. Tests con más abandonados (updated_at > 30 días)
-    if err := getMostAbandonedTests(&lists.MostAbandoned, filters.Limit); err != nil {
+    // 3. Tests con más expiraciones
+    if err := getMostExpiredTests(&lists.MostExpired, filters); err != nil {
         return err
     }
 
     // 4. Tests menos iniciados y más antiguos
-    if err := getLeastStartedOldestTests(&lists.LeastStartedOldest, dateCondition, filters.Limit); err != nil {
+    if err := getLeastStartedOldestTests(&lists.LeastStartedOldest, filters); err != nil {
         return err
     }
 
     // 5. Tests con mayor tasa de aciertos
-    if err := getTestsByAccuracy(&lists.HighestAccuracy, dateCondition, filters.Limit, true); err != nil {
+    if err := getTestsByAccuracy(&lists.HighestAccuracy, filters, true); err != nil {
         return err
     }
 
     // 6. Tests con menor tasa de aciertos
-    if err := getTestsByAccuracy(&lists.LowestAccuracy, dateCondition, filters.Limit, false); err != nil {
+    if err := getTestsByAccuracy(&lists.LowestAccuracy, filters, false); err != nil {
         return err
     }
 
     // 7. Tests con mayor tiempo promedio
-    if err := getTestsByAvgTime(&lists.HighestAvgTime, dateCondition, filters.Limit, true); err != nil {
+    if err := getTestsByAvgTime(&lists.HighestAvgTime, filters, true); err != nil {
         return err
     }
 
     // 8. Tests con menor tiempo promedio
-    if err := getTestsByAvgTime(&lists.LowestAvgTime, dateCondition, filters.Limit, false); err != nil {
+    if err := getTestsByAvgTime(&lists.LowestAvgTime, filters, false); err != nil {
         return err
     }
 
@@ -281,31 +295,28 @@ func getTopTestsLists(c *gin.Context, lists *TopTestsLists, filters DashboardFil
 
 // getUserLists - Obtiene las listas de usuarios
 func getUserLists(c *gin.Context, lists *UserLists, filters DashboardFilters) error {
-    // Calcular fechas límite según filtros
-    dateCondition := getDateCondition(filters, "user")
-
-    // 1. Nuevos usuarios por mes
-    if err := getNewUsersByMonth(&lists.NewUsersByMonth, dateCondition, filters.Limit); err != nil {
+    // 1. Nuevos usuarios por período
+    if err := getNewUsersByPeriod(&lists.NewUsersByMonth, filters); err != nil {
         return err
     }
 
     // 2. Usuarios más activos
-    if err := getMostActiveUsers(&lists.MostActiveUsers, dateCondition, filters.Limit); err != nil {
+    if err := getMostActiveUsers(&lists.MostActiveUsers, filters); err != nil {
         return err
     }
 
     // 3. Usuarios menos activos y más antiguos
-    if err := getLeastActiveOldestUsers(&lists.LeastActiveOldest, filters.Limit); err != nil {
+    if err := getLeastActiveOldestUsers(&lists.LeastActiveOldest, filters); err != nil {
         return err
     }
 
     // 4. Usuarios con login más reciente
-    if err := getUsersByLoginDate(&lists.RecentLogin, filters.Limit, true); err != nil {
+    if err := getUsersByLoginDate(&lists.RecentLogin, filters, true); err != nil {
         return err
     }
 
     // 5. Usuarios con login más antiguo
-    if err := getUsersByLoginDate(&lists.OldestLogin, filters.Limit, false); err != nil {
+    if err := getUsersByLoginDate(&lists.OldestLogin, filters, false); err != nil {
         return err
     }
 
@@ -314,7 +325,9 @@ func getUserLists(c *gin.Context, lists *UserLists, filters DashboardFilters) er
 
 // ====== Funciones específicas para cada métrica ======
 
-func getMostCompletedTests(results *[]TestWithCountForDashboard, dateCondition string, limit int) error {
+func getMostCompletedTests(results *[]TestWithCountForDashboard, filters DashboardFilters) error {
+    dateCondition := getDateCondition(filters, "result")
+    
     query := `
         SELECT 
             t.id,
@@ -325,7 +338,9 @@ func getMostCompletedTests(results *[]TestWithCountForDashboard, dateCondition s
     `
     
     if dateCondition != "" {
-        query += " WHERE " + dateCondition
+        // Extraer la condición sin el alias de tabla para usarla en el WHERE
+        whereClause := extractWhereClause(dateCondition, "r")
+        query += " WHERE " + whereClause
     }
     
     query += `
@@ -333,10 +348,13 @@ func getMostCompletedTests(results *[]TestWithCountForDashboard, dateCondition s
         ORDER BY count DESC
         LIMIT ?
     `
-	return config.DB.Raw(query, limit).Scan(results).Error
+    
+    return config.DB.Raw(query, filters.Limit).Scan(results).Error
 }
 
-func getMostIncompleteTests(results *[]TestWithCountForDashboard, dateCondition string, limit int) error {
+func getMostIncompleteTests(results *[]TestWithCountForDashboard, filters DashboardFilters) error {
+    dateCondition := getDateCondition(filters, "result")
+    
     query := `
         SELECT 
             t.id,
@@ -347,7 +365,8 @@ func getMostIncompleteTests(results *[]TestWithCountForDashboard, dateCondition 
     `
     
     if dateCondition != "" {
-        query += " WHERE " + dateCondition
+        whereClause := extractWhereClause(dateCondition, "r")
+        query += " WHERE " + whereClause
     }
     
     query += `
@@ -356,11 +375,11 @@ func getMostIncompleteTests(results *[]TestWithCountForDashboard, dateCondition 
         LIMIT ?
     `
     
-    return config.DB.Raw(query, limit).Scan(results).Error
+    return config.DB.Raw(query, filters.Limit).Scan(results).Error
 }
 
-func getMostAbandonedTests(results *[]TestWithCountForDashboard, limit int) error {
-    thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+func getMostExpiredTests(results *[]TestWithCountForDashboard, filters DashboardFilters) error {   
+    dateCondition := getDateCondition(filters, "result")
     
     query := `
         SELECT 
@@ -368,18 +387,25 @@ func getMostAbandonedTests(results *[]TestWithCountForDashboard, limit int) erro
             t.title,
             COUNT(r.id) as count
         FROM tests t
-        LEFT JOIN results r ON r.test_id = t.id 
-            AND r.status IN ('abandoned', 'in_progress')
-            AND r.updated_at < ?
+        LEFT JOIN results r ON r.test_id = t.id AND r.status = 'expired'
+    `
+    
+    if dateCondition != "" {
+        whereClause := extractWhereClause(dateCondition, "r")
+        query += " WHERE " + whereClause
+    }
+    
+    query += `
         GROUP BY t.id, t.title
         ORDER BY count DESC
         LIMIT ?
-    `
-    
-    return config.DB.Raw(query, thirtyDaysAgo, limit).Scan(results).Error
+    `    
+    return config.DB.Raw(query, filters.Limit).Scan(results).Error
 }
 
-func getLeastStartedOldestTests(results *[]TestWithDate, dateCondition string, limit int) error {
+func getLeastStartedOldestTests(results *[]TestWithDate, filters DashboardFilters) error {
+    dateCondition := getDateCondition(filters, "test")
+    
     baseQuery := `
         SELECT 
             t.id,
@@ -391,7 +417,8 @@ func getLeastStartedOldestTests(results *[]TestWithDate, dateCondition string, l
     `
     
     if dateCondition != "" {
-        baseQuery += " WHERE " + dateCondition
+        whereClause := extractWhereClause(dateCondition, "t")
+        baseQuery += " WHERE " + whereClause
     }
     
     query := baseQuery + `
@@ -399,14 +426,16 @@ func getLeastStartedOldestTests(results *[]TestWithDate, dateCondition string, l
         ORDER BY COUNT(r.id) ASC, t.created_at ASC
         LIMIT ?
     `    
-    return config.DB.Raw(query, limit).Scan(results).Error
+    return config.DB.Raw(query, filters.Limit).Scan(results).Error
 }
 
-func getTestsByAccuracy(results *[]TestWithRate, dateCondition string, limit int, highest bool) error {
+func getTestsByAccuracy(results *[]TestWithRate, filters DashboardFilters, highest bool) error {
     orderBy := "DESC"
     if !highest {
         orderBy = "ASC"
     }
+    
+    dateCondition := getDateCondition(filters, "result")
     
     baseQuery := `
         SELECT 
@@ -414,14 +443,15 @@ func getTestsByAccuracy(results *[]TestWithRate, dateCondition string, limit int
             t.title,
             CASE 
                 WHEN COUNT(r.id) = 0 THEN 0
-                ELSE AVG(r.correct_answers * 100.0 / (r.correct_answers + r.wrong_answers))
+                ELSE AVG(r.correct_answers * 100.0 / NULLIF((r.correct_answers + r.wrong_answers), 0))
             END as accuracy_rate
         FROM tests t
         LEFT JOIN results r ON r.test_id = t.id AND r.status = 'completed'
     `
     
     if dateCondition != "" {
-        baseQuery += " WHERE " + dateCondition
+        whereClause := extractWhereClause(dateCondition, "r")
+        baseQuery += " WHERE " + whereClause
     }
     
     query := baseQuery + `
@@ -431,14 +461,16 @@ func getTestsByAccuracy(results *[]TestWithRate, dateCondition string, limit int
         LIMIT ?
     `
     
-    return config.DB.Raw(query, limit).Scan(results).Error
+    return config.DB.Raw(query, filters.Limit).Scan(results).Error
 }
 
-func getTestsByAvgTime(results *[]TestWithTime, dateCondition string, limit int, highest bool) error {
+func getTestsByAvgTime(results *[]TestWithTime, filters DashboardFilters, highest bool) error {
     orderBy := "DESC"
     if !highest {
         orderBy = "ASC"
     }
+    
+    dateCondition := getDateCondition(filters, "result")
     
     baseQuery := `
         SELECT 
@@ -450,7 +482,8 @@ func getTestsByAvgTime(results *[]TestWithTime, dateCondition string, limit int,
     `
     
     if dateCondition != "" {
-        baseQuery += " WHERE " + dateCondition
+        whereClause := extractWhereClause(dateCondition, "r")
+        baseQuery += " WHERE " + whereClause
     }
     
     query := baseQuery + `
@@ -460,16 +493,17 @@ func getTestsByAvgTime(results *[]TestWithTime, dateCondition string, limit int,
         LIMIT ?
     `
     
-    return config.DB.Raw(query, limit).Scan(results).Error
+    return config.DB.Raw(query, filters.Limit).Scan(results).Error
 }
 
-func getNewUsersByMonth(results *[]UserWithCount, dateCondition string, limit int) error {
+func getNewUsersByPeriod(results *[]UserWithCount, filters DashboardFilters) error {
+    dateCondition := getDateCondition(filters, "user")
+    
     baseQuery := `
         SELECT 
             u.id,
             u.username,
             u.role,
-            DATE_TRUNC('month', u.registered_at) as month,
             COUNT(*) as count
         FROM users u
     `
@@ -479,15 +513,17 @@ func getNewUsersByMonth(results *[]UserWithCount, dateCondition string, limit in
     }
     
     query := baseQuery + `
-        GROUP BY u.id, u.username, u.role, DATE_TRUNC('month', u.registered_at)
-        ORDER BY month DESC, count DESC
+        GROUP BY u.id, u.username, u.role
+        ORDER BY count DESC
         LIMIT ?
     `
     
-    return config.DB.Raw(query, limit).Scan(results).Error
+    return config.DB.Raw(query, filters.Limit).Scan(results).Error
 }
 
-func getMostActiveUsers(results *[]UserWithCount, dateCondition string, limit int) error {
+func getMostActiveUsers(results *[]UserWithCount, filters DashboardFilters) error {
+    dateCondition := getDateCondition(filters, "result")
+    
     baseQuery := `
         SELECT 
             u.id,
@@ -499,20 +535,21 @@ func getMostActiveUsers(results *[]UserWithCount, dateCondition string, limit in
     `
     
     if dateCondition != "" {
-        baseQuery += " WHERE " + dateCondition
+        whereClause := extractWhereClause(dateCondition, "r")
+        baseQuery += " WHERE " + whereClause
     }
     
     query := baseQuery + `
-        GROUP BY u.id, u.username
+        GROUP BY u.id, u.username, u.role
         HAVING COUNT(r.id) > 0
         ORDER BY count DESC
         LIMIT ?
     `
     
-    return config.DB.Raw(query, limit).Scan(results).Error
+    return config.DB.Raw(query, filters.Limit).Scan(results).Error
 }
 
-func getLeastActiveOldestUsers(results *[]UserWithDate, limit int) error {
+func getLeastActiveOldestUsers(results *[]UserWithDate, filters DashboardFilters) error {
     query := `
         SELECT 
             u.id,
@@ -527,10 +564,10 @@ func getLeastActiveOldestUsers(results *[]UserWithDate, limit int) error {
         LIMIT ?
     `
     
-    return config.DB.Raw(query, limit).Scan(results).Error
+    return config.DB.Raw(query, filters.Limit).Scan(results).Error
 }
 
-func getUsersByLoginDate(results *[]UserWithDate, limit int, recent bool) error {
+func getUsersByLoginDate(results *[]UserWithDate, filters DashboardFilters, recent bool) error {
     orderBy := "DESC"
     if !recent {
         orderBy = "ASC"
@@ -548,40 +585,63 @@ func getUsersByLoginDate(results *[]UserWithDate, limit int, recent bool) error 
         LIMIT ?
     `
     
-    return config.DB.Raw(query, limit).Scan(results).Error
+    return config.DB.Raw(query, filters.Limit).Scan(results).Error
 }
 
-// getDateCondition - Genera la condición WHERE basada en los filtros
+// extractWhereClause - Extrae la condición WHERE sin el alias de tabla
+func extractWhereClause(condition string, tableAlias string) string {
+    // Si la condición ya tiene el formato "table.column = value", 
+    // reemplazamos el alias de tabla genérico por el específico
+    // Esto es un helper simple - en producción podrías necesitar algo más robusto
+    if condition != "" {
+        // Reemplazar condiciones genéricas por las específicas según el alias
+        // Por ejemplo: "created_at >= '2024-01-01'" -> "t.created_at >= '2024-01-01'"
+        if tableAlias != "" {
+            // Esta es una implementación simplificada
+            // Asumimos que la condición se refiere a columnas que existen en la tabla
+            return condition
+        }
+    }
+    return condition
+}
+
+// getDateCondition - Genera la condición WHERE basada en los filtros (MODIFICADO)
 func getDateCondition(filters DashboardFilters, model string) string {
-    if filters.UseTotal {
-        return ""
+    var dateColumn string
+    
+    switch model {
+    case "test":
+        dateColumn = "created_at"
+    case "user":
+        dateColumn = "registered_at"
+    case "result":
+        dateColumn = "started_at"
+    default:
+        dateColumn = "created_at"
     }
 
-	if model == "" {
-		model = "test"
-	}
-    
-    if filters.Year > 0 {
-        startDate := time.Date(filters.Year, 1, 1, 0, 0, 0, 0, time.UTC)
-        endDate := time.Date(filters.Year+1, 1, 1, 0, 0, 0, 0, time.UTC)
-		if model == "test" {
-        	return "created_at >= '" + startDate.Format("2006-01-02") + "' AND created_at < '" + endDate.Format("2006-01-02") + "'"
-        } else if model == "user" {
-            return "registered_at >= '" + startDate.Format("2006-01-02") + "' AND registered_at < '" + endDate.Format("2006-01-02") + "'"
-		} else { //result
-			return "r.updated_at >= '" + startDate.Format("2006-01-02") + "' AND r.updated_at < '" + endDate.Format("2006-01-02") + "'"
-		}
+    // Si tenemos fechas específicas, usarlas
+    if filters.StartDate != "" && filters.EndDate != "" {
+        startDate := filters.StartDate
+        endDate := filters.EndDate
+        
+        // Asegurar que endDate incluya todo el día
+        endDateTime, _ := time.Parse("2006-01-02", endDate)
+        endDateTime = endDateTime.Add(24 * time.Hour).Add(-time.Second)
+        
+        return dateColumn + " >= '" + startDate + "' AND " + dateColumn + " <= '" + endDateTime.Format("2006-01-02 15:04:05") + "'"
     }
     
-    if filters.MonthsBack > 0 {
-        startDate := time.Now().AddDate(0, -filters.MonthsBack, 0)
-		if model == "test" {
-        	return "created_at >= '" + startDate.Format("2006-01-02") + "'"
-		} else if model == "user" {
-			return "registered_at >= '" + startDate.Format("2006-01-02") + "'"
-		} else { //result
-			return "r.updated_at >= '" + startDate.Format("2006-01-02") + "'"
-		}
+    // Si solo tenemos start_date
+    if filters.StartDate != "" {
+        return dateColumn + " >= '" + filters.StartDate + "'"
+    }
+    
+    // Si solo tenemos end_date
+    if filters.EndDate != "" {
+        endDateTime, _ := time.Parse("2006-01-02", filters.EndDate)
+        endDateTime = endDateTime.Add(24 * time.Hour).Add(-time.Second)
+        return dateColumn + " <= '" + endDateTime.Format("2006-01-02 15:04:05") + "'"
     }
     
     return ""
@@ -635,7 +695,7 @@ func GetTestDetailedStats(c *gin.Context) {
         Select(`
             COUNT(*) as total_attempts,
             SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_attempts,
-            SUM(CASE WHEN status = 'in_progress' AND updated_at >= NOW() - INTERVAL '30 DAY' THEN 1 ELSE 0 END) as in_progress_attempts,
+            SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress_attempts,
             AVG(correct_answers) as avg_correct_answers,
             AVG(wrong_answers) as avg_wrong_answers,
             AVG(time_taken) as avg_time_taken
@@ -681,7 +741,7 @@ func GetUserDetailedStats(c *gin.Context) {
             TotalTests         int64   `json:"total_tests"`
             CompletedTests     int64   `json:"completed_tests"`
             InProgressTests    int64   `json:"in_progress_tests"`
-            AbandonedTests     int64   `json:"abandoned_tests"`
+            ExpiredTests       int64   `json:"expired_tests"`
             AvgAccuracy        float64 `json:"avg_accuracy"`
             AvgTimePerTest     float64 `json:"avg_time_per_test"`
             FavoriteTopic      string  `json:"favorite_topic"`
@@ -714,7 +774,7 @@ func GetUserDetailedStats(c *gin.Context) {
         TotalResults    int64
         Completed       int64
         InProgress      int64
-        Abandoned       int64
+        Expired       int64
         AvgCorrect      float64
         AvgWrong        float64
         AvgTime         float64
@@ -724,8 +784,8 @@ func GetUserDetailedStats(c *gin.Context) {
         Select(`
             COUNT(*) as total_results,
             SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
-            SUM(CASE WHEN status = 'in_progress' AND updated_at >= NOW() - INTERVAL '30 DAY' THEN 1 ELSE 0 END) as in_progress,
-            SUM(CASE WHEN status IN ('abandoned', 'in_progress') AND updated_at < NOW() - INTERVAL '30 DAY' THEN 1 ELSE 0 END) as abandoned,
+            SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as in_progress,
+            SUM(CASE WHEN status = 'expired' THEN 1 ELSE 0 END) as expired,
             AVG(correct_answers) as avg_correct,
             AVG(wrong_answers) as avg_wrong,
             AVG(time_taken) as avg_time
@@ -741,7 +801,7 @@ func GetUserDetailedStats(c *gin.Context) {
     stats.TestStats.TotalTests = resultStats.TotalResults
     stats.TestStats.CompletedTests = resultStats.Completed
     stats.TestStats.InProgressTests = resultStats.InProgress
-    stats.TestStats.AbandonedTests = resultStats.Abandoned
+    stats.TestStats.ExpiredTests = resultStats.Expired
     
     if resultStats.Completed > 0 {
         stats.TestStats.AvgAccuracy = resultStats.AvgCorrect / (resultStats.AvgCorrect + resultStats.AvgWrong) * 100

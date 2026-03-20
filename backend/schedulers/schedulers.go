@@ -25,7 +25,7 @@ func (sm *SchedulerManager) InitSchedulers() {
 	log.Println("🔄 Inicializando schedulers...")
 	
 	// Inicializar cada scheduler
-	sm.startAbandonedTestsScheduler()
+	sm.startExpiredTestsScheduler()
 	// sm.startOtroScheduler() // Para futuros schedulers
 	
 	// Iniciar el scheduler
@@ -49,17 +49,17 @@ func (sm *SchedulerManager) Stop() {
 	}
 }
 
-// startAbandonedTestsScheduler configura el scheduler para tests abandonados
-func (sm *SchedulerManager) startAbandonedTestsScheduler() {
-	log.Println("⏰ Configurando scheduler de tests abandonados")
+// startExpiredTestsScheduler configura el scheduler para tests expirados
+func (sm *SchedulerManager) startExpiredTestsScheduler() {
+	log.Println("⏰ Configurando scheduler de tests expirados")
 	
 	// Ejecutar cada día a las 02:00 AM
 	job, err := sm.scheduler.Every(1).Day().At("02:00").Do(func() {
-		log.Printf("▶️ [%s] Ejecutando tarea: marcar tests abandonados", 
+		log.Printf("▶️ [%s] Ejecutando tarea: marcar tests expirados", 
 			time.Now().Format("2006-01-02 15:04:05"))
 		
 		// Usar la versión del scheduler que no depende de Gin
-		MarkInProgressAsAbandonedScheduler()
+		MarkInProgressAsExpiredScheduler()
 	})
 	
 	if err != nil {
@@ -68,8 +68,8 @@ func (sm *SchedulerManager) startAbandonedTestsScheduler() {
 	}
 	
 	// Agregar tag para identificar el job
-	job.Tag("abandoned-tests")
-	log.Println("✅ Job de tests abandonados configurado con tag: 'abandoned-tests'")
+	job.Tag("expired-tests")
+	log.Println("✅ Job de tests expirados configurado con tag: 'expired-tests'")
 }
 
 

@@ -163,8 +163,7 @@ export class SharedUtilsService {
       case 'in_progress':
         case 'active':
           return commonClasses + 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
-      case 'abandoned':
-        case 'expired':
+      case 'expired':
           return commonClasses + 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
       default:
         return commonClasses + 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
@@ -177,7 +176,7 @@ export class SharedUtilsService {
       case 'completed': return 'Completado';
       case 'in_progress': return 'En Progreso';
       case 'not_started': return 'Por hacer';
-      case 'abandoned': return 'Abandonado';
+      case 'expired': return 'Expirado';
       case 'all': return 'Todos';
       default: return status;
     }
@@ -189,7 +188,7 @@ export class SharedUtilsService {
         return 'bg-emerald-100 dark:bg-emerald-900/30';
       case 'in_progress':
         return 'bg-yellow-100 dark:bg-yellow-900/30';
-      case 'abandoned':
+      case 'expired':
         return 'bg-red-100 dark:bg-red-900/30';
       default:
         return 'bg-gray-100 dark:bg-gray-700';

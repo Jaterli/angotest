@@ -79,15 +79,15 @@ export class TestStatsModalComponent implements OnInit, OnDestroy {
     });
   }
 
-  abandonedAttempts(): number {
+  expirationAttempts(): number {
     if (!this.stats()) return 0;
     return this.stats()!.total_attempts - (this.stats()!.completed_attempts + this.stats()!.in_progress_attempts);
   }
 
-  abandonmentRate(): number {
+  expirationRate(): number {
     if (!this.stats()) return 0;
-    const abandoned = this.stats()!.total_attempts - (this.stats()!.completed_attempts + this.stats()!.in_progress_attempts);
-    return (abandoned / this.stats()!.total_attempts) * 100;
+    const expired = this.stats()!.total_attempts - (this.stats()!.completed_attempts + this.stats()!.in_progress_attempts);
+    return (expired / this.stats()!.total_attempts) * 100;
   }
 
   inProgressAttempts(): number {

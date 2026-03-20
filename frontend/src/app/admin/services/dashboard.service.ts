@@ -14,20 +14,27 @@ export class DashboardService {
   getDashboard(filters?: DashboardFilters): Observable<DashboardResponse> {
     let params = new HttpParams();
     
-    if (filters?.months_back) {
-      params = params.set('months_back', filters.months_back.toString());
-    }
-    
-    if (filters?.year) {
-      params = params.set('year', filters.year.toString());
-    }
-    
-    if (filters?.use_total) {
-      params = params.set('use_total', filters.use_total.toString());
-    }
-    
-    if (filters?.limit) {
-      params = params.set('limit', filters.limit.toString());
+    if (filters) {
+      if (filters.start_date) {
+        params = params.set('start_date', filters.start_date);
+      }
+      
+      if (filters.end_date) {
+        params = params.set('end_date', filters.end_date);
+      }
+            
+      if (filters.year) {
+        params = params.set('year', filters.year.toString());
+      }
+      
+      if (filters.use_total) {
+        params = params.set('use_total', filters.use_total.toString());
+      }
+      
+      // Filtro de límite (se mantiene igual)
+      if (filters.limit) {
+        params = params.set('limit', filters.limit.toString());
+      }
     }
     
     return this.http.get<DashboardResponse>(`${this.apiUrl}/dashboard`, { params });

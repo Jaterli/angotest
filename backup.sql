@@ -223,9 +223,8 @@ CREATE TABLE public.results (
     answers json,
     updated_at timestamp with time zone,
     started_at timestamp with time zone,
-    CONSTRAINT chk_results_status CHECK (((status)::text = ANY ((ARRAY['in_progress'::character varying, 'completed'::character varying, 'abandoned'::character varying])::text[])))
+    CONSTRAINT chk_results_status CHECK (((status)::text = ANY ((ARRAY['in_progress'::character varying, 'completed'::character varying, 'expired'::character varying])::text[])))
 );
-
 
 ALTER TABLE public.results OWNER TO postgres;
 

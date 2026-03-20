@@ -123,8 +123,8 @@ export class FaqsComponent {
     },
     {
       id: '12',
-      question: '¿Qué significa que un test está "abandonado"?',
-      answer: 'Un test se marca como "abandonado" cuando ha estado en progreso sin actividad durante más de 30 días. Puedes retomarlo si lo deseas, pero el sistema lo clasifica así para mantener un control de los tests activos.',
+      question: '¿Qué significa que un test está "expirado"?',
+      answer: 'Un test se marca como "expirado" transcurrido más días de lo establecido por sistema desde que se inició.',
       category: 'tests',
       isOpen: false
     },

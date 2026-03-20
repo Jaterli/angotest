@@ -52,10 +52,10 @@ export class TestSingleComponent implements OnInit, OnDestroy {
   // Estado de carga
   savingProgress = signal(false);
   
-  // Prevención de copia (se desactiva al terminar/abandonar)
+  // Prevención de copia (se desactiva al terminar/salir)
   isContentProtected = signal(true);
   
-  // Para manejar navegación forzosa (abandonar test)
+  // Para manejar navegación forzosa (salir test)
   isExiting = false;
 
   // Si el usuario proviene de una invitación
@@ -498,12 +498,12 @@ export class TestSingleComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Métodos para abandonar el test
+  // Métodos para salir del test
   showExitConfirmation(): void {
     this.showConfirmExitModal.set(true);
   }
 
-  abandonTest(): void {
+  exitTest(): void {
     if (!this.test) return;
     
     this.isExiting = true;

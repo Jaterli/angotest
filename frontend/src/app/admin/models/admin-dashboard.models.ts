@@ -14,7 +14,7 @@ export interface DashboardTotals {
   inactive_tests: number;
   completed_tests: number;
   in_progress_tests: number;
-  abandoned_tests: number;
+  expired_tests: number;
   advanced_tests: number;
   intermediate_tests: number;
   beginner_tests: number;
@@ -23,7 +23,7 @@ export interface DashboardTotals {
 export interface TopTestsLists {
   most_completed: TestWithCount[];
   most_incomplete: TestWithCount[];
-  most_abandoned: TestWithCount[];
+  most_expired: TestWithCount[];
   least_started_oldest: TestWithDate[];
   highest_accuracy: TestWithRate[];
   lowest_accuracy: TestWithRate[];
@@ -81,6 +81,8 @@ export interface UserWithDate {
 
 // Filtros para el dashboard
 export interface DashboardFilters {
+  start_date: string;
+  end_date: string;
   months_back?: number;
   year?: number;
   use_total?: boolean;
@@ -118,7 +120,7 @@ export interface UserDetailedStats {
     total_tests: number;
     completed_tests: number;
     in_progress_tests: number;
-    abandoned_tests: number;
+    expired_tests: number;
     avg_accuracy: number;
     avg_time_per_test: number;
     favorite_topic: string;

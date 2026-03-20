@@ -39,10 +39,11 @@ func (sc *SystemConfigController) GetSystemConfig(c *gin.Context) {
 	c.JSON(http.StatusOK, systemConfig)
 }
 
-// GetSystemConfigByKey obtiene una configuración por clave
+// GetSystemConfigByKey obtiene el valor de una configuración por su clave
 func (sc *SystemConfigController) GetSystemConfigByKey(c *gin.Context) {
 	key := c.Param("key")
 	var systemConfig models.SystemConfig
+	
 	result := config.DB.Where("key = ?", key).First(&systemConfig)
 	if result.Error != nil {
 		if result.Error == gorm.ErrRecordNotFound {
@@ -52,7 +53,9 @@ func (sc *SystemConfigController) GetSystemConfigByKey(c *gin.Context) {
 		}
 		return
 	}
-	c.JSON(http.StatusOK, systemConfig)
+	
+	// Devolver solo el valor como string plano
+	c.String(http.StatusOK, systemConfig.Value)
 }
 
 // CreateSystemConfig crea una nueva configuración

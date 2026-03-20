@@ -11,7 +11,7 @@
     
     <div class="text-right">
       <!-- Botón para mostrar/ocultar filtros -->
-      <button (click)="showFilters.set(!showFilters())"
+      <button (click)="toggleFilters()"
               class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors border border-blue-600 dark:border-blue-700">
         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
@@ -19,77 +19,110 @@
         {{ showFilters() ? 'Ocultar Filtros' : 'Mostrar Filtros' }}
       </button>
       
-      <!-- Fecha y hora actual -->
+      <!-- Rango de fechas actual -->
       <div class="text-sm text-gray-500 dark:text-gray-400 mt-2">
-        {{ getDateAgo(filters().months_back || 6) }} - Actual
+        {{ getDateRangeText() }}
       </div>
     </div>
   </div>
 
-  <!-- Filtros y controles (ahora ocultables) -->
+  <!-- Filtros y controles -->
   @if (showFilters()) {
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-3 sm:p-6 mb-6">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Filtros del Dashboard</h3>
-          <p class="text-gray-600 dark:text-gray-400 text-sm">Configura los parámetros para las métricas</p>
+          <p class="text-gray-600 dark:text-gray-400 text-sm">Configura el rango de fechas para las métricas</p>
         </div>
         
-        <!-- Botón para recargar -->
-         <div>
+        <!-- Botón para aplicar filtros -->
+         <div class="flex gap-2">
           <button (click)="applyFilters()"
                   class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <svg class="hidden sm:block w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
             </svg>
             Aplicar Filtros
           </button>
+          <!-- Resetear filtros -->
+          <div class="flex items-end">
+            <button (click)="resetFilters()"
+                    class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+              <svg class="hidden sm:block w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+              </svg>
+              Restablecer a 6 meses
+            </button>
+          </div>
         </div>
       </div>
       
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Filtro de meses hacia atrás -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <!-- Filtro de fecha inicio -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Período de análisis
+            Fecha Inicio
           </label>
-          <select
-            [ngModel]="filters().months_back"
-            (ngModelChange)="updateFilters('months_back', $event)"
+          <input
+            type="date"
+            [ngModel]="filters().start_date"
+            (ngModelChange)="updateFilters('start_date', $event)"
             class="textsize-cnf w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+            [max]="filters().end_date || getTodayDate()"
           >
-            @for (months of monthsBackOptions; track months) {
-              <option [value]="months">Últimos {{ months }} mes{{ months !== 1 ? 'es' : '' }}</option>
-            }
-          </select>
         </div>
         
+        <!-- Filtro de fecha fin -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Fecha Fin
+          </label>
+          <input
+            type="date"
+            [ngModel]="filters().end_date"
+            (ngModelChange)="updateFilters('end_date', $event)"
+            class="textsize-cnf w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+            [min]="filters().start_date"
+            [max]="getTodayDate()"
+          >
+        </div>
+                
+        <!-- Atajos rápidos de fechas -->
+        <div class="flex items-end gap-2 lg:col-span-2">
+          <button (click)="setLastWeek()" 
+                  class="flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+            Última semana
+          </button>
+          <button (click)="setLastMonth()" 
+                  class="flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+            Último mes
+          </button>
+          <button (click)="setLastQuarter()" 
+                  class="flex-1 px-3 py-2 text-xs font-medium rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+            Último trimestre
+          </button>
+        </div>
+
         <!-- Filtro de límite de resultados -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Resultados por lista
           </label>
-          <select
-            [ngModel]="filters().limit"
-            (ngModelChange)="updateFilters('limit', $event)"
-            class="textsize-cnf w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
-          >
-            @for (limit of limitOptions; track limit) {
-              <option [value]="limit">Top {{ limit }}</option>
+          <div class="flex gap-2">
+            @for (size of limitOptions; track size) {
+              <button 
+                (click)="updateFilters('limit', size)"
+                [class]="filters().limit === size 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30'"
+                class="flex-1 px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                {{ size }}
+              </button>
             }
-          </select>
+          </div>
         </div>
-             
-        <!-- Resetear filtros -->
-        <div class="flex items-end">
-          <button (click)="resetFilters()"
-                  class="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566a1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566a1 1 0 01.61-1.276z" clip-rule="evenodd"/>
-            </svg>
-            Restablecer Filtros
-          </button>
-        </div>
+
       </div>
     </div>
   }
@@ -216,7 +249,7 @@
             </div>
           </div>
 
-          <!-- Tests en Progreso/Abandonados -->
+          <!-- Tests en Progreso/Expirados -->
           <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-3 sm:p-6 border border-purple-200 dark:border-purple-800">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-lg font-semibold text-purple-800 dark:text-purple-300">Estado de Tests</h3>
@@ -241,9 +274,9 @@
                     </div>
                     <div>
                     <div class="text-2xl font-bold text-red-600 dark:text-red-400">
-                        {{ formatNumber(dashboardData()!.totals.abandoned_tests) }}
+                        {{ formatNumber(dashboardData()!.totals.expired_tests) }}
                     </div>
-                    <div class="text-xs text-red-600 dark:text-red-400">Abandonados</div>
+                    <div class="text-xs text-red-600 dark:text-red-400">Expirados</div>
                     </div>
                 </div>
               </div>
@@ -440,21 +473,21 @@
           </div>
         </div>
 
-        <!-- Tests abandonados y menos iniciados -->
+        <!-- Tests expirados y menos iniciados -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- Tests más abandonados -->
+          <!-- Tests más expirados -->
           <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-3 sm:p-6">            
             <div class="sm:flex sm:items-center sm:justify-between">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Tests Más Abandonados</h3>
+              <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Tests Más Expirados</h3>
               <span class="text-sm font-medium text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-3 py-1 rounded-full">
-                > 30 días
+                > {{ expiredDays() }}
               </span>
             </div>
             <p class="text-gray-600 dark:text-gray-400 text-sm py-3">
-              Tests con mayor número de abandonos (última actualización > 30 días)
+              Tests con mayor número de expiraciones (> {{ expiredDays() }} días desde su inicio)
             </p>
             <div class="space-y-4">
-              @for (test of dashboardData()!.top_tests.most_abandoned; track test.id; let i = $index) {
+              @for (test of dashboardData()!.top_tests.most_expired; track test.id; let i = $index) {
                 <div class="p-4 rounded-lg bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                   <div class="flex items-center space-x-4 min-w-0">
                     <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
@@ -476,7 +509,7 @@
                             {{ formatNumber(test.count) }}
                           </div>
                           <div class="text-xs text-gray-500 dark:text-gray-400 text-right">
-                            abandonos
+                            expiraciones
                           </div>
                         </div>
                       </div>
@@ -484,12 +517,12 @@
                   </div>
                 </div>
               }
-              @if (dashboardData()!.top_tests.most_abandoned.length === 0) {
+              @if (dashboardData()!.top_tests.most_expired.length === 0) {
                 <div class="text-center py-8 text-gray-500 dark:text-gray-400">
                   <svg class="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
                   </svg>
-                  <p>No hay tests abandonados (sin actividad > 90 días)</p>
+                  <p>No hay tests expirados (> {{ expiredDays() }}) desde su inicio</p>
                 </div>
               }
             </div>

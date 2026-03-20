@@ -77,7 +77,7 @@ type AdminResultsFilter struct {
 	TestCreatedBy     *uint  `form:"test_created_by"`
 
 	// Result
-	Status   string   `form:"status" binding:"omitempty,oneof=in_progress completed abandoned"`
+	Status   string   `form:"status" binding:"omitempty,oneof=in_progress completed expired"`
 	MinScore *float64 `form:"min_score" binding:"omitempty,min=0,max=100"`
 	MaxScore *float64 `form:"max_score" binding:"omitempty,min=0,max=100"`
 
