@@ -220,28 +220,22 @@ func getDashboardTotals(c *gin.Context, totals *DashboardTotals, filters Dashboa
 
     testDateCondition := getDateCondition(filters, "test")
     
-    testQuery := db.Model(&models.Test{})
-    if testDateCondition != "" {
-        testQuery = testQuery.Where(testDateCondition)
-    }
-
-    if err := testQuery.Count(&totals.TotalTests).Error; err != nil {
+    if err := db.Model(&models.Test{}).Where(testDateCondition).Count(&totals.TotalTests).Error; err != nil {
         return err
     }    
 
-    if err := testQuery.Model(&models.Test{}).Where("is_active = ?", false).Count(&totals.InactiveTests).Error; err != nil {
+    if err := db.Model(&models.Test{}).Where(testDateCondition + " AND is_active = ?", false).Count(&totals.InactiveTests).Error; err != nil {
         return err
     }    
 
-    if err := testQuery.Where("level = ?", "Avanzado").Count(&totals.AdvancedTests).Error; err != nil {
+    if err := db.Model(&models.Test{}).Where(testDateCondition + " AND level = ?", "Avanzado").Count(&totals.AdvancedTests).Error; err != nil {
+        return err
+    }
+    if err := db.Model(&models.Test{}).Where(testDateCondition + " AND level = ?", "Intermedio").Count(&totals.IntermediateTests).Error; err != nil {
         return err
     }
 
-    if err := testQuery.Where("level = ?", "Intermedio").Count(&totals.IntermediateTests).Error; err != nil {
-        return err
-    }
-
-    if err := testQuery.Where("level = ?", "Principiante").Count(&totals.BeginnerTests).Error; err != nil {
+    if err := db.Model(&models.Test{}).Where(testDateCondition + " AND level = ?", "Principiante").Count(&totals.BeginnerTests).Error; err != nil {
         return err
     }
 
