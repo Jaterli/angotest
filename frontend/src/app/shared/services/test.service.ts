@@ -64,7 +64,7 @@ export class TestService {
     return this.http.get<ResumeTestResponse>(`${this.apiUrl}/${testId}/progress`);
   }
 
-    // ====== Método para tests completados con filtros ======
+  // ====== Método para tests completados con filtros ======
   getMyCompletedTests(
     filter: CompletedTestsFilter = {}
   ): Observable<CompletedTestsFullResponse> {

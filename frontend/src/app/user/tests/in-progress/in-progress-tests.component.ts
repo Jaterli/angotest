@@ -13,6 +13,7 @@ import {
 } from '../../../shared/models/test.models';
 import { SystemConfigService } from '../../../admin/services/system-config.service';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { SystemConfigServiceForUser } from '../../../shared/services/systemconfig.service';
 
 @Component({
   selector: 'app-in-progress-tests',
@@ -24,12 +25,11 @@ export class InProgressTestsComponent implements OnInit {
   private testService = inject(TestService);
   private authService = inject(AuthService);
   private sharedUtilsService = inject(SharedUtilsService);
-  private systemConfigService = inject(SystemConfigService);
-
+  private systemConfigServiceForUser = inject(SystemConfigServiceForUser);
   // Tests y estado
   inProgressTestsData = signal<InProgressTestResponse[]>([]);
   expiredDays = toSignal(
-    this.systemConfigService.getByKey("mark_in_progress_as_expired_after_days")
+    this.systemConfigServiceForUser.getSystemConfigByKey("mark_in_progress_as_expired_after_days")
   );
   loading = signal(true);
 
@@ -228,8 +228,6 @@ export class InProgressTestsComponent implements OnInit {
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     const remainingDays = expiredDays - diffDays;
     
-    console.log("diffDays: ", diffDays);
-
     if (remainingDays <= 0) {
       return { days: '0', message: 'Test marcado como expirado' };
     } else {

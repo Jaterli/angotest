@@ -39,6 +39,8 @@ func SetupRoutes(r *gin.Engine) {
 			public.POST("/auth/reset-password", shared.ResetPassword)
 			public.GET("/auth/validate-reset-token", shared.ValidateResetToken)
 
+   			public.GET("/system-configsForUser/key/:key", shared.GetSystemConfigByKey) // Para que el frontend pueda obtener configuraciones públicas sin necesidad de autenticación
+
 			public.POST("/contact", shared.HandleContact)
 		}	
 
