@@ -36,8 +36,8 @@ func getAIProvider() *AIProviderConfig {
             APIKey:      groqAPIKey,
             BaseURL:     "https://api.groq.com/openai/v1/chat/completions",
             Model:       os.Getenv("GROQ_MODEL"),
-            MaxTokens:   8000,
-            Temperature: 0.5,
+            MaxTokens:   os.Getenv("AI_MAXTOKENS", 8000),
+            Temperature: os.Getenv("AI_TEMPERATURE", 0.5),
         }
     }
     return nil
