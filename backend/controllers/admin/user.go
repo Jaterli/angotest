@@ -362,7 +362,6 @@ func DeleteUser(c *gin.Context) {
 	// Ejecutar transacción para eliminación permanente con transferencia de tests
 	err = config.DB.Transaction(func(tx *gorm.DB) error {
 		// 1. ELIMINAR tokens de restablecimiento de contraseña (foreign key constraint)
-		// Esta es la tabla que está causando el error
 		if err := tx.Unscoped().
 			Where("user_id = ?", userID).
 			Delete(&models.PasswordResetToken{}).Error; err != nil {

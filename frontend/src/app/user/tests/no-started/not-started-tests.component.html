@@ -316,7 +316,7 @@
   @if (!loading() && notStartedTestsData().length > 0) {
     <div class="mb-4 sm:flex sm:items-center sm:justify-between text-sm font-medium text-gray-600 dark:text-gray-400">
         Mostrando 
-        {{ getStartIndex() }} a {{ getEndIndex() }} de {{ totalFilteredTests()}} test(s) filtrados ({{ totalTests() }} totales)        
+        {{ getStartIndex() }} a {{ getStartIndex()+getEndIndex()-1 }} de {{ totalFilteredTests()}} test(s) filtrados ({{ totalTests() }} totales)        
       <div>
         Orden: 
         <span class="text-gray-800 dark:text-gray-200">

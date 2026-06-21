@@ -343,7 +343,7 @@ export class TestJsonCreateComponent {
     this.clearForm();
     // Redirigir después de cerrar el modal    
     setTimeout(() => {
-      this.router.navigate(['/admin/json-create']);
+      this.router.navigate(['/admin/tests/json-create']);
     }, 300);
   }
 
