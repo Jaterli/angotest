@@ -22,8 +22,8 @@ export const APP_ROUTES: Routes = [
   { path: 'admin/tests/delete/:id', loadComponent: () => import('./admin/tests/test-edit/test-edit.component').then(m => m.TestEditComponent), canActivate: [authGuard, adminGuard] },  
   { path: 'admin/users', loadComponent: () => import('./admin/user/users-list/users-list.component').then(m => m.UsersListComponent), canActivate: [authGuard, adminGuard] },
   { path: 'admin/users/delete/:id', loadComponent: () => import('./admin/user/users-list/users-list.component').then(m => m.UsersListComponent), canActivate: [authGuard, adminGuard] },
-  { path: 'admin/users/results/:id', loadComponent: () => import('./admin/user/user-results/user-results.component').then(m => m.UserResultsComponent), canActivate: [authGuard, adminGuard] },
-  { path: 'admin/results', loadComponent: () => import('./admin/user/results-list/results-list.component').then(m => m.ResultsListComponent), canActivate: [authGuard, adminGuard] },
+  { path: 'admin/results/user/:id', loadComponent: () => import('./admin/results/results-user/results-user.component').then(m => m.ResultsUserComponent), canActivate: [authGuard, adminGuard] },
+  { path: 'admin/results', loadComponent: () => import('./admin/results/results-list/results-list.component').then(m => m.ResultsListComponent), canActivate: [authGuard, adminGuard] },
   { path: 'admin/dashboard', loadComponent: () => import('./admin/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent), canActivate: [authGuard, adminGuard] },
 
   { path: 'admin/invitations', loadComponent: () => import('./admin/invitations-management/invitations-management.component').then(m => m.InvitationsManagementComponent), canActivate: [authGuard, adminGuard] },

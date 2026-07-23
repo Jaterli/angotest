@@ -59,7 +59,7 @@ export class InvitationsManagementComponent implements OnInit {
     { value: 'created_at', label: 'Fecha de creación' },
     { value: 'expires_at', label: 'Fecha de expiración' },
     { value: 'test__title', label: 'Título del test' },
-    { value: 'inviter_name', label: 'Creador' },
+    { value: 'invited_by', label: 'Creador' },
     { value: 'is_guest', label: 'Guest (true/false)' }
   ];
 
@@ -141,7 +141,7 @@ export class InvitationsManagementComponent implements OnInit {
         this.invitations.set(res.data);
         this.totalItems.set(res.stats.total_filtered);
         this.totalPages.set(res.pagination.total_pages);
-        this.hasMore.set(res.pagination.total_pages > this.selectedFilters().page);
+        this.hasMore.set(res.pagination.has_more);
         this.loading.set(false);
         this.saveFilters();
         this.clearSelection();

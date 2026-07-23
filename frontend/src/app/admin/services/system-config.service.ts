@@ -6,7 +6,9 @@ import {
   CreateSystemConfigDTO, 
   UpdateSystemConfigDTO,
   BulkUpdateConfigDTO,
-  DefaultSystemConfig
+  DefaultSystemConfig,
+  SystemConfigResponse,
+  SystemConfigFilters
 } from '../models/system-config.models';
 import { environment } from '../../../environments/environment';
 
@@ -17,9 +19,17 @@ export class SystemConfigService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/admin/system-configs`;
 
-  // Obtener todas las configuraciones
-  getAll(): Observable<SystemConfig[]> {
-    return this.http.get<SystemConfig[]>(this.apiUrl);
+  getAll(filter: SystemConfigFilters): Observable<SystemConfigResponse> {
+    let params = new HttpParams();
+    
+    // Agregar todos los filtros a los parámetros
+    Object.keys(filter).forEach(key => {
+      const value = filter[key as keyof SystemConfigFilters];
+      if (value !== undefined && value !== null && value !== 'all' && value !== '') {
+        params = params.set(key, value.toString());
+      }
+    });
+    return this.http.get<SystemConfigResponse>(`${this.apiUrl}/`, { params });
   }
 
   getAllDefault(): Observable<DefaultSystemConfig[]> {

@@ -123,14 +123,7 @@
           <p class="text-gray-600 dark:text-gray-400 text-sm">Personaliza la visualización de cuotas</p>
         </div>
         
-        <div class="flex items-center gap-2 textsize-cnf font-medium">
-          <button (click)="onFilterChange()"
-                  class="inline-flex items-center px-4 py-2 rounded-lg text-white bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors">
-            <svg class="hidden sm:block w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
-            </svg>
-            Aplicar Filtros
-          </button>        
+        <div class="flex items-center gap-2 textsize-cnf font-medium">       
           <button (click)="resetFilters()"
                   class="inline-flex items-center px-4 py-2 rounded-lg text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
             <svg class="hidden sm:block w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -146,38 +139,19 @@
       </div>
       
       <!-- Filtros básicos -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 mb-6">
-        
-        <!-- Búsqueda -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Búsqueda
-          </label>
-          <input 
-            type="text"
-            [(ngModel)]="selectedFilters().search"
-            (ngModelChange)="onFilterChange()"
-            placeholder="Buscar por usuario, ID..."
-            class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
-          >
-        </div>
-        
-        <!-- Mes/Año -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Mes/Año
-          </label>
-          <select 
-            [(ngModel)]="selectedFilters().month_year"
-            (ngModelChange)="onFilterChange()"
-            class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
-          >
-            <option [value]="undefined">Todos los meses</option>
-            @for (month of availableMonths(); track month) {
-              <option [value]="month">{{ formatMonthYear(month) }}</option>
-            }
-          </select>
-        </div>                
+
+      <!-- Búsqueda -->
+      <div class=" mb-6">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Búsqueda
+        </label>
+        <input 
+          type="text"
+          [(ngModel)]="selectedFilters().search"
+          (ngModelChange)="updateFilter('search', $event)"
+          placeholder="Buscar por usuario, ID..."
+          class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+        >
       </div>
 
       <!-- Filtros avanzados -->
@@ -194,7 +168,7 @@
               <input 
                 type="number"
                 [(ngModel)]="selectedFilters().user_id"
-                (ngModelChange)="onFilterChange()"
+                (ngModelChange)="updateFilter('user_id', $event)"
                 placeholder="Ej: 123"
                 class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
               >
@@ -208,7 +182,7 @@
               <input 
                 type="number"
                 [(ngModel)]="selectedFilters().min_requests"
-                (ngModelChange)="onFilterChange()"
+                (ngModelChange)="updateFilter('min_requests', $event)"
                 placeholder="Mínimo"
                 class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
               >
@@ -221,7 +195,7 @@
               <input 
                 type="number"
                 [(ngModel)]="selectedFilters().max_requests"
-                (ngModelChange)="onFilterChange()"
+                (ngModelChange)="updateFilter('max_requests', $event)"
                 placeholder="Máximo"
                 class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
               >
@@ -230,18 +204,17 @@
             <!-- Porcentaje de uso máximo -->
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                % de uso máximo
+                % de uso
               </label>
+
               <select 
-                [(ngModel)]="selectedFilters().max_usage"
-                (ngModelChange)="onFilterChange()"
+                [(ngModel)]="selectedFilters().min_usage"
+                (ngModelChange)="updateFilter('min_usage', $event)"
                 class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
               >
-                <option [value]="undefined">Cualquier %</option>
-                <option [value]="50">Menos de 50%</option>
-                <option [value]="80">Menos de 80%</option>
-                <option [value]="90">Menos de 90%</option>
-                <option [value]="100">Menos de 100%</option>
+                @for (option of usageOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
               </select>
             </div>
 
@@ -253,7 +226,7 @@
               <input 
                 type="date"
                 [(ngModel)]="selectedFilters().start_date"
-                (ngModelChange)="onFilterChange()"
+                (ngModelChange)="updateFilter('start_date', $event)"
                 class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
               >
             </div>
@@ -265,7 +238,7 @@
               <input 
                 type="date"
                 [(ngModel)]="selectedFilters().end_date"
-                (ngModelChange)="onFilterChange()"
+                (ngModelChange)="updateFilter('end_date', $event)"
                 class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
               >
             </div>
@@ -274,14 +247,33 @@
       }
 
       <!-- Ordenación y vista -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+
+        <!-- Mes/Año -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Mes/Año
+          </label>
+          <select 
+            [(ngModel)]="selectedFilters().month_year"
+            (ngModelChange)="updateFilter('month_year', $event)"
+            class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
+          >
+            <option value="all">Todos los meses</option>
+            @for (month of availableMonths(); track month) {
+              <option [value]="month">{{ formatMonthYear(month) }}</option>
+            }
+          </select>
+        </div>  
+
+
         <!-- Ordenar por -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Ordenar por
           </label>
           <select 
-            [(ngModel)]="selectedFilters().sort_by"
+            [(ngModel)]="selectedFilters().ordering"
             (ngModelChange)="setSortBy($event)"
             class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
@@ -301,7 +293,7 @@
               (click)="toggleSortOrder()"
               class="textsize-cnf w-full flex items-center justify-center px-4 py-[6px] rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
             >
-              @if (selectedFilters().sort_order === 'desc') {
+              @if (selectedFilters().order_dir === 'desc') {
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M14.707 12.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                 </svg>
@@ -397,11 +389,11 @@
                 </button>
               </span>
             }
-            @if (selectedFilters().max_usage) {
+            @if (selectedFilters().min_usage != 'all') {
               <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-300">
-                % uso máx: {{ selectedFilters().max_usage }}%
+                % de uso: {{ selectedFilters().min_usage }}
                 <button 
-                  (click)="removeFilter('max_usage')"
+                  (click)="removeFilter('min_usage')"
                   class="ml-1.5 text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-200"
                 >
                   ×
@@ -431,7 +423,7 @@
               </span>
             }
             <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-300">
-              Orden: {{ getCurrentSortLabel() }} {{ getSortOrderIcon() }}
+              Orden: {{ currentSortLabel() }} {{ getSortOrderIcon() }}
             </span>
           </div>
         </div>
@@ -483,17 +475,11 @@
     </div>
   }
 
-  <!-- Información de cuotas -->
+  <!-- Información de invitaciones -->
   @if (!loading() && totalItems() > 0) {
     <div class="mb-4 md:flex md:items-center md:justify-between text-sm font-medium text-gray-600 dark:text-gray-400">
       <div class="flex items-center gap-4">
-        <div>
-          Mostrando 
-          <span class="font-medium">{{ getStartIndex() }}</span> a 
-          <span class="font-medium">{{ getEndIndex() }}</span> de 
-          <span class="font-medium">{{ totalItems() }}</span> cuota(s)
-        </div>
-        
+        <div class="text-balance">Mostrando {{ startIndex() }} a {{ endIndex() }} de {{ totalItems() }} resultado(s) filtrados </div>
         <!-- Checkbox para seleccionar todos -->
         <div class="flex items-center">
           <input type="checkbox"
@@ -510,7 +496,7 @@
       <div>
         Orden: 
         <span class="text-gray-800 dark:text-gray-200">
-          {{ getCurrentSortLabel() }} {{ getSortOrderIcon() }}
+          {{ currentSortLabel() }} {{ getSortOrderIcon() }}
         </span>
       </div>
     </div>
@@ -544,11 +530,11 @@
             <div class="flex gap-2 items-center">
               <button (click)="openUserProfile(quota.user_id)"
                   class="text-sm px-2 py-0.5 rounded text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                @{{ quota.username || 'Usuario #' + quota.user_id }}
+                @{{ quota.user__username || 'Usuario #' + quota.user_id }}
               </button>
-              @if (quota.user_email) {
+              @if (quota.user__email) {
                 <div class="text-sm text-gray-500 dark:text-gray-400 truncate">
-                  {{ quota.user_email }}
+                  {{ quota.user__email }}
                 </div>
               }
             </div>
@@ -666,12 +652,12 @@
 
                   <button (click)="openUserProfile(quota.user_id)"
                       class="text-sm px-2 py-0.5 rounded text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                    @{{ quota.username || 'Usuario #' + quota.user_id }}
+                    @{{ quota.user__username || 'Usuario #' + quota.user_id }}
                   </button>
                     
-                  @if (quota.user_email) {
+                  @if (quota.user__email) {
                     <div class="text-xs text-gray-500 dark:text-gray-400">
-                      {{ quota.user_email }}
+                      {{ quota.user__email }}
                     </div>
                   }                    
                 </td>
@@ -770,14 +756,14 @@
       <div class="mt-8">
         <nav class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div class="text-sm text-gray-600 dark:text-gray-400 order-2 sm:order-1 text-center sm:text-left">
-            Página {{ currentPage() }} de {{ totalPages() }}
+            Página {{ selectedFilters().page }} de {{ totalPages() }}
           </div>
           
           <div class="flex items-center justify-center order-1 sm:order-2">
             <div class="relative z-0 inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
               <!-- Botón Anterior -->
               <button (click)="previousPage()"
-                      [disabled]="currentPage() === 1"
+                      [disabled]="selectedFilters().page === 1"
                       class="relative inline-flex items-center px-3 py-2 sm:px-2 sm:py-2 text-sm font-medium text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-l-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
                 <span class="sr-only">Anterior</span>
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -788,7 +774,7 @@
               <!-- Números de página -->
               @for (page of getPageNumbers(); track page) {
                 <button (click)="goToPage(page)"
-                        [class]="currentPage() === page 
+                        [class]="selectedFilters().page === page 
                           ? 'z-10 text-white bg-blue-600 dark:bg-blue-700 border border-blue-500 dark:border-blue-600 relative inline-flex items-center px-4 py-2 sm:px-4 sm:py-2 text-sm font-medium'
                           : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 relative inline-flex items-center px-4 py-2 sm:px-4 sm:py-2 text-sm font-medium transition-colors'">
                   {{ page }}
@@ -822,8 +808,8 @@
     [isOpen]="showCreateModal()"
     [title]="modalTitle()"
     [message]="''"
-    [confirmText]="saveInProgress() ? 'Creando...' : 'Crear cuota'"
-    [showCancelButton]="!saveInProgress()"
+    [confirmText]="saving() ? 'Creando...' : 'Crear cuota'"
+    [showCancelButton]="!saving()"
     (confirm)="createQuota()"
     (cancel)="showCreateModal.set(false)"
     (closed)="showCreateModal.set(false)">
@@ -885,8 +871,8 @@
     [isOpen]="showEditModal()"
     [title]="modalTitle()"
     [message]="''"
-    [confirmText]="saveInProgress() ? 'Guardando...' : 'Guardar cambios'"
-    [showCancelButton]="!saveInProgress()"
+    [confirmText]="saving() ? 'Guardando...' : 'Guardar cambios'"
+    [showCancelButton]="!saving()"
     (confirm)="updateQuota()"
     (cancel)="showEditModal.set(false)"
     (closed)="showEditModal.set(false)">
@@ -896,7 +882,7 @@
       @if (quotaToEdit()) {
         <div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
           <p class="text-sm text-blue-700 dark:text-blue-300">
-            <span class="font-medium">Usuario:</span> {{ quotaToEdit()!.username || 'ID: ' + quotaToEdit()!.user_id }}<br>
+            <span class="font-medium">Usuario:</span> {{ quotaToEdit()!.user__username || 'ID: ' + quotaToEdit()!.user_id }}<br>
             <span class="font-medium">Mes:</span> {{ formatMonthYear(quotaToEdit()!.month_year) }}
           </p>
         </div>
@@ -956,10 +942,10 @@
           <div>
             <p class="text-sm text-gray-500 dark:text-gray-400">Usuario</p>
             <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {{ quotaToView()!.username || 'Usuario #' + quotaToView()!.user_id }}
+              {{ quotaToView()!.user__username || 'Usuario #' + quotaToView()!.user_id }}
             </p>
-            @if (quotaToView()!.user_email) {
-              <p class="text-sm text-gray-600 dark:text-gray-400">{{ quotaToView()!.user_email }}</p>
+            @if (quotaToView()!.user__email) {
+              <p class="text-sm text-gray-600 dark:text-gray-400">{{ quotaToView()!.user__email }}</p>
             }
           </div>
           <app-id-with-icon-button
@@ -1022,8 +1008,8 @@
     [title]="modalTitle()"
     [message]="modalMessage()"
     icon="warning"
-    [confirmText]="deleteInProgress() ? 'Eliminando...' : 'Eliminar'"
-    [showCancelButton]="!deleteInProgress()"
+    [confirmText]="deleting() ? 'Eliminando...' : 'Eliminar'"
+    [showCancelButton]="!deleting()"
     (confirm)="deleteQuota()"
     (cancel)="showDeleteModal.set(false)"
     (closed)="showDeleteModal.set(false)">
@@ -1048,8 +1034,8 @@
     [title]="modalTitle()"
     [message]="modalMessage()"
     icon="warning"
-    [confirmText]="deleteInProgress() ? 'Eliminando...' : 'Eliminar seleccionadas'"
-    [showCancelButton]="!deleteInProgress()"
+    [confirmText]="deleting() ? 'Eliminando...' : 'Eliminar seleccionadas'"
+    [showCancelButton]="!deleting()"
     (confirm)="deleteSelectedQuotas()"
     (cancel)="showBulkDeleteModal.set(false)"
     (closed)="showBulkDeleteModal.set(false)">

@@ -98,7 +98,7 @@ export interface TestDetailedStats {
   avg_time: number;
   avg_questions: number;
   completion_rate: number;
-  difficulty_level: string;
+  test_level: string;
   test_title: string;
   topic_hierarchy: {
     main_topic: string;

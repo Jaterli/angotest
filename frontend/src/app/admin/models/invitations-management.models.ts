@@ -40,8 +40,9 @@ export interface InvitationsResponse {
   pagination: {
     page: number;
     page_size: number;
-    total_items: number;
+    total_filtered: number;
     total_pages: number;
+    has_more: boolean;
   };
   stats: InvitationsStats;
 }

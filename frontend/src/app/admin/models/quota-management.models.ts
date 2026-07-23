@@ -1,8 +1,8 @@
 export interface UserQuota {
   id: number;
   user_id: number;
-  username?: string;
-  user_email?: string;
+  user__username?: string;
+  user__email?: string;
   month_year: string;
   max_requests: number;
   used_requests: number;
@@ -13,15 +13,14 @@ export interface UserQuota {
 export interface QuotaFilter {
   page: number;
   page_size: number;
-  sort_by: string;
-  sort_order: 'asc' | 'desc';
+  ordering?: string;
+  order_dir: 'asc' | 'desc';
   
   // Filtros
   search?: string;
   user_id?: number;
-  month_year?: string;
-  min_remaining?: number;
-  max_usage?: number;
+  month_year: string;
+  min_usage: string;
   min_requests?: number;
   max_requests?: number;
   
@@ -34,12 +33,13 @@ export interface QuotaFilter {
 }
 
 export interface QuotaResponse {
-  quotas: UserQuota[];
+  data: UserQuota[];
   pagination: {
-    total_items: number;
+    total_filtered: number;
     total_pages: number;
     page: number;
     page_size: number;
+    has_more: boolean;
   };
 }
 

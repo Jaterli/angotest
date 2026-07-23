@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { SystemConfigService } from '../services/system-config.service';
-import { SystemConfig, CreateSystemConfigDTO, UpdateSystemConfigDTO, DefaultSystemConfig } from '../models/system-config.models';
+import { SystemConfig, CreateSystemConfigDTO, UpdateSystemConfigDTO, DefaultSystemConfig, SystemConfigFilters } from '../models/system-config.models';
 import { ModalComponent } from '../../shared/components/modal.component';
+
 
 @Component({
   selector: 'app-system-config',
@@ -15,13 +16,15 @@ import { ModalComponent } from '../../shared/components/modal.component';
 export class SystemConfigComponent implements OnInit {
   private systemConfigService = inject(SystemConfigService);
 
-  // Signals
+  // ========== DATOS ==========
   configs = signal<SystemConfig[]>([]);
-  filteredConfigs = signal<SystemConfig[]>([]);
+
+  // ========== ESTADOS ==========
   loading = signal(true);
-  errorMessage = signal('');
-  
-  // Modal signals
+  loadingDefaults = signal(false);
+  deleting = signal(false);       // para el modal de eliminación
+
+  // ========== MODALES ==========
   showCreateModal = signal(false);
   showEditModal = signal(false);
   showDeleteModal = signal(false);
@@ -29,68 +32,98 @@ export class SystemConfigComponent implements OnInit {
   showErrorModal = signal(false);
   showImportModal = signal(false);
 
-  // Current item signals
+  // ========== ELEMENTOS ACTUALES ==========
   currentConfig = signal<SystemConfig | null>(null);
   configToDelete = signal<SystemConfig | null>(null);
-
-  // Form data signals
   newConfig = signal<CreateSystemConfigDTO>({ key: '', value: '', description: '' });
   editConfig = signal<UpdateSystemConfigDTO>({});
 
-  // Filter signals
-  searchTerm = signal('');
-  filterOptions = signal({
-    sortBy: 'key',
-    sortOrder: 'asc'
-  });
+  // ========== FILTROS ==========
+  private readonly defaultFilters: SystemConfigFilters = {
+    ordering: 'key',
+    order_dir: 'asc',
+    search: ''
+  };
+  selectedFilters = signal<SystemConfigFilters>(this.defaultFilters);
 
-  // Opciones de ordenación disponibles
-  sortOptions = signal([
+  // Opciones de ordenación (para la UI)
+  sortOptions = [
     { value: 'key', label: 'Clave' },
     { value: 'value', label: 'Valor' },
     { value: 'updated_at', label: 'Fecha actualización' },
     { value: 'created_at', label: 'Fecha creación' }
-  ]);
+  ];
 
-  // Estado de la UI
+  // ========== ESTADÍSTICAS ==========
+  stats = signal({
+    total_filtered: 0,
+    total_unfiltered: 0
+  });
+
+  // ========== UI ==========
   showFilters = signal(false);
-
-
-  // Estado para mostrar/ocultar información de configuraciones
   showConfigInfo = signal(false);
-
-  // Información de configuraciones predeterminadas (obtenida de la API)
   defaultConfigsInfo = signal<DefaultSystemConfig[]>([]);
-  loadingDefaults = signal(false);
+  errorMessage = signal('');
 
-  // Computed properties para el template
+  // ========== COMPUTED ==========
   currentSortLabel = computed(() => {
-    const sortBy = this.filterOptions().sortBy;
-    const option = this.sortOptions().find(o => o.value === sortBy);
+    const ordering = this.selectedFilters().ordering || 'key';
+    const option = this.sortOptions.find(o => o.value === ordering);
     return option ? option.label : 'Clave';
   });
 
-  getSortOrderIcon(): string {
-    const order = this.filterOptions().sortOrder || 'asc';
-    return order === 'asc' ? '↑' : '↓';
-  }
 
-  isLoading = computed(() => this.loading());
+  missingConfigs = computed(() =>
+    this.defaultConfigsInfo().filter(c => !c.exists_in_db)
+  );
 
-  constructor() {}
-
+  // ========== CICLO DE VIDA ==========
   ngOnInit(): void {
+    this.loadSavedFilters();
     this.loadConfigs();
     this.loadDefaultConfigs();
   }
 
+  // ========== PERSISTENCIA DE FILTROS ==========
+  private readonly FILTER_STORAGE_KEY = 'system_config_filters';
+
+  loadSavedFilters(): void {
+    try {
+      const saved = localStorage.getItem(this.FILTER_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        this.selectedFilters.set({ ...this.defaultFilters, ...parsed });
+      }
+    } catch (error) {
+      console.error('Error al cargar filtros guardados:', error);
+    }
+  }
+
+  saveFilters(): void {
+    const filters = {
+      ...this.selectedFilters(),
+      timestamp: new Date().getTime()
+    };
+    localStorage.setItem(this.FILTER_STORAGE_KEY, JSON.stringify(filters));
+  }
+
+  // ========== CARGA DE DATOS ==========
   loadConfigs(): void {
     this.loading.set(true);
-    this.systemConfigService.getAll().subscribe({
-      next: (configs) => {
-        this.configs.set(configs);
-        this.applyFilters();
+
+    // Construir el filtro para el servicio
+    const raw = this.selectedFilters();
+    const filters: SystemConfigFilters = {
+      ...raw,                          // Copia todos los campos
+      ordering: raw.order_dir === 'desc' ? `-${raw.ordering}` : raw.ordering,
+    };
+
+    this.systemConfigService.getAll(filters).subscribe({
+      next: (res) => {
+        this.configs.set(res.results);
         this.loading.set(false);
+        this.saveFilters();
       },
       error: (error) => {
         this.errorMessage.set('Error al cargar las configuraciones.');
@@ -100,7 +133,7 @@ export class SystemConfigComponent implements OnInit {
     });
   }
 
-loadDefaultConfigs(): void {
+  loadDefaultConfigs(): void {
     this.loadingDefaults.set(true);
     this.systemConfigService.getAllDefault().subscribe({
       next: (defaultConfigs) => {
@@ -114,83 +147,44 @@ loadDefaultConfigs(): void {
     });
   }
 
-  missingConfigs = computed(() => {
-    return this.defaultConfigsInfo().filter(c => !c.exists_in_db);
-  });
-
-  applyFilters(): void {
-    let filtered = [...this.configs()];
-    
-    // Aplicar búsqueda
-    if (this.searchTerm()) {
-      const term = this.searchTerm().toLowerCase();
-      filtered = filtered.filter(config =>
-        config.key.toLowerCase().includes(term) ||
-        config.value.toLowerCase().includes(term) ||
-        (config.description && config.description.toLowerCase().includes(term))
-      );
-    }
-
-    // Aplicar ordenación
-    filtered.sort((a, b) => {
-      const order = this.filterOptions().sortOrder === 'asc' ? 1 : -1;
-      switch (this.filterOptions().sortBy) {
-        case 'key':
-          return order * a.key.localeCompare(b.key);
-        case 'value':
-          return order * a.value.localeCompare(b.value);
-        case 'updated_at':
-          return order * (new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime());
-        case 'created_at':
-          return order * (new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-        default:
-          return 0;
-      }
-    });
-
-    this.filteredConfigs.set(filtered);
-  }
-
-  onSearchChange(): void {
-    this.applyFilters();
-  }
-
-  onFilterChange(): void {
-    this.applyFilters();
+  // ========== MÉTODOS DE FILTROS ==========
+  updateFilter<K extends keyof SystemConfigFilters>(key: K, value: SystemConfigFilters[K]): void {
+    this.selectedFilters.update(f => ({ ...f, [key]: value }));
+    // Al cambiar cualquier filtro que no sea página, resetear a página 1
+    this.selectedFilters.update(f => ({ ...f, page: 1 }));    
+    this.loadConfigs();
   }
 
   resetFilters(): void {
-    this.searchTerm.set('');
-    this.filterOptions.set({
-      sortBy: 'key',
-      sortOrder: 'asc'
-    });
-    this.applyFilters();
+    this.selectedFilters.set({ ...this.defaultFilters });
+    this.loadConfigs();
   }
 
-  toggleSortOrder(): void {
-    const currentOrder = this.filterOptions().sortOrder || 'asc';
-    const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
-    this.filterOptions.update(filters => ({ ...filters, sortOrder: newOrder }));
-    this.applyFilters();
-  }
-
-  setSortBy(sortBy: string): void {
-    this.filterOptions.update(filters => ({ ...filters, sortBy }));
-    this.applyFilters();
+  removeFilter(key: keyof SystemConfigFilters): void {
+    const defaultValue = this.defaultFilters[key] ?? '';
+    this.updateFilter(key, defaultValue);
   }
 
   showFilterIndicators(): boolean {
-    return !!(this.searchTerm());
+    const f = this.selectedFilters();
+    return !!(f.search);
   }
 
-  removeFilter(key: string): void {
-    if (key === 'search') {
-      this.searchTerm.set('');
-      this.applyFilters();
-    }
+  // ========== ORDENACIÓN ==========
+  setSortBy(sortBy: string): void {
+    this.updateFilter('ordering', sortBy);
   }
 
+  toggleSortOrder(): void {
+    const currentDir = this.selectedFilters().order_dir || 'asc';
+    this.updateFilter('order_dir', currentDir === 'asc' ? 'desc' : 'asc');
+  }
+
+  getSortOrderIcon(): string {
+    return this.selectedFilters().order_dir === 'asc' ? '↑' : '↓';
+  }
+
+  // ========== CRUD ==========
   openCreateModal(): void {
     this.newConfig.set({ key: '', value: '', description: '' });
     this.showCreateModal.set(true);
@@ -253,13 +247,17 @@ loadDefaultConfigs(): void {
     const config = this.configToDelete();
     if (!config) return;
 
+    this.deleting.set(true);
     this.systemConfigService.delete(config.id).subscribe({
       next: () => {
+        this.deleting.set(false);
         this.showDeleteModal.set(false);
         this.loadConfigs();
         this.showSuccessModal.set(true);
       },
       error: (error) => {
+        this.deleting.set(false);
+        this.showDeleteModal.set(false);
         this.errorMessage.set(error.error?.error || 'Error al eliminar la configuración');
         this.showErrorModal.set(true);
       }
@@ -271,25 +269,12 @@ loadDefaultConfigs(): void {
     this.editConfig.set({});
   }
 
-  toggleSort(column: string): void {
-    const options = this.filterOptions();
-    if (options.sortBy === column) {
-      options.sortOrder = options.sortOrder === 'asc' ? 'desc' : 'asc';
-    } else {
-      options.sortBy = column;
-      options.sortOrder = 'asc';
-    }
-    this.filterOptions.set({...options});
-    this.applyFilters();
+  // ========== UTILIDADES PARA LA UI ==========
+  closeSuccessModal(): void {
+    this.showSuccessModal.set(false);
   }
 
-  getSortIcon(column: string): string {
-    const options = this.filterOptions();
-    if (options.sortBy !== column) {
-      return 'M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4';
-    }
-    return options.sortOrder === 'asc' 
-      ? 'M5 15l7-7 7 7'
-      : 'M19 9l-7 7-7-7';
+  closeErrorModal(): void {
+    this.showErrorModal.set(false);
   }
 }
