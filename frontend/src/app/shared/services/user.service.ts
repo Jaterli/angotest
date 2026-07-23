@@ -15,27 +15,27 @@ export class UserService {
   user = signal<any | null>(null);
 
   getCurrentUser(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/current-user`);
+    return this.http.get(`${this.apiUrl}/profile/`);
   }
 
   // Actualizar datos del usuario
   updateUser(userData: UserUpdateData): Observable<any> {
-    return this.http.put(`${this.apiUrl}/update-user-profile`, userData);
+    return this.http.put(`${this.apiUrl}/profile/`, userData);
   }
 
   // Actualiza credenciales de acceso
   updateEmailPassword(data: UpdateEmailPassword): Observable<any> {
-    return this.http.post(`${this.apiUrl}/update-email-password`, data);
+    return this.http.post(`${this.apiUrl}/update-email-password/`, data);
   }
 
   // Actualiza perfil de guest
   updateGuestProfile(data: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/update-guest-profile`, data);
+    return this.http.post(`${this.apiUrl}/update-guest-profile/`, data);
   }
 
   // Deactivar cuenta (soft delete)
   deactivateAccount(data: { current_password: string; confirm_text: string }): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/deactivate-account`, {
+    return this.http.delete(`${this.apiUrl}/deactivate-account/`, {
       body: data // Enviar datos en el cuerpo de la solicitud
     });
   }

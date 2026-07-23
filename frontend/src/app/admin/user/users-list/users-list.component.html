@@ -226,7 +226,7 @@
               <div class="flex items-center flex-1 min-w-0">
                 <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-3" 
                   [class]="getRoleBadgeClass(user.role)">
-                  {{ user.role[0].toUpperCase() }}
+                  {{ user.first_name.charAt(0) }} {{ user.last_name.charAt(0) }}
                 </span>
                 <div class="flex-1 min-w-0">
                   <div class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
@@ -294,7 +294,7 @@
                 Perfil
               </button>
               
-              <a [routerLink]="['/admin/users/results/', user.id]"
+              <a [routerLink]="['/admin/results/user/', user.id]"
                  class="inline-flex items-center justify-center px-3 py-2 rounded text-emerald-700 bg-emerald-100 hover:bg-emerald-200 dark:text-emerald-300 dark:bg-emerald-900 dark:hover:bg-emerald-800 transition-colors">
                 <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
@@ -346,7 +346,7 @@
                     <div>
                       <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium" 
                         [class]="getRoleBadgeClass(user.role)">   
-                        {{ user.role[0].toUpperCase() }}                   
+                        {{ user.first_name.charAt(0) }} {{ user.last_name.charAt(0) }}                 
                       </span>
                     </div>
                     <div class="ml-3">
@@ -370,7 +370,7 @@
                     }
                   </div>
 
-                  <div class="text-xs text-gray-500 dark:text-gray-400">
+                  <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
                     {{ user.email }}
                   </div>
 
@@ -403,7 +403,7 @@
                 <td class="px-4 py-4">
                   <div class="flex flex-col items-start">
                     <span class="{{ getScoreBadgeClass(user.average_score) }}">
-                      {{ user.average_score | number:'1.0-1' }}%
+                      {{ user.tests_completed ? (user.average_score | number:'1.0-1')+'%': 'N/A' }}
                     </span>
                     <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Puntuación media
@@ -423,7 +423,7 @@
                       </svg>
                       Perfil
                     </button>
-                    <a [routerLink]="['/admin/users/results/', user.id]"
+                    <a [routerLink]="['/admin/results/user/', user.id]"
                        class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-emerald-700 bg-emerald-100 hover:bg-emerald-200 dark:text-emerald-300 dark:bg-emerald-900 dark:hover:bg-emerald-800 transition-colors">
                       <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11.707 4.707a1 1 0 00-1.414-1.414L10 9.586 8.707 8.293a1 1 0 00-1.414 0l-2 2a1 1 0 101.414 1.414L8 10.414l1.293 1.293a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>

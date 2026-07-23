@@ -50,9 +50,8 @@ export class ProfileComponent implements OnInit {
   showDeactivateModal = signal(false);
 
   // Modal de confirmación exitosa
-
   showSuccessModal = signal(false);
-
+  
   // Datos del usuario
   user = signal<any>(null);
 
@@ -393,7 +392,7 @@ export class ProfileComponent implements OnInit {
       });
   }
 
-  // Getters (mantener igual)
+  // Getters
   get username() { return this.profileForm.get('username'); }
   get firstName() { return this.profileForm.get('firstName'); }
   get lastName() { return this.profileForm.get('lastName'); }
@@ -484,7 +483,8 @@ export class ProfileComponent implements OnInit {
         next: (response: any) => {
           this.loading.set(false);
           this.successMessage.set(response.message || 'Datos actualizados correctamente');
-          this.user.set(response.user);          
+          this.user.set(response.user); 
+          this.profileForm.markAsPristine(); 
         },
         error: (err: any) => {
           this.loading.set(false);
@@ -544,6 +544,7 @@ export class ProfileComponent implements OnInit {
             message = 'Contraseña actualizada correctamente.';
           }
           
+          this.emailPasswordForm.markAsPristine();           
           this.emailPasswordSuccess.set(response.message || message);
           
           if (isEmailChanged && response.user) {
@@ -605,6 +606,7 @@ export class ProfileComponent implements OnInit {
           this.loadingGuestUpdate.set(false);
           this.successMessage.set(response.message || 'Perfil completado correctamente.');
           this.user.set(response.user);
+          this.guestCompleteForm.markAsPristine();          
           
           setTimeout(() => {
             window.location.reload();

@@ -23,14 +23,12 @@ export class UsersManagementService {
       }
     });
 
-
     return this.http.get<UserListResponse>(`${this.apiUrl}/stats/`, { params });
   }
 
-
   // Método para obtener perfil básico de usuario
-  getUserProfile(id: number): Observable<{ user: User }> {
-    return this.http.get<{ user: User }>(`${this.apiUrl}/${id}/profile/`);
+  getUserProfile(id: number): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/${id}/profile/`);
   }
 
   // Método para eliminar usuario

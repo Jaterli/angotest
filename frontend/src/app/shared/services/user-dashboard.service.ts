@@ -10,13 +10,13 @@ import { environment } from "../../../environments/environment";
 export class DashboardService {
   private http = inject(HttpClient);
   
-  private readonly baseUrl = `${environment.apiUrl}/user/dashboard`;
+  private readonly baseUrl = `${environment.apiUrl}/user`;
   
   /**
    * Obtiene solo las estadísticas del usuario (sin comparativas)
    */
   getDashboardStats(): Observable<DashboardStats> {
-    return this.http.get<DashboardStats>(`${this.baseUrl}/personaldata/`).pipe(
+    return this.http.get<DashboardStats>(`${this.baseUrl}/dashboard/`).pipe(
       catchError(this.handleError)
     );
   }
@@ -26,7 +26,7 @@ export class DashboardService {
    * @param limit Número máximo de resultados por ranking
    */
   getRankings(limit: number = 5): Observable<RankingsResponse> {
-    return this.http.get<RankingsResponse>(`${this.baseUrl}/rankings?limit=${limit}`).pipe(
+    return this.http.get<RankingsResponse>(`${this.baseUrl}/rankings/?limit=${limit}`).pipe(
       catchError(this.handleError)
     );
   }

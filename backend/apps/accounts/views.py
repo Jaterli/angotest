@@ -1,54 +1,573 @@
-# views.py
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
+# apps/accounts/views.py 
+from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView, ListAPIView # type: ignore
+from rest_framework.permissions import IsAuthenticated, AllowAny # type: ignore
+from rest_framework.response import Response # type: ignore
+from rest_framework import status # type: ignore
+from rest_framework.views import APIView # type: ignore
+from django_filters.rest_framework import DjangoFilterBackend # type: ignore
+from rest_framework.filters import OrderingFilter # type: ignore
+from django.db.models import Count, Avg, Q, F, FloatField, Case, When, Value
+from django.db.models.functions import Coalesce, Cast
 from django.contrib.auth.hashers import make_password, check_password
 from django.utils import timezone
-from datetime import datetime, timedelta
-from django.conf import settings
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
+from datetime import timedelta, datetime
 from django.db import transaction
-from django.contrib.auth import logout as django_logout
-from django.shortcuts import render
-from functools import wraps
-import json
-import jwt # type: ignore
 import secrets
 import logging
 from .models import User, PasswordResetToken
-from .serializers import UserResponseSerializer
+from .serializers import (
+    UserSerializer, UserProfileSerializer, UserUpdateSerializer,
+    UserWithStatsSerializer, RegisterSerializer, LoginSerializer,
+    ForgotPasswordSerializer, ResetPasswordSerializer
+)
+from .filters import UserFilter
+from apps.shared.pagination import CustomPagination
 from apps.results.models import Result
-from apps.invitations.models import TestInvitation
-from django.db.models import Count, Avg, Q, F, FloatField, Case, When, Value
-from django.db.models.functions import Coalesce, Cast
-from .services import DataService
-from apps.admin_panel.utils import SystemConfigManager
 from apps.test.models import Test
-
+from apps.admin_panel.utils import SystemConfigManager
 
 logger = logging.getLogger(__name__)
 
 
-# ============== FUNCIONES AUXILIARES ==============
+# ===========================================================================
+# Autenticación (públicos)
+# ===========================================================================
 
-def user_to_response(user):
-    """Convierte un objeto User a diccionario de respuesta (ÚNICA DEFINICIÓN)"""
-    return {
-        'id': user.id,
-        'username': user.username,
-        'email': user.email,
-        'first_name': user.first_name,
-        'last_name': user.last_name,
-        'phone': user.phone,
-        'address': user.address,
-        'country': user.country,
-        'birth_date': user.birth_date.isoformat() if user.birth_date else None,
-        'role': user.role,
-        'registered_at': user.registered_at.isoformat() if user.registered_at else None,
-        'login_at': user.login_at.isoformat() if user.login_at else None,
-    }
+class RegisterView(CreateAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = RegisterSerializer
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        user = User(
+            username=data['username'],
+            email=data['email'],
+            password=make_password(data['password']),
+            first_name=data.get('first_name', ''),
+            last_name=data.get('last_name', ''),
+            phone=data.get('phone', ''),
+            address=data.get('address', ''),
+            country=data['country'],
+            birth_date=data['birth_date'],
+        )
+        user.save()
+
+        return Response({'user': UserSerializer(user).data}, status=status.HTTP_201_CREATED)
+
+
+class LoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+        password = serializer.validated_data['password']
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not check_password(password, user.password):
+            return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not user.is_active:
+            return Response({'error': 'Cuenta desactivada'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Generar token JWT (tu función)
+        from .views import generate_jwt_token, set_auth_cookie
+        token = generate_jwt_token(user, False)
+
+        response = Response({
+            'user': UserSerializer(user).data,
+            'message': 'Login exitoso',
+            'access_token': token,
+            'token_type': 'Bearer'
+        })
+        set_auth_cookie(response, user, False)
+        return response
+
+
+class CheckAuthView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from .views import get_token_from_request, get_user_from_token
+        token = get_token_from_request(request)
+        if not token:
+            return Response({'authenticated': False})
+
+        user = get_user_from_token(token)
+        if not user or not user.is_active:
+            return Response({'authenticated': False})
+
+        return Response({
+            'authenticated': True,
+            'user': UserSerializer(user).data
+        })
+
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        response = Response({'message': 'Sesión cerrada exitosamente'})
+        response.delete_cookie('auth_token', path='/')
+        return response
+
+
+class ForgotPasswordView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = ForgotPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data['email']
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'message': 'Si el email existe, se ha enviado un enlace de recuperación'})
+
+        token = secrets.token_hex(32)
+        reset_token = PasswordResetToken(
+            user=user,
+            token=token,
+            used=False,
+            expires_at=timezone.now() + timedelta(hours=24)
+        )
+        reset_token.save()
+
+        # Construir enlace
+        scheme = "https" if request.is_secure() else "http"
+        reset_link = f"{scheme}://{settings.SITE_URL}/reset-password?token={token}"
+        logger.info(f"Password reset link for {user.email}: {reset_link}")
+
+        # Enviar email
+        send_password_reset_email(user.email, reset_link)
+
+        response_data = {'message': 'Si el email existe, se ha enviado un enlace de recuperación'}
+        if getattr(settings, 'ENV', 'development') == 'development':
+            response_data['reset_link'] = reset_link
+        return Response(response_data)
+
+
+class ValidateResetTokenView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        token = request.GET.get('token')
+        if not token:
+            return Response({'error': 'Token requerido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            token_record = PasswordResetToken.objects.get(
+                token=token,
+                used=False,
+                expires_at__gt=timezone.now()
+            )
+            return Response({'valid': True, 'message': 'Token válido'})
+        except PasswordResetToken.DoesNotExist:
+            return Response({'valid': False, 'error': 'Token inválido o expirado'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ResetPasswordWithTokenView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = ResetPasswordSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = serializer.validated_data['token']
+        new_password = serializer.validated_data['new_password']
+
+        try:
+            token_record = PasswordResetToken.objects.select_related('user').get(
+                token=token,
+                used=False,
+                expires_at__gt=timezone.now()
+            )
+        except PasswordResetToken.DoesNotExist:
+            return Response({'error': 'Token inválido o expirado'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = token_record.user
+        user.password = make_password(new_password)
+        user.save(update_fields=['password'])
+        token_record.used = True
+        token_record.save(update_fields=['used'])
+
+        return Response({'message': 'Contraseña actualizada exitosamente'})
+
+
+# ===========================================================================
+# Perfil de usuario (autenticado)
+# ===========================================================================
+
+class ProfileView(RetrieveAPIView, UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserProfileSerializer
+
+    def get_object(self):
+        return self.request.user
+
+    def get(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = self.get_serializer(user)
+        return Response({'user': serializer.data})
+
+    def put(self, request, *args, **kwargs):
+        user = self.get_object()
+        serializer = UserUpdateSerializer(user, data=request.data, partial=False)
+        serializer.is_valid(raise_exception=True)
+
+        # Validar username único
+        username = serializer.validated_data.get('username')
+        if username and User.objects.filter(username=username).exclude(id=user.id).exists():
+            return Response({'error': 'El nombre de usuario ya está en uso'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validar birth_date
+        birth_date = serializer.validated_data.get('birth_date')
+        if birth_date:
+            # Ya validado por el serializer
+            pass
+
+        serializer.save()
+        return Response({
+            'message': 'Perfil actualizado correctamente',
+            'user': UserProfileSerializer(user).data
+        })
+
+
+class UpdateEmailPasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        data = request.data
+        current_password = data.get('current_password')
+        new_email = data.get('new_email', '').lower()
+        new_password = data.get('new_password', '')
+
+        if not new_email and not new_password:
+            return Response({'error': 'Debe proporcionar al menos un nuevo email o contraseña'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not check_password(current_password, user.password):
+            return Response({'error': 'Contraseña actual incorrecta'}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            if new_email:
+                if '@' not in new_email or '.' not in new_email:
+                    return Response({'error': 'Email inválido'}, status=status.HTTP_400_BAD_REQUEST)
+                if User.objects.filter(email=new_email).exclude(id=user.id).exists():
+                    return Response({'error': 'El email ya está en uso'}, status=status.HTTP_400_BAD_REQUEST)
+                user.email = new_email
+
+            if new_password:
+                if len(new_password) < 6:
+                    return Response({'error': 'La nueva contraseña debe tener al menos 6 caracteres'}, status=status.HTTP_400_BAD_REQUEST)
+                user.password = make_password(new_password)
+
+            user.save()
+
+        message = "Email y contraseña actualizados correctamente" if new_email and new_password else \
+                  "Email actualizado correctamente" if new_email else \
+                  "Contraseña actualizada correctamente"
+        return Response({'message': message, 'user': UserProfileSerializer(user).data})
+
+
+class UpdateGuestProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if user.role != 'guest':
+            return Response({'error': 'Esta función solo está disponible para usuarios guest'}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = request.data
+        required_fields = ['username', 'email', 'first_name', 'last_name', 'country', 'birth_date', 'new_password']
+        for field in required_fields:
+            if not data.get(field):
+                return Response({'error': f'{field} es requerido'}, status=status.HTTP_400_BAD_REQUEST)
+
+        username = data['username'].strip()
+        email = data['email'].strip().lower()
+        first_name = data['first_name'].strip()
+        last_name = data['last_name'].strip()
+        country = data['country'].strip()
+        birth_date_str = data['birth_date']
+        new_password = data['new_password']
+
+        # Validaciones
+        if len(username) < 3 or len(username) > 30:
+            return Response({'error': 'Username debe tener entre 3 y 30 caracteres'}, status=status.HTTP_400_BAD_REQUEST)
+        if '@' not in email or '.' not in email:
+            return Response({'error': 'Email inválido'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(new_password) < 6:
+            return Response({'error': 'La contraseña debe tener al menos 6 caracteres'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({'error': 'Formato de fecha inválido. Use YYYY-MM-DD'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(username=username).exclude(id=user.id).exists():
+            return Response({'error': 'El nombre de usuario ya está en uso'}, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(email=email).exclude(id=user.id).exists():
+            return Response({'error': 'El email ya está en uso'}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            user.username = username
+            user.email = email
+            user.first_name = first_name
+            user.last_name = last_name
+            user.phone = data.get('phone', '')
+            user.address = data.get('address', '')
+            user.country = country
+            user.birth_date = birth_date
+            user.role = 'user'
+            user.password = make_password(new_password)
+            user.save()
+
+        return Response({
+            'message': 'Perfil actualizado correctamente. Ahora eres un usuario permanente.',
+            'user': UserProfileSerializer(user).data
+        })
+
+
+class DeactivateAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        data = request.data
+        current_password = data.get('current_password')
+        confirm_text = data.get('confirm_text', '')
+
+        expected_text = "CONFIRMAR ELIMINAR CUENTA"
+        if confirm_text != expected_text:
+            return Response({'error': f'Debes escribir "{expected_text}" para confirmar'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not check_password(current_password, user.password):
+            return Response({'error': 'Contraseña actual incorrecta'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verificar que no sea el único admin
+        if user.role == 'admin':
+            admin_count = User.objects.filter(role='admin', is_active=True).count()
+            if admin_count <= 1:
+                return Response({'error': 'No se puede eliminar el único administrador activo'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Obtener usuario contenedor
+        container_user, error = get_container_user()
+        if container_user is None:
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+        if user.id == container_user.pk:
+            return Response({'error': 'No se puede eliminar el usuario contenedor'}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            # Transferir tests y resultados
+            Test.objects.filter(created_by=user.id).update(created_by=container_user.pk)
+            Result.objects.filter(user_id=user.id).update(user_id=container_user.pk)
+            # Eliminar cuotas
+            from apps.admin_panel.models import UserQuota
+            UserQuota.objects.filter(user_id=user.id).delete()
+            # Eliminar invitaciones enviadas
+            from apps.invitations.models import TestInvitation
+            TestInvitation.objects.filter(invited_by_id=user.id).delete()
+            # Anonimizar
+            user.username = f"del_{user.username}_{user.id}"
+            email_local = user.email.split('@')[0] if '@' in user.email else user.username
+            user.email = f"{email_local}_{user.id}@deleted.local"
+            user.role = 'deleted'
+            user.first_name = 'Deleted'
+            user.last_name = 'User'
+            user.phone = ''
+            user.address = ''
+            user.country = ''
+            user.birth_date = None
+            user.is_active = False
+            user.deleted_at = timezone.now()
+            user.save()
+
+        # Cerrar sesión
+        from django.contrib.auth import logout as django_logout
+        django_logout(request)
+        response = Response({'message': 'Tu cuenta ha sido cerrada correctamente.'})
+        response.delete_cookie('auth_token', path='/')
+        return response
+
+
+# ===========================================================================
+# Dashboard y Rankings (autenticado)
+# ===========================================================================
+
+class DashboardView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from apps.accounts.services import DataService
+        data_service = DataService()
+        personal_data = data_service.get_personal_data(request.user.id)
+        level_data = data_service.get_personal_level_data(request.user.id)
+        total_active_users = data_service.get_active_users_count()
+        return Response({
+            'personal_data': personal_data,
+            'level_data': level_data,
+            'total_active_users': total_active_users
+        })
+
+
+class RankingsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from apps.accounts.services import DataService
+        limit = min(max(int(request.GET.get('limit', 10)), 1), 50)
+        data_service = DataService()
+
+        response = {
+            'top_by_tests': data_service.get_top_by_metric('top_by_tests', limit),
+            'top_by_avg_time_taken_per_question': {
+                'all_attempts': data_service.get_top_by_avg_time('all', limit),
+                'first_attempt': data_service.get_top_by_avg_time('first', limit)
+            },
+            'top_by_accuracy': {
+                'all_attempts': data_service.get_top_by_accuracy('all', limit),
+                'first_attempt': data_service.get_top_by_accuracy('first', limit)
+            },
+            'top_by_questions_answered': {
+                'all_attempts': data_service.get_top_by_questions_answered('all', limit),
+                'first_attempt': data_service.get_top_by_questions_answered('first', limit)
+            },
+            'top_by_levels': {},
+            'top_by_levels_accuracy': {},
+            'current_user_positions': data_service.get_user_all_ranking_positions(request.user.id),
+            'min_tests_for_ranking': int(SystemConfigManager.get_value(key='MIN_TESTS_FOR_RANKING'))
+        }
+
+        for level, value in Test.LEVEL_CHOICES:
+            response['top_by_levels'][level] = data_service.get_top_by_metric('top_by_level', limit, level)
+            response['top_by_levels_accuracy'][level] = data_service.get_top_by_metric('top_by_levels_accuracy', limit, level)
+
+        return Response(response)
+
+
+# ===========================================================================
+# Administración de usuarios (admin)
+# ===========================================================================
+
+class AdminUserListView(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserWithStatsSerializer
+    pagination_class = CustomPagination
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = UserFilter
+    ordering_fields = ['id', 'username', 'email', 'role', 'registered_at', 'login_at', 'tests_completed', 'average_score']
+    ordering = ['-registered_at']
+
+    def get_queryset(self):
+
+        queryset = User.objects.annotate(
+            tests_completed=Coalesce(Count('results', filter=Q(results__status='completed')), Value(0)),
+            tests_in_progress=Coalesce(Count('results', filter=Q(results__status='in_progress')), Value(0)),
+            average_score=Coalesce(
+                Avg(Case(
+                    When(results__status='completed', then=Cast(
+                        F('results__correct_answers') * 100.0 / (F('results__correct_answers') + F('results__wrong_answers')),
+                        FloatField()
+                    )),
+                    default=Value(0.0),
+                    output_field=FloatField()
+                )),
+                Value(0.0)
+            ),
+            total_tests_taken=Coalesce(Count('results'), Value(0))
+        )
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        total_filtered = queryset.count()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+        else:
+            serializer = self.get_serializer(queryset, many=True)
+            response = Response(serializer.data)
+
+        # Añadir estadísticas adicionales
+        response.data['stats'] = {
+            'total_unfiltered': User.objects.count(),
+            'total_filtered': total_filtered,
+        }
+        return response
+
+
+class AdminUserDetailView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    lookup_field = 'id'
+    lookup_url_kwarg = 'user_id'
+
+
+class AdminUserProfileView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
+    serializer_class = UserProfileSerializer
+    lookup_field = 'id'
+    lookup_url_kwarg = 'user_id'
+
+
+class AdminDeleteUserView(DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = User.objects.all()
+    lookup_field = 'id'
+    lookup_url_kwarg = 'user_id'
+
+    def destroy(self, request, *args, **kwargs):
+        user = self.get_object()
+        if user.role == 'admin':
+            admin_count = User.objects.filter(role='admin', is_active=True).count()
+            if admin_count <= 1:
+                return Response({'error': 'No se puede eliminar el único administrador activo'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verificar usuario contenedor
+        container_user, error = get_container_user()
+        if container_user is None:
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+        if user.id == container_user.pk:
+            return Response({'error': 'No se puede eliminar el usuario contenedor'}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            # Transferir datos
+            PasswordResetToken.objects.filter(user_id=user.id).delete()
+            from apps.test.models import Test
+            transferred_tests = Test.objects.filter(created_by=user.id).update(created_by=container_user.pk)
+            transferred_results = Result.objects.filter(user_id=user.id).update(user_id=container_user.pk)
+            from apps.invitations.models import TestInvitation
+            TestInvitation.objects.filter(invited_by_id=user.id).delete()
+            TestInvitation.objects.filter(guest_user_id=user.id).update(guest_user=None)
+            user.delete()
+
+        return Response({
+            'message': 'Usuario eliminado permanentemente',
+            'deleted_user_id': user.pk,
+            'deleted_username': user.username,
+            'transferred_to_user_id': container_user.pk,
+            'transferred_to_username': container_user.username,
+            'transferred_tests': transferred_tests,
+            'transferred_results': transferred_results
+        })
+    
+
+
+from django.conf import settings
+import jwt # type: ignore
 
 def get_user_from_token(token):
     """Obtiene el usuario a partir del token JWT"""
@@ -67,8 +586,8 @@ def get_user_from_token(token):
         return User.objects.only('id', 'email', 'username', 'role', 'is_active').filter(id=user_id).first()
         
     except jwt.InvalidTokenError:
-        return None
-
+        return None    
+    
 
 def generate_jwt_token(user, is_guest=False):
     """Genera un token JWT para el usuario"""
@@ -85,15 +604,6 @@ def generate_jwt_token(user, is_guest=False):
     }
     
     return jwt.encode(payload, secret, algorithm='HS256')
-
-
-def get_token_from_request(request):
-    """Extrae el token de Authorization header o cookie"""
-    auth_header = request.headers.get('Authorization', '')
-    if auth_header.startswith('Bearer '):
-        return auth_header[7:]
-
-    return request.COOKIES.get('auth_token')
 
 
 def set_auth_cookie(response, user, is_guest=False):
@@ -126,874 +636,13 @@ def set_auth_cookie(response, user, is_guest=False):
         raise
 
 
-# ============== DECORADORES ==============
+def get_token_from_request(request):
+    """Extrae el token de Authorization header o cookie"""
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        return auth_header[7:]
 
-def login_required(view_func):
-    """Decorador para verificar autenticación"""
-    @wraps(view_func)
-    def wrapper(request, *args, **kwargs):
-        # Primero verificar si request.user ya está seteado por middleware
-        if hasattr(request, 'user') and request.user and request.user.is_authenticated:
-            return view_func(request, *args, **kwargs)
-        
-        # Si no, intentar autenticar desde token
-        token = get_token_from_request(request)
-        if token:
-            user = get_user_from_token(token)
-            if user and user.is_active:
-                request.user = user
-                return view_func(request, *args, **kwargs)
-        
-        return JsonResponse({'error': 'Usuario no autenticado'}, status=401)
-    return wrapper
-
-
-def admin_required(view_func):
-    """Decorador para verificar rol de administrador"""
-    @wraps(view_func)
-    @login_required
-    def wrapper(request, *args, **kwargs):
-        if request.user.role != 'admin':
-            logger.warning(f"Acceso denegado: usuario {request.user.id} con rol {request.user.role} intentó acceder a admin")
-            return JsonResponse({'error': 'Acceso denegado. Se requieren privilegios de administrador'}, status=403)
-        return view_func(request, *args, **kwargs)
-    return wrapper
-
-
-# ============== AUTENTICACIÓN ==============
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def register(request):
-    """Registro de nuevos usuarios"""
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    
-    # Validaciones
-    required_fields = ['username', 'email', 'password', 'country', 'birth_date']
-    missing_fields = [field for field in required_fields if field not in data]
-    if missing_fields:
-        return JsonResponse({'error': f'Campos requeridos faltantes: {", ".join(missing_fields)}'}, status=400)
-    
-    username = data.get('username', '').strip()
-    email = data.get('email', '').strip().lower()
-    password = data.get('password', '')
-    country = data.get('country', '').strip()
-    birth_date_str = data.get('birth_date', '')
-    
-    # Validaciones
-    if len(username) < 3:
-        return JsonResponse({'error': 'El username debe tener al menos 3 caracteres'}, status=400)
-    if len(password) < 6:
-        return JsonResponse({'error': 'La contraseña debe tener al menos 6 caracteres'}, status=400)
-    if not country:
-        return JsonResponse({'error': 'El país es requerido'}, status=400)
-    if '@' not in email or '.' not in email:
-        return JsonResponse({'error': 'Formato de email inválido'}, status=400)
-    
-    # Verificar existencia
-    if User.objects.filter(email=email).exists():
-        return JsonResponse({'error': 'El email ya está registrado'}, status=400)
-    if User.objects.filter(username=username).exists():
-        return JsonResponse({'error': 'El nombre de usuario ya está en uso'}, status=400)
-    
-    # Parsear fecha
-    try:
-        birth_date = datetime.strptime(birth_date_str, '%Y-%m-%d').date()
-    except ValueError:
-        return JsonResponse({'error': 'Formato de fecha inválido. Use YYYY-MM-DD'}, status=400)
-    
-    # Crear usuario
-    try:
-        user = User(
-            username=username,
-            email=email,
-            password=make_password(password),
-            first_name=data.get('first_name', ''),
-            last_name=data.get('last_name', ''),
-            phone=data.get('phone', ''),
-            address=data.get('address', ''),
-            country=country,
-            birth_date=birth_date,
-        )
-        user.save()
-        
-        return JsonResponse({'user': UserResponseSerializer(user).data}, status=201)
-        
-    except Exception as e:
-        logger.error(f"Error creating user: {str(e)}")
-        return JsonResponse({'error': 'Error al crear usuario'}, status=500)
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def login(request):
-    """Login de usuarios"""
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    
-    email = data.get('email', '').lower()
-    password = data.get('password', '')
-    
-    if not email or not password:
-        return JsonResponse({'error': 'Email y contraseña son requeridos'}, status=400)
-    
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        return JsonResponse({'error': 'Credenciales inválidas'}, status=401)
-    
-    if not check_password(password, user.password):
-        return JsonResponse({'error': 'Credenciales inválidas'}, status=401)
-    
-    if not user.is_active:
-        return JsonResponse({'error': 'Cuenta desactivada'}, status=401)
-    
-    # Generar token
-    token = generate_jwt_token(user, False)
-    
-    response = JsonResponse({
-        'user': UserResponseSerializer(user).data,
-        'message': 'Login exitoso',
-        'access_token': token,
-        'token_type': 'Bearer'
-    })
-    
-    # Configurar cookie
-    try:
-        set_auth_cookie(response, user, False)
-    except Exception as e:
-        logger.error(f"Error setting auth cookie: {str(e)}")
-    
-    return response
-
-
-@require_http_methods(["GET"])
-def check_auth(request):
-    """Verificar autenticación del usuario"""
-    token = get_token_from_request(request)
-    
-    if not token:
-        return JsonResponse({'authenticated': False, 'message':'Token not received'})
-    
-    user = get_user_from_token(token)
-    
-    if not user or not user.is_active:
-        return JsonResponse({'authenticated': False, 'message':'User not found or not active'})
-    
-    return JsonResponse({
-        'authenticated': True,
-        'user': UserResponseSerializer(user).data
-    })
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def logout(request):
-    """Cierre de sesión"""
-    response = JsonResponse({'message': 'Sesión cerrada exitosamente'})
-    response.delete_cookie('auth_token', path='/')
-    return response
-
-
-# ============== RECUPERACIÓN DE CONTRASEÑA ==============
-
-def send_password_reset_email(to_email, reset_link):
-    """Envía email de recuperación de contraseña"""
-    subject = 'Recuperación de contraseña'
-    html_message = render_to_string('reset-password.html', {
-        'reset_link': reset_link,
-        'expires_in': '24 horas'
-    })
-    plain_message = f"""
-    Para restablecer tu contraseña, haz clic en el siguiente enlace:
-    {reset_link}
-    
-    Este enlace expirará en 24 horas.
-    
-    Si no solicitaste este cambio, ignora este mensaje.
-    """
-    
-    send_mail(
-        subject,
-        plain_message,
-        settings.DEFAULT_FROM_EMAIL,
-        [to_email],
-        html_message=html_message,
-        fail_silently=False
-    )
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def forgot_password(request):
-    """Solicitar recuperación de contraseña"""
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    
-    email = data.get('email', '').lower()
-    
-    if not email:
-        return JsonResponse({'error': 'Email es requerido'}, status=400)
-    
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        # No revelar si el email existe por seguridad
-        return JsonResponse({
-            'message': 'Si el email existe, se ha enviado un enlace de recuperación'
-        })
-    
-    # Generar token
-    token = secrets.token_hex(32)
-    
-    reset_token = PasswordResetToken(
-        user=user,
-        token=token,
-        used=False,
-        expires_at=timezone.now() + timedelta(hours=24)
-    )
-    reset_token.save()
-    
-    scheme = "https" if request.is_secure() else "http"
-    reset_link = f"{scheme}://{settings.SITE_URL}/reset-password?token={token}"
-
-    logger.info(f"Password reset link for {user.email}: {reset_link}")
-    
-    try:
-        send_password_reset_email(user.email, reset_link)
-    except Exception:
-        logger.exception(f"Error sending password reset email")
-    
-    response_data = {'message': 'Si el email existe, se ha enviado un enlace de recuperación'}
-    
-    # Solo en desarrollo devolver el link
-    if getattr(settings, 'ENV', 'development') == 'development':
-        response_data['reset_link'] = reset_link
-    
-    return JsonResponse(response_data)
-
-
-@require_http_methods(["GET"])
-def validate_reset_token(request):
-    """Validar si un token es válido"""
-    token = request.GET.get('token')
-    
-    if not token:
-        return JsonResponse({'error': 'Token requerido'}, status=400)
-    
-    try:
-        token_record = PasswordResetToken.objects.get(
-            token=token,
-            used=False,
-            expires_at__gt=timezone.now()
-        )
-        return JsonResponse({'valid': True, 'message': 'Token válido'})
-    except PasswordResetToken.DoesNotExist:
-        return JsonResponse({'valid': False, 'error': 'Token inválido o expirado'}, status=400)
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def reset_password_with_token(request):
-    """Restablecer contraseña con token"""
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    
-    token = data.get('token', '')
-    new_password = data.get('new_password', '')
-    confirm_password = data.get('confirm_password', '')
-    
-    if not token or not new_password or not confirm_password:
-        return JsonResponse({'error': 'Token, nueva contraseña y confirmación son requeridos'}, status=400)
-    
-    if new_password != confirm_password:
-        return JsonResponse({'error': 'Las contraseñas no coinciden'}, status=400)
-    
-    if len(new_password) < 6:
-        return JsonResponse({'error': 'La contraseña debe tener al menos 6 caracteres'}, status=400)
-    
-    try:
-        token_record = PasswordResetToken.objects.select_related('user').get(
-            token=token,
-            used=False,
-            expires_at__gt=timezone.now()
-        )
-    except PasswordResetToken.DoesNotExist:
-        return JsonResponse({'error': 'Token inválido o expirado'}, status=400)
-    
-    # Actualizar contraseña
-    user = token_record.user
-    user.password = make_password(new_password)
-    user.save(update_fields=['password'])
-    
-    # Marcar token como usado
-    token_record.used = True
-    token_record.save(update_fields=['used'])
-    
-    return JsonResponse({'message': 'Contraseña actualizada exitosamente'})
-
-
-def reset_password_page(request):
-    """
-    Vista que renderiza la página de restablecimiento de contraseña
-    """
-    token = request.GET.get('token')
-    
-    if not token:
-        # Si no hay token, redirigir o mostrar error
-        return render(request, 'reset_password_error.html', {
-            'error': 'Token no proporcionado'
-        })
-    
-    # Verificar si el token es válido (opcional, puedes hacerlo desde el frontend)
-    # O simplemente pasar el token al template para que el frontend lo use
-    
-    return render(request, 'reset-password.html', {
-        'token': token
-    })
-
-
-# ============== PERFIL DE USUARIO ==============
-
-@require_http_methods(["GET"])
-@login_required
-def get_current_user(request):
-    """Obtener usuario actual autenticado"""
-    return JsonResponse({
-        'user': user_to_response(request.user)
-    })
-
-
-@csrf_exempt
-@require_http_methods(["PUT"])
-@login_required
-def update_profile(request):
-    """Actualizar perfil de usuario"""
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    
-    # Validaciones
-    username = data.get('username', '').strip()
-    if not username or len(username) < 3 or len(username) > 30:
-        return JsonResponse({'error': 'Username debe tener entre 3 y 30 caracteres'}, status=400)
-    
-    if not data.get('first_name'):
-        return JsonResponse({'error': 'Nombre es requerido'}, status=400)
-    
-    if not data.get('last_name'):
-        return JsonResponse({'error': 'Apellido es requerido'}, status=400)
-    
-    if not data.get('country'):
-        return JsonResponse({'error': 'País es requerido'}, status=400)
-    
-    if not data.get('birth_date'):
-        return JsonResponse({'error': 'Fecha de nacimiento es requerida'}, status=400)
-    
-    # Validar unicidad de username
-    if User.objects.filter(username=username).exclude(id=request.user.id).exists():
-        return JsonResponse({'error': 'El nombre de usuario ya está en uso'}, status=400)
-    
-    # Parsear fecha
-    try:
-        birth_date = datetime.strptime(data['birth_date'], '%Y-%m-%d').date()
-    except ValueError:
-        return JsonResponse({'error': 'Formato de fecha inválido. Use YYYY-MM-DD'}, status=400)
-    
-    user = request.user
-    user.username = username
-    user.first_name = data['first_name']
-    user.last_name = data['last_name']
-    user.phone = data.get('phone', '')
-    user.address = data.get('address', '')
-    user.country = data['country']
-    user.birth_date = birth_date
-    
-    try:
-        user.save(update_fields=['username', 'first_name', 'last_name', 'phone', 'address', 'country', 'birth_date'])
-    except Exception as e:
-        logger.error(f"Error updating profile: {str(e)}")
-        return JsonResponse({'error': 'Error al actualizar perfil'}, status=500)
-    
-    return JsonResponse({
-        'message': 'Perfil actualizado correctamente',
-        'user': user_to_response(user)
-    })
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-@login_required
-def update_email_password(request):
-    """Actualizar email y/o contraseña"""
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    
-    current_password = data.get('current_password', '')
-    new_email = data.get('new_email', '').lower()
-    new_password = data.get('new_password', '')
-    
-    if not new_email and not new_password:
-        return JsonResponse({'error': 'Debe proporcionar al menos un nuevo email o contraseña'}, status=400)
-    
-    user = request.user
-    
-    # Verificar contraseña actual
-    if not check_password(current_password, user.password):
-        return JsonResponse({'error': 'Contraseña actual incorrecta'}, status=400)
-    
-    with transaction.atomic():
-        # Actualizar email
-        if new_email:
-            if '@' not in new_email or '.' not in new_email:
-                return JsonResponse({'error': 'Email inválido'}, status=400)
-            
-            if User.objects.filter(email=new_email).exclude(id=user.id).exists():
-                return JsonResponse({'error': 'El email ya está en uso'}, status=400)
-            
-            user.email = new_email
-        
-        # Actualizar contraseña
-        if new_password:
-            if len(new_password) < 6:
-                return JsonResponse({'error': 'La nueva contraseña debe tener al menos 6 caracteres'}, status=400)
-            user.password = make_password(new_password)
-        
-        user.save()
-    
-    # Mensaje apropiado
-    if new_email and new_password:
-        message = "Email y contraseña actualizados correctamente"
-    elif new_email:
-        message = "Email actualizado correctamente"
-    else:
-        message = "Contraseña actualizada correctamente"
-    
-    return JsonResponse({
-        'message': message,
-        'user': user_to_response(user)
-    })
-
-
-@csrf_exempt
-@require_http_methods(["POST"])
-@login_required
-def update_guest_profile(request):
-    """Convertir guest a usuario regular"""
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    
-    user = request.user
-    
-    # Verificar rol
-    if user.role != 'guest':
-        return JsonResponse({'error': 'Esta función solo está disponible para usuarios guest'}, status=400)
-    
-    # Validaciones
-    username = data.get('username', '').strip()
-    if not username or len(username) < 3 or len(username) > 30:
-        return JsonResponse({'error': 'Username debe tener entre 3 y 30 caracteres'}, status=400)
-    
-    email = data.get('email', '').strip().lower()
-    if not email or '@' not in email or '.' not in email:
-        return JsonResponse({'error': 'Email inválido'}, status=400)
-    
-    if not data.get('first_name'):
-        return JsonResponse({'error': 'Nombre es requerido'}, status=400)
-    
-    if not data.get('last_name'):
-        return JsonResponse({'error': 'Apellido es requerido'}, status=400)
-    
-    if not data.get('country'):
-        return JsonResponse({'error': 'País es requerido'}, status=400)
-    
-    new_password = data.get('new_password', '')
-    if not new_password or len(new_password) < 6:
-        return JsonResponse({'error': 'La contraseña debe tener al menos 6 caracteres'}, status=400)
-    
-    # Parsear fecha
-    try:
-        birth_date = datetime.strptime(data['birth_date'], '%Y-%m-%d').date()
-    except ValueError:
-        return JsonResponse({'error': 'Formato de fecha inválido. Use YYYY-MM-DD'}, status=400)
-    
-    # Validar unicidad
-    if User.objects.filter(username=username).exclude(id=user.id).exists():
-        return JsonResponse({'error': 'El nombre de usuario ya está en uso'}, status=400)
-    
-    if User.objects.filter(email=email).exclude(id=user.id).exists():
-        return JsonResponse({'error': 'El email ya está en uso'}, status=400)
-    
-    with transaction.atomic():
-        user.username = username
-        user.email = email
-        user.first_name = data['first_name']
-        user.last_name = data['last_name']
-        user.phone = data.get('phone', '')
-        user.address = data.get('address', '')
-        user.country = data['country']
-        user.birth_date = birth_date
-        user.role = 'user'
-        user.password = make_password(new_password)
-        user.save()
-    
-    return JsonResponse({
-        'message': 'Perfil actualizado correctamente. Ahora eres un usuario permanente.',
-        'user': user_to_response(user)
-    })
-
-
-@csrf_exempt
-@require_http_methods(["DELETE"])
-@login_required
-def deactivate_account(request):
-    """Desactivar cuenta propia"""
-    user = request.user
- 
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    
-    # Verificar que no sea el único admin
-    if user.role == 'admin':
-        admin_count = User.objects.filter(role='admin', is_active=True).count()
-        if admin_count <= 1:
-            return JsonResponse({'error': 'No se puede eliminar el único administrador activo'}, status=400)
-        
-    current_password = data.get('current_password', '')
-    confirm_text = data.get('confirm_text', '')
-    
-    expected_text = "CONFIRMAR ELIMINAR CUENTA"
-    if confirm_text != expected_text:
-        return JsonResponse({'error': f'Debes escribir "{expected_text}" para confirmar'}, status=400)
-    
-    if not check_password(current_password, user.password):
-        return JsonResponse({'error': 'Contraseña actual incorrecta'}, status=400)
-    
-
-    # Obtener usuario contenedor
-    container_user, error = get_container_user()
-    if container_user == None:
-        return JsonResponse(error, status=400)
-    
-   # Verificar que no estamos eliminando al usuario contenedor
-    if user.id == container_user.pk:
-        return JsonResponse({
-            'error': 'No se puede eliminar el usuario contenedor',
-            'message': f'El usuario ID {user.id} está configurado como "container_user" y no puede ser eliminado.'
-        }, status=400)
-    
-    with transaction.atomic():
-        # Transferir datos
-        from apps.test.models import Test
-        tests_transferred = Test.objects.filter(created_by=user.id).update(created_by=container_user.pk)
-        
-        Result.objects.filter(user_id=user.id).update(user_id=container_user.pk)
-        
-        from apps.admin_panel.models import UserQuota
-        UserQuota.objects.filter(user_id=user.id).delete()
-        
-        TestInvitation.objects.filter(invited_by_id=user.id).delete()
-        
-        # Anonimizar
-        user.username = f"del_{user.username}_{user.id}"
-        email_local = user.email.split('@')[0] if '@' in user.email else user.username
-        user.email = f"{email_local}_{user.id}@deleted.local"
-        user.role = 'deleted'
-        user.first_name = 'Deleted'
-        user.last_name = 'User'
-        user.phone = ''
-        user.address = ''
-        user.country = ''
-        user.birth_date = None
-        user.is_active = False
-        user.deleted_at = timezone.now()
-        user.save()
-    
-    # Cerrar sesión
-    django_logout(request)
-    
-    return JsonResponse({
-        'message': 'Tu cuenta ha sido cerrada correctamente.',
-    })
-
-
-# ============== DASHBOARD Y RANKINGS ==============
-
-@require_http_methods(["GET"])
-@login_required
-def get_dashboard_data(request):
-    """Obtiene datos del dashboard del usuario"""
-    data_service = DataService()
-    
-    personal_data = data_service.get_personal_data(request.user.id)
-    level_data = data_service.get_personal_level_data(request.user.id)
-    total_active_users = data_service.get_active_users_count()
-    
-    return JsonResponse({
-        'personal_data': personal_data,
-        'level_data': level_data,
-        'total_active_users': total_active_users
-    })
-
-
-@require_http_methods(["GET"])
-@login_required
-def get_rankings(request):
-    """Obtiene rankings y posición del usuario"""
-
-    limit = min(max(int(request.GET.get('limit', 10)), 1), 50)  # Limitar entre 1 y 50
-    
-    data_service = DataService()
-    
-    response = {
-        'top_by_tests': data_service.get_top_by_metric('top_by_tests', limit),
-        'top_by_avg_time_taken_per_question': {
-            'all_attempts': data_service.get_top_by_avg_time('all', limit),
-            'first_attempt': data_service.get_top_by_avg_time('first', limit)
-        },
-        'top_by_accuracy': {
-            'all_attempts': data_service.get_top_by_accuracy('all', limit),
-            'first_attempt': data_service.get_top_by_accuracy('first', limit)
-        },
-        'top_by_questions_answered': {
-            'all_attempts': data_service.get_top_by_questions_answered('all', limit),
-            'first_attempt': data_service.get_top_by_questions_answered('first', limit)
-        },
-        'top_by_levels': {},
-        'top_by_levels_accuracy': {},
-        'current_user_positions': data_service.get_user_all_ranking_positions(request.user.id),
-        'min_tests_for_ranking': int(SystemConfigManager.get_value(key='MIN_TESTS_FOR_RANKING'))
-    }
-    
-    # Rankings por nivel
-    for level, value in Test.LEVEL_CHOICES:
-        response['top_by_levels'][level] = data_service.get_top_by_metric('top_by_level', limit, level)
-        response['top_by_levels_accuracy'][level] = data_service.get_top_by_metric('top_by_levels_accuracy', limit, level)
-    
-    return JsonResponse(response)
-
-
-# ============== ADMINISTRACIÓN DE USUARIOS ==============
-
-@require_http_methods(["GET"])
-@admin_required
-def get_user_by_id(request, user_id):
-    """Obtener usuario por ID"""
-    try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
-    
-    return JsonResponse({'user': user_to_response(user)})
-
-
-@require_http_methods(["GET"])
-@admin_required
-def get_user_profile(request, user_id):
-    """Obtener perfil de usuario"""
-    try:
-        user = User.objects.values(
-            'id', 'username', 'email', 'first_name', 'last_name',
-            'phone', 'address', 'country', 'birth_date', 'role',
-            'registered_at', 'login_at'
-        ).get(id=user_id)
-    except User.DoesNotExist:
-        return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
-    
-    # Formatear fechas
-    for field in ['birth_date', 'registered_at', 'login_at']:
-        if user[field]:
-            user[field] = user[field].isoformat()
-    
-    return JsonResponse({'user': user})
-
-
-@require_http_methods(["GET"])
-@admin_required
-def get_users_with_stats(request):
-    """Obtener usuarios con estadísticas (paginado)"""
-    
-    # ===== PARÁMETROS DE CONSULTA =====
-    page = max(int(request.GET.get('page', 1)), 1)
-    page_size = min(max(int(request.GET.get('page_size', 10)), 1), 100)
-    sort_by = request.GET.get('sort_by', 'registered_at')
-    sort_order = request.GET.get('sort_order', 'desc')
-    role = request.GET.get('role', '')
-    search = request.GET.get('search', '')
-    
-    # ===== VALIDACIÓN =====
-    valid_sort_fields = ['id', 'username', 'email', 'role', 'registered_at', 
-                         'login_at', 'tests_completed', 'average_score']
-    if sort_by not in valid_sort_fields:
-        sort_by = 'registered_at'
-    
-    # ===== CONSULTA BASE =====
-    users_with_stats = User.objects.annotate(
-        tests_completed=Coalesce(Count('results', filter=Q(results__status='completed')), Value(0)),
-        tests_in_progress=Coalesce(Count('results', filter=Q(results__status='in_progress')), Value(0)),
-        average_score=Coalesce(
-            Avg(Case(When(results__status='completed', then=Cast(
-                F('results__correct_answers') * 100.0 / 
-                (F('results__correct_answers') + F('results__wrong_answers')),
-                FloatField()
-            )))),
-            Value(0.0)
-        ),
-        total_tests_taken=Coalesce(Count('results'), Value(0))
-    )
-    
-    # ===== APLICAR FILTROS =====
-    if role:
-        users_with_stats = users_with_stats.filter(role=role)
-    
-    if search:
-        users_with_stats = users_with_stats.filter(
-            Q(username__icontains=search) |
-            Q(email__icontains=search) |
-            Q(first_name__icontains=search) |
-            Q(last_name__icontains=search)
-        )
-    
-    # ===== CONTAR TOTAL FILTRADO =====
-    total_filtered = users_with_stats.count()
-    
-    # ===== ORDENAR Y PAGINAR =====
-    order_prefix = '-' if sort_order == 'desc' else ''
-    users_with_stats = users_with_stats.order_by(f'{order_prefix}{sort_by}')
-    
-    start = (page - 1) * page_size
-    users_paginated = users_with_stats[start:start + page_size]
-    
-    # ===== PROCESAR DATOS =====
-    from apps.test.models import Test
-    total_tests_count = Test.objects.count()
-    
-    users_data = []
-    for user in users_paginated:
-        users_data.append({
-            'id': user.pk,
-            'username': user.username,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'phone': user.phone,
-            'address': user.address,
-            'country': user.country,
-            'birth_date': user.birth_date.isoformat() if user.birth_date else None,
-            'role': user.role,
-            'registered_at': user.registered_at.isoformat() if user.registered_at else None,
-            'login_at': user.login_at.isoformat() if user.login_at else None,
-            'tests_completed': getattr(user, 'tests_completed', 0),
-            'tests_in_progress': getattr(user, 'tests_in_progress', 0),
-            'tests_not_started': total_tests_count - getattr(user, 'total_tests_taken', 0),
-            'average_score': getattr(user, 'average_score', 0.0),
-            'total_tests_taken': getattr(user, 'total_tests_taken', 0),
-        })
-    
-    # ===== CONSTRUIR RESPUESTA =====
-    return JsonResponse({
-        'data': users_data,
-        'pagination': {
-            'page': page,
-            'page_size': page_size,
-            'total_filtered': total_filtered,
-            'total_pages': (total_filtered + page_size - 1) // page_size if page_size > 0 else 1,
-        },
-        'stats': {
-            'total_unfiltered': User.objects.count(),
-            'total_filtered': total_filtered,
-        },
-        'sort_fields': valid_sort_fields,
-    })
-
-
-@csrf_exempt
-@require_http_methods(["DELETE"])
-@admin_required
-def delete_user(request, user_id):
-    """Eliminar usuario permanentemente (admin)"""
-    user_id = int(user_id)
-       
-    try:
-        user = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
-    
-    # Verificar que no sea el único admin
-    if user.role == 'admin':
-        admin_count = User.objects.filter(role='admin', is_active=True).count()
-        if admin_count <= 1:
-            return JsonResponse({'error': 'No se puede eliminar el único administrador activo'}, status=400)
-    
-
-    # Obtener usuario contenedor
-    container_user, error = get_container_user()
-    if container_user == None:
-        return JsonResponse(error, status=400)
-    
-   # Verificar que no estamos eliminando al usuario contenedor
-    if user_id == container_user.pk:
-        return JsonResponse({
-            'error': 'No se puede eliminar el usuario contenedor',
-            'message': f'El usuario ID {user_id} está configurado como "container_user" y no puede ser eliminado.'
-        }, status=400)
-    
-    # Ejecutar eliminación en transacción
-    with transaction.atomic():
-        try:
-            # Limpiar tokens de restablecimiento de contraseña
-            PasswordResetToken.objects.filter(user_id=user_id).delete()
-            
-            # Transferir tests al usuario contenedor
-            from apps.test.models import Test
-            transferred_tests = Test.objects.filter(created_by=user_id).update(created_by=container_user.pk)
-            
-            # Transferir resultados al usuario contenedor
-            transferred_results = Result.objects.filter(user_id=user_id).update(user_id=container_user.pk)
-            
-            # Eliminar invitaciones enviadas por el usuario
-            deleted_invitations_sent = TestInvitation.objects.filter(invited_by_id=user_id).delete()
-            
-            # Limpiar referencia en invitaciones recibidas
-            updated_invitations = TestInvitation.objects.filter(guest_user_id=user_id).update(guest_user=None)
-            
-            # Eliminar usuario
-            user.delete()
-            
-            # Registrar la operación (opcional)
-            logger.info(f"Usuario {user.username} (ID: {user_id}) eliminado por {request.user.username}. "
-                       f"Tests transferidos: {transferred_tests}, Resultados transferidos: {transferred_results}")
-            
-        except Exception as e:
-            # Si algo falla, la transacción se revierte automáticamente
-            logger.error(f"Error al eliminar usuario {user_id}: {str(e)}")
-            raise
-    
-    return JsonResponse({
-        'message': 'Usuario eliminado permanentemente',
-        'deleted_user_id': user_id,
-        'deleted_username': user.username,
-        'transferred_to_user_id': container_user.pk,
-        'transferred_to_username': container_user.username,
-        'transferred_tests': transferred_tests,
-        'transferred_results': transferred_results
-    })
+    return request.COOKIES.get('auth_token')
 
 
 def get_container_user():
@@ -1017,3 +666,35 @@ def get_container_user():
             'error': 'La configuración "CONTAINER_USER_ID" no está definida',
             'message': 'Por favor, asegúrate de que la configuración de "CONTAINER_USER_ID" esté presente en el sistema.'
         }
+    
+
+
+# ============== RECUPERACIÓN DE CONTRASEÑA ==============
+
+def send_password_reset_email(to_email, reset_link):
+    """Envía email de recuperación de contraseña"""
+    from django.template.loader import render_to_string
+    from django.core.mail import send_mail
+
+    subject = 'Recuperación de contraseña'
+    html_message = render_to_string('reset-password.html', {
+        'reset_link': reset_link,
+        'expires_in': '24 horas'
+    })
+    plain_message = f"""
+    Para restablecer tu contraseña, haz clic en el siguiente enlace:
+    {reset_link}
+    
+    Este enlace expirará en 24 horas.
+    
+    Si no solicitaste este cambio, ignora este mensaje.
+    """
+    
+    send_mail(
+        subject,
+        plain_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [to_email],
+        html_message=html_message,
+        fail_silently=False
+    )    

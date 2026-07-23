@@ -470,7 +470,7 @@
           <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
             <button 
               type="submit" 
-              [disabled]="guestCompleteForm.invalid || loadingGuestUpdate()"
+              [disabled]="guestCompleteForm.invalid || loadingGuestUpdate || guestCompleteForm.pristine"
               class="w-full py-4 bg-emerald-600 dark:bg-emerald-700 text-white font-semibold rounded-lg hover:bg-emerald-700 dark:hover:bg-emerald-600 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm xs:text-lg"
             >
               @if (loadingGuestUpdate()) {
@@ -680,7 +680,7 @@
           <div class="sm:flex sm:justify-between sm:items-center pt-6 border-t border-gray-200 dark:border-gray-700">
             <button 
               type="submit" 
-              [disabled]="profileForm.invalid || loading()"
+              [disabled]="profileForm.invalid || loading() || profileForm.pristine"
               class="w-full sm:w-auto mb-4 sm:mb-0 py-3 px-8 bg-blue-600 dark:bg-blue-700 text-white font-semibold rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               @if (loading()) {
@@ -943,7 +943,7 @@
             <div class="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
               <button 
                 type="submit" 
-                [disabled]="emailPasswordForm.invalid || loadingEmailPassword()"
+                [disabled]="emailPasswordForm.invalid || loadingEmailPassword() || emailPasswordForm.pristine"
                 class="flex-1 py-3 px-4 bg-purple-600 dark:bg-purple-700 text-white font-semibold rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 focus:outline-hidden focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 @if (loadingEmailPassword()) {

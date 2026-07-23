@@ -1,15 +1,16 @@
 from django.urls import path
-from . import views
-
+from .views import (
+    RegisterView, LoginView, CheckAuthView, LogoutView,
+    ForgotPasswordView, ValidateResetTokenView, ResetPasswordWithTokenView
+)
 
 urlpatterns = [
-
-    path('register', views.register, name='register'),
-    path('login', views.login, name='login'),
-    path('check-auth', views.check_auth, name='check_auth'),
-    path('logout', views.logout, name='logout'),
-    path('forgot-password', views.forgot_password, name='forgot_password'),
-    path('reset-password-with-token', views.reset_password_with_token, name='reset_password'),
-    path('validate-reset-token', views.validate_reset_token, name='validate_token'),
-    path('reset-password', views.reset_password_page, name='reset_password_page'),
+    path('register', RegisterView.as_view(), name='register'),
+    path('login', LoginView.as_view(), name='login'),
+    path('check-auth', CheckAuthView.as_view(), name='check_auth'),
+    path('logout', LogoutView.as_view(), name='logout'),
+    path('forgot-password', ForgotPasswordView.as_view(), name='forgot_password'),
+    path('reset-password-with-token', ResetPasswordWithTokenView.as_view(), name='reset_password'),
+    path('validate-reset-token', ValidateResetTokenView.as_view(), name='validate_token'),
+    # La página de reset password (template) se mantiene
 ]

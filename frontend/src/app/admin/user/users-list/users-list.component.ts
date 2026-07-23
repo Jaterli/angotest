@@ -239,7 +239,7 @@ export class UsersListComponent implements OnInit {
     
     this.usersManagementService.getUserProfile(userId).subscribe({
       next: (response) => {
-        this.userProfile.set(response.user);
+        this.userProfile.set(response);
         this.showProfileModal.set(true);
         this.loadingProfile.set(false);
       },

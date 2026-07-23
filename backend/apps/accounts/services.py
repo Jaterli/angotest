@@ -1,8 +1,6 @@
 # users/services.py
-from collections import defaultdict
-
-from django.db.models import Count, Sum, Min, Avg, Q, F, Value, OuterRef, Subquery
-from django.db.models.functions import Coalesce, Round
+from django.db.models import Count, Sum, Q, F, Value, OuterRef, Subquery
+from django.db.models.functions import Coalesce
 from django.contrib.auth import get_user_model
 from apps.results.models import Result
 from apps.test.models import Test
