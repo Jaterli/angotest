@@ -82,13 +82,20 @@ class ResultsListFilter(django_filters.FilterSet):
 
 
 class UserResultsFilter(django_filters.FilterSet):
-    status = django_filters.CharFilter(field_name='status')
     level = django_filters.CharFilter(field_name='test__level')
     main_topic = django_filters.CharFilter(field_name='test__main_topic')
     sub_topic = django_filters.CharFilter(field_name='test__sub_topic')
-    search = django_filters.CharFilter(method='filter_search')
     from_date = django_filters.DateFilter(field_name='started_at', lookup_expr='gte')
     to_date = django_filters.DateFilter(field_name='started_at', lookup_expr='lte')
+
+    status = django_filters.CharFilter(field_name='status')
+    min_score = django_filters.NumberFilter(method='filter_min_score')
+    max_score = django_filters.NumberFilter(method='filter_max_score')
+
+    started_at = django_filters.DateFilter(field_name='started_at', lookup_expr='gte')
+    updated_at = django_filters.DateFilter(field_name='started_at', lookup_expr='lte')
+
+    search = django_filters.CharFilter(method='filter_search')
 
     class Meta:
         model = Result
@@ -99,3 +106,38 @@ class UserResultsFilter(django_filters.FilterSet):
             Q(test__title__icontains=value) |
             Q(test__description__icontains=value)
         )
+
+    def filter_min_score(self, queryset, name, value):
+        # Anotamos score y filtramos
+        from django.db.models import Case, When, Value, FloatField, F
+        from django.db.models.functions import Coalesce, Round
+        return queryset.annotate(
+            score=Case(
+                When(
+                    status='completed',
+                    then=Coalesce(
+                        Round(F('correct_answers') * 100.0 / (F('correct_answers') + F('wrong_answers')), 2),
+                        Value(0.0)
+                    )
+                ),
+                default=Value(0.0),
+                output_field=FloatField()
+            )
+        ).filter(score__gte=value)
+
+    def filter_max_score(self, queryset, name, value):
+        from django.db.models import Case, When, Value, FloatField, F
+        from django.db.models.functions import Coalesce, Round
+        return queryset.annotate(
+            score=Case(
+                When(
+                    status='completed',
+                    then=Coalesce(
+                        Round(F('correct_answers') * 100.0 / (F('correct_answers') + F('wrong_answers')), 2),
+                        Value(0.0)
+                    )
+                ),
+                default=Value(0.0),
+                output_field=FloatField()
+            )
+        ).filter(score__lte=value)

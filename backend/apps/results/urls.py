@@ -3,8 +3,8 @@ from django.urls import path
 from .views import (
     IncorrectAnswersView,
     ResultsListView,
-    UserResultsView,
-    UserResultDetailView,
+    ResultsUserView,
+    ResultUserDetailView,
     ResultDetailView,
     DeleteResultView,
     DeleteResultsBulkView,
@@ -21,8 +21,8 @@ urlpatterns = [
 
     # Administración
     path('', ResultsListView.as_view(), name='get_results_list'),
-    path('user/<int:user_id>/', UserResultsView.as_view(), name='admin_user_results'),
-    path('<int:result_id>/user/<int:user_id>/', UserResultDetailView.as_view(), name='admin_user_result_details'),
+    path('user/<int:user_id>/', ResultsUserView.as_view(), name='admin_user_results'),
+    path('<int:result_id>/user/<int:user_id>/', ResultUserDetailView.as_view(), name='admin_user_result_details'),
     path('<int:result_id>/delete/', DeleteResultView.as_view(), name='delete_result'),
     path('bulk-delete/', DeleteResultsBulkView.as_view(), name='delete_results_bulk'),
     path('stats/', ResultStatsView.as_view(), name='get_result_stats'),

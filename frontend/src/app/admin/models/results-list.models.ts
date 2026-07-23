@@ -15,71 +15,34 @@ export interface AdminResult {
   updated_at: string;
   
   // Datos del usuario
-  user_username: string;
-  user_email: string;
-  user_first_name?: string;
-  user_last_name?: string;
-  user_role: string;
+  user__username: string;
+  user__email: string;
+  user__first_name?: string;
+  user__last_name?: string;
+  user__role: string;
   
   // Datos del test
-  test_title: string;
-  test_description?: string;
-  test_main_topic: string;
-  test_sub_topic: string;
-  test_specific_topic: string;
-  test_level: string;
-  test_created_by: number;
-  test_created_at: string;
-  test_is_active: boolean;
+  test__title: string;
+  test__description?: string;
+  test__main_topic: string;
+  test__sub_topic: string;
+  test__specific_topic: string;
+  test__level: string;
+  test__created_by: number;
+  test__created_at: string;
+  test__is_active: boolean;
 }
-
-// export interface AdminResultsFilter {
-
-//   // Filtros por usuario
-//   user_id?: number;
-//   user_role?: string;
-//   user_email?: string;
-//   user_username?: string;
-
-//   // Filtros por test
-//   test_id?: number;
-//   test_title?: string;
-//   test_main_topic?: string;
-//   test_sub_topic?: string;
-//   test_level?: string;
-//   test_created_by?: number;
-//   test_is_active?: boolean;
-
-//   // Filtros por resultado
-//   status?: string;
-//   min_score?: number;
-//   max_score?: number;
-    
-//   // Fechas
-//   start_date?: string;
-//   end_date?: string;
-
-//   page?: number;
-//   page_size?: number;
-//   main_topic?: string;
-//   level?: string;
-//   ordering?: string;
-//   sort_order?: 'asc' | 'desc';
-//   search?: string;
-//   from_date?: string;
-//   to_date?: string;
-// }
 
 export interface AdminResultsFilter {
   // Filtros por usuario
-  user_role?: string;
+  user__role?: string;
 
   // Filtros por test
-  test_main_topic?: string;
-  test_sub_topic?: string;
-  test_level?: string;
-  test_created_by?: number;
-  test_is_active?: boolean;
+  test__main_topic?: string;
+  test__sub_topic?: string;
+  test__level?: string;
+  test__created_by?: number;
+  test__is_active?: boolean;
 
   // Filtros por resultado
   status?: string;

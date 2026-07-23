@@ -48,17 +48,17 @@ class ResultDetailSerializer(serializers.ModelSerializer):
 
 
 class ResultListSerializer(serializers.ModelSerializer):
-    user_username = serializers.CharField(source='user.username')
-    user_email = serializers.CharField(source='user.email')
-    user_first_name = serializers.CharField(source='user.first_name')
-    user_last_name = serializers.CharField(source='user.last_name')
-    user_role = serializers.CharField(source='user.role')
-    test_title = serializers.CharField(source='test.title')
-    test_description = serializers.CharField(source='test.description')
-    test_main_topic = serializers.CharField(source='test.main_topic')
-    test_sub_topic = serializers.CharField(source='test.sub_topic')
-    test_specific_topic = serializers.CharField(source='test.specific_topic')
-    test_level = serializers.CharField(source='test.level')
+    user__username = serializers.CharField(source='user.username')
+    user__email = serializers.CharField(source='user.email')
+    user__first_name = serializers.CharField(source='user.first_name')
+    user__last_name = serializers.CharField(source='user.last_name')
+    user__role = serializers.CharField(source='user.role')
+    test__title = serializers.CharField(source='test.title')
+    test__description = serializers.CharField(source='test.description')
+    test__main_topic = serializers.CharField(source='test.main_topic')
+    test__sub_topic = serializers.CharField(source='test.sub_topic')
+    test__specific_topic = serializers.CharField(source='test.specific_topic')
+    test__level = serializers.CharField(source='test.level')
     total_questions = serializers.SerializerMethodField()
     score = serializers.SerializerMethodField()
 
@@ -67,9 +67,9 @@ class ResultListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user_id', 'test_id', 'correct_answers', 'wrong_answers',
             'time_taken', 'status', 'answers', 'started_at', 'updated_at',
-            'user_username', 'user_email', 'user_first_name', 'user_last_name', 'user_role',
-            'test_title', 'test_description', 'test_main_topic', 'test_sub_topic',
-            'test_specific_topic', 'test_level',
+            'user__username', 'user__email', 'user__first_name', 'user__last_name', 'user__role',
+            'test__title', 'test__description', 'test__main_topic', 'test__sub_topic',
+            'test__specific_topic', 'test__level',
             'total_questions', 'score'
         ]
 
@@ -85,13 +85,13 @@ class ResultListSerializer(serializers.ModelSerializer):
 
 
 class UserResultListSerializer(serializers.ModelSerializer):
-    test_title = serializers.CharField(source='test.title')
-    test_description = serializers.CharField(source='test.description')
-    test_main_topic = serializers.CharField(source='test.main_topic')
-    test_sub_topic = serializers.CharField(source='test.sub_topic')
-    test_specific_topic = serializers.CharField(source='test.specific_topic')
-    test_level = serializers.CharField(source='test.level')
-    test_created_at = serializers.DateTimeField(source='test.created_at')
+    test__title = serializers.CharField(source='test.title')
+    test__description = serializers.CharField(source='test.description')
+    test__main_topic = serializers.CharField(source='test.main_topic')
+    test__sub_topic = serializers.CharField(source='test.sub_topic')
+    test__specific_topic = serializers.CharField(source='test.specific_topic')
+    test__level = serializers.CharField(source='test.level')
+    test__created_at = serializers.DateTimeField(source='test.created_at')
     total_questions = serializers.IntegerField(source='test.questions.count', read_only=True)
     score = serializers.SerializerMethodField()
     answered_count = serializers.SerializerMethodField()
@@ -101,8 +101,8 @@ class UserResultListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'test_id', 'correct_answers', 'wrong_answers',
             'time_taken', 'status', 'started_at', 'updated_at',
-            'test_title', 'test_description', 'test_main_topic', 'test_sub_topic',
-            'test_specific_topic', 'test_level', 'test_created_at',
+            'test__title', 'test__description', 'test__main_topic', 'test__sub_topic',
+            'test__specific_topic', 'test__level', 'test__created_at', 'total_questions',
             'score', 'answered_count'
         ]
 

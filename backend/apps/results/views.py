@@ -27,8 +27,7 @@ from .serializers import (
     UserResultListSerializer,
 )
 from .filters import ResultsListFilter, UserResultsFilter
-from apps.test.pagination import TestPagination  # reutilizar paginador personalizado
-from apps.shared.views import admin_required
+from apps.shared.pagination import CustomPagination  # reutilizar paginador personalizado
 from django.core.paginator import Paginator
 import logging
 
@@ -166,10 +165,10 @@ class ResultDetailView(RetrieveAPIView):
 class ResultsListView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ResultListSerializer
-    pagination_class = TestPagination
+    pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = ResultsListFilter
-    ordering_fields = ['id', 'started_at', 'updated_at', 'time_taken', 'correct_answers', 'score', 'test_main_topic', 'test_level']
+    ordering_fields = ['id', 'started_at', 'updated_at', 'time_taken', 'correct_answers', 'score', 'user__username', 'test__title', 'test__main_topic', 'test__level']
     ordering = ['-updated_at']
 
     def get_queryset(self):
@@ -209,10 +208,10 @@ class ResultsListView(ListAPIView):
         return response
 
 
-class UserResultsView(ListAPIView):
+class ResultsUserView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserResultListSerializer
-    pagination_class = TestPagination
+    pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = UserResultsFilter
     ordering_fields = ['test__title', 'test__level', 'test__created_at', 'started_at', 'updated_at', 'time_taken']
@@ -241,12 +240,6 @@ class UserResultsView(ListAPIView):
         response = super().list(request, *args, **kwargs)
         user_id = self.kwargs.get('user_id')
 
-        # Obtener usuario
-        try:
-            user = User.objects.only('id', 'username', 'email', 'first_name', 'last_name', 'role', 'registered_at').get(id=user_id)
-        except User.DoesNotExist:
-            return Response({'error': 'usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
-
         # Añadir info de usuario y estadísticas
         queryset = self.filter_queryset(self.get_queryset())
         stats = queryset.aggregate(
@@ -259,15 +252,6 @@ class UserResultsView(ListAPIView):
             total_questions=Coalesce(Sum(F('correct_answers') + F('wrong_answers')), Value(0))
         )
 
-        response.data['user'] = {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'role': user.role,
-            'registered_at': user.registered_at.isoformat() if user.registered_at else None,
-        }
         response.data['stats'] = {
             'total_unfiltered': Result.objects.filter(user_id=user_id).count(),
             'total_filtered': queryset.count(),
@@ -287,12 +271,12 @@ class UserResultsView(ListAPIView):
                 .order_by('test__main_topic')
             ),
             'levels': Test.LEVEL_CHOICES,
-            'statuses': ['all', 'completed', 'in_progress'],
+            'statuses': Result.STATUS_CHOICES,
         }
         return response
 
 
-class UserResultDetailView(RetrieveAPIView):
+class ResultUserDetailView(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     lookup_field = 'id'
     lookup_url_kwarg = 'result_id'
@@ -349,17 +333,17 @@ class UserResultDetailView(RetrieveAPIView):
             'user_id': result.user_id,
             'test_id': result.test_id,
             'correct_answers': result.correct_answers,
-            'wrong_answers:': result.wrong_answers,
+            'wrong_answers': result.wrong_answers,
             'time_taken': result.time_taken,
-            'status:': result.status,
+            'status': result.status,
             'answered_questions': result.answers,
             'started_at': result.started_at,
-            'updated_at:': result.updated_at,
+            'updated_at': result.updated_at,
         }
         data['user'] = {
             'id': result.user_id,
             'username': result.user.username,
-            'user_role': result.user.role,
+            'role': result.user.role,
             'email': result.user.email,
             'first_name': result.user.first_name,
             'last_name': result.user.last_name,  

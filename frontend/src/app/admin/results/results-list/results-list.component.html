@@ -179,8 +179,8 @@
             Nivel
           </label>
           <select 
-            [(ngModel)]="selectedFilters().test_level"
-            (ngModelChange)="updateFilter('test_level', $event)"
+            [(ngModel)]="selectedFilters().test__level"
+            (ngModelChange)="updateFilter('test__level', $event)"
             class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
           >
             <option value="all">Todos los niveles</option>
@@ -205,13 +205,13 @@
                   Tema Principal
                 </label>
                 <select 
-                  [(ngModel)]="selectedFilters().test_main_topic"
-                  (ngModelChange)="updateFilter('test_main_topic', $event)"
+                  [(ngModel)]="selectedFilters().test__main_topic"
+                  (ngModelChange)="updateFilter('test__main_topic', $event)"
                   class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
                 >
                   <option value="all">Todos los temas</option>
                   @for (topic of availableFilters().main_topics; track topic) {
-                    <option [value]="selectedFilters().test_main_topic">{{ topic }}</option>
+                    <option [value]="selectedFilters().test__main_topic">{{ topic }}</option>
                   }
                 </select>
               </div>
@@ -222,8 +222,8 @@
                   Rol de Usuario
                 </label>
                 <select 
-                  [(ngModel)]="selectedFilters().user_role"
-                  (ngModelChange)="updateFilter('user_role', $event)"
+                  [(ngModel)]="selectedFilters().user__role"
+                  (ngModelChange)="updateFilter('user__role', $event)"
                   class="textsize-cnf w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 transition-all"
                 >
                   <option value="all">Todos los roles</option>
@@ -371,33 +371,33 @@
                 </button>
               </span>
             }
-            @if (selectedFilters().test_main_topic && selectedFilters().test_main_topic !== 'all') {
+            @if (selectedFilters().test__main_topic && selectedFilters().test__main_topic !== 'all') {
               <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300">
-                Tema: {{ selectedFilters().test_main_topic }}
+                Tema: {{ selectedFilters().test__main_topic }}
                 <button 
-                  (click)="removeFilter('test_main_topic')"
+                  (click)="removeFilter('test__main_topic')"
                   class="ml-1.5 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
                 >
                   ×
                 </button>
               </span>
             }
-            @if (selectedFilters().test_level && selectedFilters().test_level !== 'all') {
+            @if (selectedFilters().test__level && selectedFilters().test__level !== 'all') {
               <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300">
-                Nivel: {{ selectedFilters().test_level }}
+                Nivel: {{ selectedFilters().test__level }}
                 <button 
-                  (click)="removeFilter('test_level')"
+                  (click)="removeFilter('test__level')"
                   class="ml-1.5 text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200"
                 >
                   ×
                 </button>
               </span>
             }
-            @if (selectedFilters().user_role && selectedFilters().user_role !== 'all') {
+            @if (selectedFilters().user__role && selectedFilters().user__role !== 'all') {
               <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300">
-                Rol: {{ selectedFilters().user_role === 'user' ? 'Usuario': selectedFilters().user_role === 'guest' ? 'Invitado' : 'Administrador' }}
+                Rol: {{ selectedFilters().user__role === 'user' ? 'Usuario': selectedFilters().user__role === 'guest' ? 'Invitado' : 'Administrador' }}
                 <button 
-                  (click)="removeFilter('user_role')"
+                  (click)="removeFilter('user__role')"
                   class="ml-1.5 text-amber-600 dark:text-amber-400 hover:text-amber-800 dark:hover:text-amber-200"
                 >
                   ×
@@ -555,13 +555,13 @@
 
             <!-- Información del test -->
             <div class="mb-3 text-sm">
-              <span class="text-gray-900 dark:text-gray-100 font-medium mb-1">{{ result.test_title }}</span>
-              <span class="{{ getLevelBadgeClass(result.test_level) }} ml-2">
-                {{ result.test_level[0] }}
+              <span class="text-gray-900 dark:text-gray-100 font-medium mb-1">{{ result.test__title }}</span>
+              <span class="{{ getLevelBadgeClass(result.test__level) }} ml-2">
+                {{ result.test__level[0] }}
               </span>
 
               <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {{ result.test_main_topic }} › {{ result.test_sub_topic }} › {{ result.test_specific_topic }}
+                {{ result.test__main_topic }} › {{ result.test__sub_topic }} › {{ result.test__specific_topic }}
               </div>
             </div>
 
@@ -605,8 +605,8 @@
             <!-- User info -->
             <div class="flex items-center flex-1 min-w-0 mb-2"> 
               <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium" 
-                [class]="getRoleBadgeClass(result.user_role)">
-                {{ result.user_role[0].toUpperCase() }}
+                [class]="getRoleBadgeClass(result.user__role)">
+                {{ result.user__first_name?.charAt(0) }} {{ result.user__last_name?.charAt(0) }}
               </span>
 
               <div class="ml-2 flex-1 min-w-0">              
@@ -614,7 +614,7 @@
                   {{ getUserFullName(result) }}
                 </div>
                 <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                  @{{ result.user_username }}
+                  @{{ result.user__username }}
                 </div>
               </div>
             </div>
@@ -687,8 +687,8 @@
                   <div class="flex items-center">
                     <div class="flex-shrink-0">
                       <span class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"                         
-                        [class]="getRoleBadgeClass(result.user_role)">                         
-                        {{ result.user_role[0].toUpperCase() }}
+                        [class]="getRoleBadgeClass(result.user__role)">                         
+                        {{ result.user__first_name?.charAt(0) }} {{ result.user__last_name?.charAt(0) }}
                       </span>
                     </div>
                     <div class="ml-3">
@@ -696,7 +696,7 @@
                         {{ getUserFullName(result) }}
                       </div>
                       <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        @{{ result.user_username }}
+                        @{{ result.user__username }}
                       </div>
                     </div>
                   </div>
@@ -705,20 +705,20 @@
                 <!-- Columna Test -->
                 <td class="px-4 py-4">
                   <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                    <span class="mr-1">{{ result.test_title }}</span> 
-                    <span class="{{ getLevelBadgeClass(result.test_level) }} ml-2">
-                      {{ result.test_level[0] }}
+                    <span class="mr-1">{{ result.test__title }}</span> 
+                    <span class="{{ getLevelBadgeClass(result.test__level) }} ml-2">
+                      {{ result.test__level[0] }}
                     </span> 
                   </div>
                   <div class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ result.test_main_topic }} › {{ result.test_sub_topic }} › {{ result.test_specific_topic }}
+                    {{ result.test__main_topic }} › {{ result.test__sub_topic }} › {{ result.test__specific_topic }}
                   </div>
                 </td>
                 
                 <!-- Columna Resultado -->
                 <td class="px-4 py-4">
                   <div class="flex flex-col gap-2">
-                    <div class="flex items-center gap-2">
+                    <div class="xl:flex items-center gap-2">
                       <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap {{ getStatusBadgeClass(result.status) }}">
                         {{ getStatusLabel(result.status) }}
                       </span>
@@ -893,4 +893,4 @@
 </app-modal>
 
 <!-- Modal de detalles del resultado -->
-<app-user-result-details-modal></app-user-result-details-modal>
+<app-result-user-details-modal></app-result-user-details-modal>

@@ -6,8 +6,8 @@ import { ResultsManagementService } from '../../services/results-management.serv
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
 import { AdminResult, AdminResultsFilter, AdminResultsResponse, ResultsAvailableFilters, ResultsStats } from '../../models/results-list.models';
 import { ModalComponent } from '../../../shared/components/modal.component';
-import { UserResultDetailsModalComponent } from '../user-result-details-modal/user-result-details-modal.component';
-import { UserResultDetailsModalService } from '../../services/user-result-details-modal.service';
+import { ResultUserDetailsModalComponent } from '../result-user-details-modal/result-user-details-modal.component';
+import { ResultUserDetailsModalService } from '../../services/result-user-details-modal.service';
 
 type DeleteModalState = 
   | { type: 'none' }
@@ -17,17 +17,18 @@ type DeleteModalState =
 @Component({
   selector: 'app-admin-results',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ModalComponent, UserResultDetailsModalComponent],
+  imports: [CommonModule, RouterModule, FormsModule, ModalComponent, ResultUserDetailsModalComponent],
   templateUrl: './results-list.component.html',
 })
 export class ResultsListComponent implements OnInit {
   private resultsManagementService = inject(ResultsManagementService);
   private sharedUtilsService = inject(SharedUtilsService);
-  private resultDetailsModalService = inject(UserResultDetailsModalService);
+  private resultDetailsModalService = inject(ResultUserDetailsModalService);
 
   // --- Estado principal ---
   adminResultsData = signal<AdminResult[]>([]);
   loading = signal(true);
+
   availableFilters = signal<ResultsAvailableFilters>({
     main_topics: [],
     levels: [],
@@ -39,9 +40,9 @@ export class ResultsListComponent implements OnInit {
     page: 1,
     page_size: 20,
     status: 'all',
-    user_role: 'all',
-    test_main_topic: 'all',
-    test_level: 'all',
+    user__role: 'all',
+    test__main_topic: 'all',
+    test__level: 'all',
     updated_at: '',
     started_at: '',
     min_score: undefined,
@@ -72,10 +73,10 @@ export class ResultsListComponent implements OnInit {
     { value: 'score', label: 'Puntuación' },
     { value: 'time_taken', label: 'Tiempo empleado' },
     { value: 'correct_answers', label: 'Correctas' },
-    { value: 'user_username', label: 'Usuario' },
-    { value: 'test_title', label: 'Título' },
-    { value: 'test_main_topic', label: 'Tema' },
-    { value: 'test_level', label: 'Nivel' },
+    { value: 'user__username', label: 'Usuario' },
+    { value: 'test__title', label: 'Título' },
+    { value: 'test__main_topic', label: 'Tema' },
+    { value: 'test__level', label: 'Nivel' },
   ];
 
   // --- Selección y eliminación (unificado) ---
@@ -106,29 +107,6 @@ export class ResultsListComponent implements OnInit {
     this.loadResults();
   }
 
-  // --- Construcción de filtros ---
-  private buildFilter(): AdminResultsFilter {
-    const raw = this.selectedFilters();
-    const filter: AdminResultsFilter = {
-      page: raw.page,
-      page_size: raw.page_size,
-      ordering: raw.ordering,
-      status: raw.status,
-      updated_at: raw.updated_at,
-      started_at: raw.started_at,
-      user_role: raw.user_role,
-      test_main_topic: raw.test_main_topic,
-      test_level: raw.test_level,
-      min_score: raw.min_score,
-      max_score: raw.max_score,
-      search: raw.search,
-    };
-    if (raw.ordering) {
-      filter.ordering = raw.order_dir === 'desc' ? `-${raw.ordering}` : raw.ordering;
-    }
-    return filter;
-  }
-
   // --- Almacenamiento de filtros ---
   private readonly FILTER_STORAGE_KEY = 'admin_results_filters';
 
@@ -152,12 +130,29 @@ export class ResultsListComponent implements OnInit {
     localStorage.setItem(this.FILTER_STORAGE_KEY, JSON.stringify(filters));
   }
 
+
+  // --- Construcción de filtros ---
+  private buildFilter(): AdminResultsFilter {
+    const raw = this.selectedFilters();
+    const orderingParam = raw.order_dir === 'desc' ? `-${raw.ordering}` : raw.ordering;
+
+    const filters = {
+      ...raw,
+      ordering: orderingParam
+    };
+
+    if (raw.ordering) {
+      filters.ordering = raw.order_dir === 'desc' ? `-${raw.ordering}` : raw.ordering;
+    }
+    return filters;
+  }
+
   // --- Carga de resultados ---
   loadResults(): void {
     this.loading.set(true);
-    const filter = this.buildFilter();
+    const filters = this.buildFilter();
 
-    this.resultsManagementService.getAdminResults(filter).subscribe({
+    this.resultsManagementService.getAdminResults(filters).subscribe({
       next: (res: AdminResultsResponse) => {
         this.adminResultsData.set(res.data);
         this.totalPages.set(res.pagination.total_pages);
@@ -245,8 +240,8 @@ export class ResultsListComponent implements OnInit {
   // --- Utilidades UI ---
   showFilterIndicators(): boolean {
     const f = this.selectedFilters();
-    return !!(f.user_role !== 'all' || f.started_at !== '' || f.updated_at !== '' ||
-              f.test_main_topic !== 'all' || f.test_level !== 'all' || f.status !== 'all' || 
+    return !!(f.user__role !== 'all' || f.started_at !== '' || f.updated_at !== '' ||
+              f.test__main_topic !== 'all' || f.test__level !== 'all' || f.status !== 'all' || 
               f.min_score || f.max_score || f.search);
   }
 
@@ -264,9 +259,9 @@ export class ResultsListComponent implements OnInit {
   exportResults(): void {
     if (this.loading()) return;
     this.loading.set(true);
-    const filter = this.buildFilter();
+    const filters = this.buildFilter();
 
-    this.resultsManagementService.exportResults(filter).subscribe({
+    this.resultsManagementService.exportResults(filters).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -353,7 +348,7 @@ export class ResultsListComponent implements OnInit {
     const modal = this.deleteModal();
     if (modal.type === 'single') {
       const name = this.getUserFullName(modal.result);
-      return `¿Estás seguro de eliminar el resultado del usuario "${name}" en el test "${modal.result.test_title}"?`;
+      return `¿Estás seguro de eliminar el resultado del usuario "${name}" en el test "${modal.result.test__title}"?`;
     }
     return '';
   }
@@ -404,10 +399,10 @@ export class ResultsListComponent implements OnInit {
 
   // --- Helpers de utilidad (delegados al servicio compartido) ---
   getUserFullName(result: AdminResult): string {
-    if (result.user_first_name && result.user_last_name) {
-      return `${result.user_first_name} ${result.user_last_name}`;
+    if (result.user__first_name && result.user__last_name) {
+      return `${result.user__first_name} ${result.user__last_name}`;
     }
-    return result.user_username;
+    return result.user__username;
   }
 
   getRoleBadgeClass(role: string): string {
