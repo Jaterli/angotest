@@ -332,8 +332,6 @@ class AdminInvitationListView(ListAPIView):
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
-        # Añadir estadísticas adicionales
-        #response.data['available_filters']['statuses'] = Test.LEVEL_CHOICES
 
         return response
 
