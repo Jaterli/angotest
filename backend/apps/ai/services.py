@@ -5,7 +5,7 @@ import requests
 from django.db import transaction
 from datetime import datetime
 from typing import Dict, Any, Tuple
-
+from django.db.models import F
 from apps.test.models import Test, Question, Answer
 from apps.admin_panel.models import SystemConfig, UserQuota
 from apps.shared.models import get_main_topics, get_topics, insert_or_update_topic, invalidate_topics_cache
@@ -28,8 +28,8 @@ def get_ai_provider():
         return AIProviderConfig(
             name='groq',
             api_key=groq_api_key,
-            base_url='https://api.groq.com/openai/v1/chat/completions',
-            model=os.getenv('GROQ_MODEL', 'mixtral-8x7b-32768'),
+            base_url=os.getenv('GROQ_BASE_URL', 'https://api.groq.com/openai/v1/chat/completions'),
+            model='openai/gpt-oss-120b', #os.getenv('GROQ_MODEL', 'mixtral-8x7b-32768'),
             max_tokens=int(os.getenv('AI_MAX_TOKENS', 8000)),
             temperature=float(os.getenv('AI_TEMPERATURE', 0.5))
         )
@@ -173,18 +173,31 @@ def quota_to_dict(quota: UserQuota) -> Dict[str, Any]:
     }
 
 
-def check_user_quota(user_id: int) -> Tuple[bool, Dict[str, Any]]:
-    """Verifica si el usuario tiene quota disponible y, si es así, la consume."""
+def check_quota_available(user_id: int) -> Tuple[bool, Dict[str, Any]]:
+    """
+    Verifica disponibilidad, NO modifica la base de datos.
+    Retorna (disponible, datos_de_la_cuota).
+    """
+    quota = get_or_create_user_quota(user_id)
+    available = quota.used_requests < quota.max_requests
+    return available, quota_to_dict(quota)
+
+
+@transaction.atomic
+def consume_quota(user_id: int) -> Tuple[bool, Dict[str, Any]]:
+    # Obtener o crear la cuota del mes actual
     quota = get_or_create_user_quota(user_id)
 
+    # Verificar si hay cupo disponible
     if quota.used_requests >= quota.max_requests:
-        data = quota_to_dict(quota)
-        data['message'] = 'Límite de tests generados para este mes alcanzado'
-        return False, data
+        return False, quota_to_dict(quota)
 
-    quota.used_requests += 1
-    quota.save()
-
+    # Incrementar atómicamente
+    quota.used_requests = F('used_requests') + 1
+    quota.save(update_fields=['used_requests'])
+    
+    # Refrescar para obtener el valor actualizado
+    quota.refresh_from_db()
     return True, quota_to_dict(quota)
 
 

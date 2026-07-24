@@ -11,7 +11,7 @@ export class TestsManagementService {
 
 
   getTestById(id: number): Observable<Test> {
-    return this.http.get<Test>(`${this.apiUrl}/${id}`);
+    return this.http.get<Test>(`${this.apiUrl}/${id}/`);
   }
 
   createTest(test: Test): Observable<any> {

@@ -66,7 +66,7 @@ export class GenerateTestComponent implements OnInit {
     private router: Router
   ) {
     this.generateForm = this.fb.group({
-      generation_mode: ['structured'],
+      generation_mode: ['guided'],
       main_topic: ['', Validators.required],
       sub_topic: ['', Validators.required],
       specific_topic: ['', Validators.required],
@@ -91,7 +91,7 @@ export class GenerateTestComponent implements OnInit {
 
   private initUserRole(): void {
     if (this.userRole !== 'admin') {
-      this.generateForm.get('generation_mode')?.setValue('structured');
+      this.generateForm.get('generation_mode')?.setValue('guided');
       // Para usuarios no admin, deshabilitar modo prompt
       this.generateForm.get('generation_mode')?.disable();
     }
@@ -124,13 +124,13 @@ export class GenerateTestComponent implements OnInit {
 
   /* -------------------------- VALIDATION ---------------------------- */
 
-  private updateValidators(mode: 'structured' | 'prompt'): void {
+  private updateValidators(mode: 'guided' | 'prompt'): void {
     const main = this.generateForm.get('main_topic');
     const sub = this.generateForm.get('sub_topic');
     const specific = this.generateForm.get('specific_topic');
     const prompt = this.generateForm.get('ai_prompt');
 
-    if (mode === 'structured') {
+    if (mode === 'guided') {
       main?.setValidators(Validators.required);
       sub?.setValidators(Validators.required);
       specific?.setValidators(Validators.required);
@@ -340,7 +340,7 @@ export class GenerateTestComponent implements OnInit {
   resetForm(): void {
     if (confirm('Se perderán todos los datos ingresados. ¿Estás seguro?')) {
       this.generateForm.reset({
-        generation_mode: 'structured',
+        generation_mode: 'guided',
         main_topic: '',
         sub_topic: '',
         specific_topic: '',

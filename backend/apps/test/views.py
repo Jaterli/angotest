@@ -11,7 +11,7 @@ from django.db import transaction
 from apps.results.models import Result
 from .filters import TestFilter, CompletedTestsFilter, InProgressTestsFilter
 from .serializers import TestDetailSerializer, SaveResultInputSerializer, TestListSerializer, CompletedTestSerializer, InProgressTestSerializer, QuestionWithAnswersSerializer, TestCreateUpdateSerializer, TestListSerializer
-from .pagination import TestPagination
+from ..shared.pagination import CustomPagination
 from .models import Test, Question, Answer
 from apps.accounts.permissions import IsAdminUser
 from apps.shared.models import get_main_topics
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class NotStartedTestListView(ListAPIView):
     serializer_class = TestListSerializer
-    pagination_class = TestPagination
+    pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = TestFilter
     ordering_fields = ['title', 'main_topic', 'level', 'created_at', 'question_count']
@@ -78,7 +78,7 @@ class NotStartedTestListView(ListAPIView):
 
 class InProgressTestListView(ListAPIView):
     serializer_class = InProgressTestSerializer
-    pagination_class = TestPagination
+    pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = InProgressTestsFilter
     ordering_fields = ['test__title', 'test__main_topic', 'test_level', 'started_at', 'updated_at']
@@ -133,7 +133,7 @@ class InProgressTestListView(ListAPIView):
 
 class CompletedTestListView(ListAPIView):
     serializer_class = CompletedTestSerializer
-    pagination_class = TestPagination
+    pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = CompletedTestsFilter
     ordering_fields = ['test__title', 'test__created_at', 'test__level', 'started_at', 'updated_at', 'time_taken', 'score']
@@ -208,7 +208,6 @@ class TestDetailView(RetrieveAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response({'test': serializer.data})
-
 
 
 class TestProgressView(RetrieveAPIView):
@@ -458,7 +457,7 @@ class AdminTestListView(ListAPIView):
         question_count=Count('questions')
     ).select_related('created_by')
     serializer_class = TestListSerializer
-    pagination_class = TestPagination
+    pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = TestFilter
     ordering_fields = ['id', 'title', 'main_topic', 'sub_topic', 'level', 'is_active', 'created_at', 'updated_at']

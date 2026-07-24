@@ -168,7 +168,6 @@
               id="sub_topic"
               formControlName="sub_topic"
               placeholder="Ej: Fundamentos de Programación"
-              [disabled]="!testForm.get('main_topic')?.value"
               [class.border-red-500]="!validationState().sub.isValid && testForm.get('sub_topic')?.value"
               [class.border-green-500]="validationState().sub.isValid && testForm.get('sub_topic')?.value"
               [class.opacity-50]="!testForm.get('main_topic')?.value"

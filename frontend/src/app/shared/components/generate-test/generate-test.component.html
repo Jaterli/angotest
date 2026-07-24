@@ -40,6 +40,18 @@
       </div>
     }
 
+    <!-- Error -->
+    @if (error()) {
+      <div class="p-4 mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
+        <div class="flex items-start">
+          <svg class="w-5 h-5 text-red-500 dark:text-red-400 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          <p class="text-sm font-medium text-red-800 dark:text-red-300">{{ error() }}</p>
+        </div>
+      </div>
+    }
+
     <!-- FORMULARIO -->
     @if (!loading()) {
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 border border-gray-200 dark:border-gray-700 p-3 sm:p-6">
@@ -54,8 +66,8 @@
               <div class="flex gap-2">
                 <button
                   type="button"
-                  (click)="generateForm.get('generation_mode')?.setValue('structured')"
-                  [class]="generateForm.value.generation_mode === 'structured'
+                  (click)="generateForm.get('generation_mode')?.setValue('guided')"
+                  [class]="generateForm.value.generation_mode === 'guided'
                     ? 'bg-blue-600 dark:bg-blue-700 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'"
                   class="px-4 py-3 rounded-lg font-medium transition-colors"
@@ -78,9 +90,9 @@
           }
 
           <!-- ===================== -->
-          <!-- MODO ESTRUCTURADO -->
+          <!-- MODO GUIADO -->
           <!-- ===================== -->
-          @if (generateForm.get('generation_mode')?.value === 'structured') {
+          @if (generateForm.get('generation_mode')?.value === 'guided') {
             
             <!-- Tema Principal -->
             <div class="space-y-2">
@@ -225,30 +237,23 @@
               }
             </div>
 
-          <!-- Resumen dinámico -->
-          <div class="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-            <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-3">Resumen del Test</h4>
-            <div class="space-y-3 textsize-cnf">
-              <div class="flex items-center justify-between">
-                <span class="text-gray-500 dark:text-gray-400">Tema Principal</span>
-                <span class="font-medium text-gray-900 dark:text-gray-100">
-                  {{ generateForm.get('main_topic')?.value || 'No seleccionado' }}
-                </span>
+            <!-- Resumen de la jerarquía de temas -->
+            @if (generateForm.get('specific_topic')?.value) {
+              <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div class="text-sm text-blue-800 dark:text-blue-300">
+                  <span class="font-semibold">Jerarquía de temas:</span>
+                  <span class="ml-2">{{ generateForm.get('main_topic')?.value }}</span>
+                  <svg class="inline-block w-4 h-4 mx-2 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                  </svg>
+                  <span>{{ generateForm.get('sub_topic')?.value }}</span>
+                  <svg class="inline-block w-4 h-4 mx-2 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                  </svg>
+                  <span class="font-medium">{{ generateForm.get('specific_topic')?.value }}</span>
+                </div>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-gray-500 dark:text-gray-400">Subtema</span>
-                <span class="font-medium text-gray-900 dark:text-gray-100">
-                  {{ generateForm.get('sub_topic')?.value || 'No seleccionado' }}
-                </span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-gray-500 dark:text-gray-400">Tema Específico</span>
-                <span class="font-medium text-gray-900 dark:text-gray-100">
-                  {{ generateForm.get('specific_topic')?.value || 'No seleccionado' }}
-                </span>
-              </div>
-            </div>
-          </div>
+            }
           }
 
           <!-- ===================== -->
@@ -360,18 +365,6 @@
               }
             </select>
           </div>
-
-          <!-- Error -->
-          @if (error()) {
-            <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
-              <div class="flex items-start">
-                <svg class="w-5 h-5 text-red-500 dark:text-red-400 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                </svg>
-                <p class="text-sm font-medium text-red-800 dark:text-red-300">{{ error() }}</p>
-              </div>
-            </div>
-          }
 
           <!-- Botones de acción -->
           <div class="flex gap-3 pt-4">

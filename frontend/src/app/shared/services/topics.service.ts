@@ -16,7 +16,7 @@ export class TopicsService {
 
 
   getTopics(): Observable<TopicStructure> {
-    return this.http.get<TopicStructure>(`${this.apiUrl}`).pipe(
+    return this.http.get<TopicStructure>(`${this.apiUrl}/`).pipe(
       map(topics => {
         return topics;
       })
