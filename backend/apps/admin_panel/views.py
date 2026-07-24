@@ -1,13 +1,13 @@
-from rest_framework.generics import ( # type: ignore
+from rest_framework.generics import (
     ListAPIView, RetrieveAPIView, CreateAPIView,
     UpdateAPIView, DestroyAPIView
 )
-from rest_framework.permissions import IsAuthenticated # type: ignore
-from rest_framework.response import Response # type: ignore
-from rest_framework import status # type: ignore
-from rest_framework.views import APIView # type: ignore
-from django_filters.rest_framework import DjangoFilterBackend # type: ignore
-from rest_framework.filters import OrderingFilter # type: ignore
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
 from django.db.models import Count, Sum, Avg, F, Q, ExpressionWrapper, IntegerField
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -15,11 +15,28 @@ import csv
 import json
 import logging
 
+# drf-spectacular imports
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
+
 from .models import UserQuota, SystemConfig
 from .filters import UserQuotaFilter, SystemConfigFilter
 from .serializers import (
     UserQuotaSerializer, UserQuotaCreateSerializer,
-    UserQuotaUpdateSerializer, SystemConfigSerializer
+    UserQuotaUpdateSerializer, SystemConfigSerializer,
+    # nuevos serializers de respuesta
+    UserQuotaCreateResponseSerializer,
+    UserQuotaUpdateResponseSerializer,
+    UserQuotaDeleteResponseSerializer,
+    BulkDeleteResponseSerializer,
+    QuotaStatsResponseSerializer,
+    QuotaByUserResponseSerializer,
+    SystemConfigByKeyResponseSerializer,
+    DefaultSystemConfigsResponseSerializer,
+    DashboardResponseSerializer,
+    ActivitySummaryResponseSerializer,
+    PerformanceMetricsResponseSerializer,
+    TestDetailedStatsResponseSerializer,
+    UserDetailedStatsResponseSerializer,
 )
 from apps.accounts.models import User
 from apps.test.models import Test
@@ -68,6 +85,14 @@ class AdminUserQuotaDetailView(RetrieveAPIView):
         return UserQuota.objects.select_related('user')
 
 
+@extend_schema(
+    summary="Obtener cuota de un usuario específico",
+    description="Devuelve la cuota del usuario para un mes dado (o la más reciente si no se especifica)",
+    responses={
+        200: OpenApiResponse(description="Cuota encontrada", response=QuotaByUserResponseSerializer),
+        404: OpenApiResponse(description="Cuota no encontrada"),
+    }
+)
 class AdminUserQuotaByUserView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserQuotaSerializer
@@ -87,6 +112,7 @@ class AdminUserQuotaByUserView(ListAPIView):
         serializer = self.get_serializer(queryset, many=True)
         if not queryset.exists():
             return Response({'error': 'cuota no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        # Devolvemos el primer elemento (o None si no hay)
         return Response({'quota': serializer.data[0] if serializer.data else None})
 
 
@@ -103,9 +129,20 @@ class AdminUserQuotaMonthsView(APIView):
         return Response({'months': months})
 
 
+@extend_schema(
+    summary="Crear una nueva cuota de usuario",
+    request=UserQuotaCreateSerializer,
+    responses={
+        201: OpenApiResponse(description="Cuota creada", response=UserQuotaCreateResponseSerializer),
+        404: OpenApiResponse(description="Usuario no encontrado"),
+        409: OpenApiResponse(description="Ya existe una cuota para ese usuario y mes"),
+        400: OpenApiResponse(description="Datos inválidos"),
+    }
+)
 class AdminCreateUserQuotaView(CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserQuotaCreateSerializer
+    # No usamos el CreateAPIView por defecto porque personalizamos la respuesta
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -136,6 +173,15 @@ class AdminCreateUserQuotaView(CreateAPIView):
         }, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(
+    summary="Actualizar una cuota existente",
+    request=UserQuotaUpdateSerializer,
+    responses={
+        200: OpenApiResponse(description="Cuota actualizada", response=UserQuotaUpdateResponseSerializer),
+        400: OpenApiResponse(description="Datos inválidos"),
+        404: OpenApiResponse(description="Cuota no encontrada"),
+    }
+)
 class AdminUpdateUserQuotaView(UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserQuotaUpdateSerializer
@@ -163,11 +209,19 @@ class AdminUpdateUserQuotaView(UpdateAPIView):
         })
 
 
+@extend_schema(
+    summary="Eliminar una cuota",
+    responses={
+        200: OpenApiResponse(description="Cuota eliminada", response=UserQuotaDeleteResponseSerializer),
+        404: OpenApiResponse(description="Cuota no encontrada"),
+    }
+)
 class AdminDeleteUserQuotaView(DestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = UserQuota.objects.all()
     lookup_field = 'id'
     lookup_url_kwarg = 'quota_id'
+    serializer_class = None  # Para que drf-spectacular no intente obtener un serializer
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -176,6 +230,19 @@ class AdminDeleteUserQuotaView(DestroyAPIView):
         return Response({'message': 'Cuota eliminada exitosamente', 'deleted': deleted_data})
 
 
+@extend_schema(
+    summary="Eliminar múltiples cuotas",
+    request=OpenApiExample(
+        name="BulkDelete",
+        value={"ids": [1, 2, 3]},
+        request_only=True,
+    ),
+    responses={
+        200: OpenApiResponse(description="Cuotas eliminadas", response=BulkDeleteResponseSerializer),
+        400: OpenApiResponse(description="Datos inválidos"),
+        404: OpenApiResponse(description="Alguna cuota no existe"),
+    }
+)
 class AdminDeleteQuotasBulkView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -210,6 +277,10 @@ class AdminDeleteQuotasBulkView(APIView):
         })
 
 
+@extend_schema(
+    summary="Estadísticas de cuotas",
+    responses={200: OpenApiResponse(description="Estadísticas", response=QuotaStatsResponseSerializer)}
+)
 class AdminQuotaStatsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -295,6 +366,12 @@ class AdminQuotaStatsView(APIView):
         })
 
 
+@extend_schema(
+    summary="Exportar cuotas a CSV",
+    responses={
+        200: OpenApiResponse(description="Archivo CSV", response={'type': 'string', 'format': 'binary'}),
+    }
+)
 class AdminExportQuotasCSVView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -343,6 +420,14 @@ class AdminSystemConfigListView(ListAPIView):
     serializer_class = SystemConfigSerializer
 
 
+@extend_schema(
+    summary="Obtener configuración por clave",
+    description="Devuelve el valor como entero (o error si no existe)",
+    responses={
+        200: OpenApiResponse(description="Valor encontrado", response=SystemConfigByKeyResponseSerializer),
+        404: OpenApiResponse(description="Clave no encontrada"),
+    }
+)
 class AdminSystemConfigByKeyView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -358,6 +443,11 @@ class AdminSystemConfigByKeyView(APIView):
             return Response({'error': 'Configuración no encontrada'}, status=status.HTTP_404_NOT_FOUND)
 
 
+@extend_schema(
+    summary="Obtener configuraciones por defecto",
+    description="Lista las configuraciones definidas en settings.SYSTEM_CONFIG y su existencia en BD",
+    responses={200: OpenApiResponse(description="Lista de configuraciones", response=DefaultSystemConfigsResponseSerializer)}
+)
 class AdminDefaultSystemConfigsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -449,6 +539,11 @@ class AdminDeleteSystemConfigView(DestroyAPIView):
 # Dashboard views
 # ===========================================================================
 
+@extend_schema(
+    summary="Dashboard administrativo",
+    description="Obtiene métricas generales: totales, tests destacados, listas de usuarios",
+    responses={200: OpenApiResponse(description="Datos del dashboard", response=DashboardResponseSerializer)}
+)
 class AdminDashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -683,6 +778,11 @@ class AdminDashboardView(APIView):
         }
 
 
+@extend_schema(
+    summary="Resumen de actividad diaria",
+    description="Muestra resultados, usuarios y tests por día en los últimos 30 días",
+    responses={200: OpenApiResponse(description="Actividad diaria", response=ActivitySummaryResponseSerializer)}
+)
 class AdminDashboardActivitySummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -747,6 +847,11 @@ class AdminDashboardActivitySummaryView(APIView):
         })
 
 
+@extend_schema(
+    summary="Métricas de rendimiento globales",
+    description="Tasa de finalización, precisión, tiempo promedio, distribución por nivel y rol",
+    responses={200: OpenApiResponse(description="Métricas de rendimiento", response=PerformanceMetricsResponseSerializer)}
+)
 class AdminDashboardPerformanceMetricsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -783,6 +888,13 @@ class AdminDashboardPerformanceMetricsView(APIView):
         })
 
 
+@extend_schema(
+    summary="Estadísticas detalladas de un test",
+    responses={
+        200: OpenApiResponse(description="Estadísticas del test", response=TestDetailedStatsResponseSerializer),
+        404: OpenApiResponse(description="Test no encontrado"),
+    }
+)
 class AdminTestDetailedStatsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -830,6 +942,13 @@ class AdminTestDetailedStatsView(APIView):
         })
 
 
+@extend_schema(
+    summary="Estadísticas detalladas de un usuario",
+    responses={
+        200: OpenApiResponse(description="Estadísticas del usuario", response=UserDetailedStatsResponseSerializer),
+        404: OpenApiResponse(description="Usuario no encontrado"),
+    }
+)
 class AdminUserDetailedStatsView(APIView):
     permission_classes = [IsAuthenticated]
 

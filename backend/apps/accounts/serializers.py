@@ -1,5 +1,5 @@
 # apps/accounts/serializers.py
-from rest_framework import serializers # type: ignore
+from rest_framework import serializers
 from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
@@ -26,10 +26,6 @@ class UserWithStatsSerializer(serializers.Serializer):
     email = serializers.CharField()
     first_name = serializers.CharField()
     last_name = serializers.CharField()
-    # phone = serializers.CharField()
-    # address = serializers.CharField()
-    # country = serializers.CharField()
-    # birth_date = serializers.DateField()
     role = serializers.CharField()
     registered_at = serializers.DateTimeField()
     login_at = serializers.DateTimeField()
@@ -72,3 +68,71 @@ class ResetPasswordSerializer(serializers.Serializer):
         if data['new_password'] != data['confirm_password']:
             raise serializers.ValidationError({'confirm_password': 'Las contraseñas no coinciden'})
         return data
+
+# ------------------------------------------------------------------
+# Serializers para respuestas personalizadas (documentación OpenAPI)
+# ------------------------------------------------------------------
+
+class DeleteUserResponseSerializer(serializers.Serializer):
+    """Serializer para la respuesta de eliminación de usuario"""
+    message = serializers.CharField()
+    deleted_user_id = serializers.IntegerField()
+    deleted_username = serializers.CharField()
+    transferred_to_user_id = serializers.IntegerField()
+    transferred_to_username = serializers.CharField()
+    transferred_tests = serializers.IntegerField()
+    transferred_results = serializers.IntegerField()
+
+class LoginResponseSerializer(serializers.Serializer):
+    user = UserSerializer()
+    message = serializers.CharField()
+    access_token = serializers.CharField()
+    token_type = serializers.CharField()
+
+class CheckAuthResponseSerializer(serializers.Serializer):
+    authenticated = serializers.BooleanField()
+    user = UserSerializer(required=False)
+
+class RegisterResponseSerializer(serializers.Serializer):
+    user = UserSerializer()
+
+class ProfileGetResponseSerializer(serializers.Serializer):
+    user = UserProfileSerializer()
+
+class ProfileUpdateResponseSerializer(serializers.Serializer):
+    message = serializers.CharField()
+    user = UserProfileSerializer()
+
+class UpdateEmailPasswordResponseSerializer(serializers.Serializer):
+    message = serializers.CharField()
+    user = UserProfileSerializer()
+
+class UpdateGuestProfileResponseSerializer(serializers.Serializer):
+    message = serializers.CharField()
+    user = UserProfileSerializer()
+
+class DeactivateAccountResponseSerializer(serializers.Serializer):
+    message = serializers.CharField()
+
+class ForgotPasswordResponseSerializer(serializers.Serializer):
+    message = serializers.CharField()
+    reset_link = serializers.CharField(required=False)
+
+class ValidateResetTokenResponseSerializer(serializers.Serializer):
+    valid = serializers.BooleanField()
+    message = serializers.CharField()
+
+class ResetPasswordResponseSerializer(serializers.Serializer):
+    message = serializers.CharField()
+
+class LogoutResponseSerializer(serializers.Serializer):
+    message = serializers.CharField()
+
+class DashboardResponseSerializer(serializers.Serializer):
+    personal_data = serializers.JSONField()
+    level_data = serializers.JSONField()
+    total_active_users = serializers.IntegerField()
+
+class RankingsResponseSerializer(serializers.Serializer):
+    # Estructura compleja, se documenta con ejemplo en la vista
+    pass

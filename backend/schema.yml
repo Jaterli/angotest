@@ -1,0 +1,3949 @@
+openapi: 3.0.3
+info:
+  title: AngoTest
+  version: 1.0.0
+  description: ' La plataforma definitiva para crear, gestionar y realizar tests online.'
+paths:
+  /api/admin/dashboard/:
+    get:
+      operationId: admin_dashboard_retrieve
+      description: 'Obtiene métricas generales: totales, tests destacados, listas
+        de usuarios'
+      summary: Dashboard administrativo
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardResponse'
+          description: Datos del dashboard
+  /api/admin/dashboard/activity-summary/:
+    get:
+      operationId: admin_dashboard_activity_summary_retrieve
+      description: Muestra resultados, usuarios y tests por día en los últimos 30
+        días
+      summary: Resumen de actividad diaria
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivitySummaryResponse'
+          description: Actividad diaria
+  /api/admin/dashboard/performance-metrics/:
+    get:
+      operationId: admin_dashboard_performance_metrics_retrieve
+      description: Tasa de finalización, precisión, tiempo promedio, distribución
+        por nivel y rol
+      summary: Métricas de rendimiento globales
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceMetricsResponse'
+          description: Métricas de rendimiento
+  /api/admin/dashboard/tests/{test_id}/stats/:
+    get:
+      operationId: admin_dashboard_tests_stats_retrieve
+      summary: Estadísticas detalladas de un test
+      parameters:
+      - in: path
+        name: test_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDetailedStatsResponse'
+          description: Estadísticas del test
+        '404':
+          description: Test no encontrado
+  /api/admin/dashboard/users/{user_id}/stats/:
+    get:
+      operationId: admin_dashboard_users_stats_retrieve
+      summary: Estadísticas detalladas de un usuario
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetailedStatsResponse'
+          description: Estadísticas del usuario
+        '404':
+          description: Usuario no encontrado
+  /api/admin/quotas/:
+    get:
+      operationId: admin_quotas_list
+      parameters:
+      - in: query
+        name: end_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: max_requests
+        schema:
+          type: integer
+      - in: query
+        name: min_requests
+        schema:
+          type: integer
+      - in: query
+        name: min_usage
+        schema:
+          type: number
+      - in: query
+        name: month_year
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+      - in: query
+        name: start_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: user_id
+        schema:
+          type: number
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserQuotaList'
+          description: ''
+  /api/admin/quotas/{quota_id}/:
+    get:
+      operationId: admin_quotas_retrieve
+      parameters:
+      - in: path
+        name: quota_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserQuota'
+          description: ''
+  /api/admin/quotas/{quota_id}/delete/:
+    delete:
+      operationId: admin_quotas_delete_destroy
+      summary: Eliminar una cuota
+      parameters:
+      - in: path
+        name: quota_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserQuotaDeleteResponse'
+          description: Cuota eliminada
+        '404':
+          description: Cuota no encontrada
+  /api/admin/quotas/{quota_id}/update/:
+    put:
+      operationId: admin_quotas_update_update
+      summary: Actualizar una cuota existente
+      parameters:
+      - in: path
+        name: quota_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserQuotaUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserQuotaUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserQuotaUpdate'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserQuotaUpdateResponse'
+          description: Cuota actualizada
+        '400':
+          description: Datos inválidos
+        '404':
+          description: Cuota no encontrada
+    patch:
+      operationId: admin_quotas_update_partial_update
+      summary: Actualizar una cuota existente
+      parameters:
+      - in: path
+        name: quota_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserQuotaUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserQuotaUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserQuotaUpdate'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserQuotaUpdateResponse'
+          description: Cuota actualizada
+        '400':
+          description: Datos inválidos
+        '404':
+          description: Cuota no encontrada
+  /api/admin/quotas/bulk-delete/:
+    delete:
+      operationId: admin_quotas_bulk_delete_destroy
+      summary: Eliminar múltiples cuotas
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkDeleteResponse'
+          description: Cuotas eliminadas
+        '400':
+          description: Datos inválidos
+        '404':
+          description: Alguna cuota no existe
+  /api/admin/quotas/create/:
+    post:
+      operationId: admin_quotas_create_create
+      summary: Crear una nueva cuota de usuario
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserQuotaCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserQuotaCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserQuotaCreate'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserQuotaCreateResponse'
+          description: Cuota creada
+        '404':
+          description: Usuario no encontrado
+        '409':
+          description: Ya existe una cuota para ese usuario y mes
+        '400':
+          description: Datos inválidos
+  /api/admin/quotas/export/csv/:
+    get:
+      operationId: admin_quotas_export_csv_retrieve
+      summary: Exportar cuotas a CSV
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: Archivo CSV
+  /api/admin/quotas/stats/:
+    get:
+      operationId: admin_quotas_stats_retrieve
+      summary: Estadísticas de cuotas
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotaStatsResponse'
+          description: Estadísticas
+  /api/admin/system-configs/:
+    get:
+      operationId: admin_system_configs_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSystemConfigList'
+          description: ''
+  /api/admin/system-configs/{config_id}/delete/:
+    delete:
+      operationId: admin_system_configs_delete_destroy
+      parameters:
+      - in: path
+        name: config_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      responses:
+        '204':
+          description: No response body
+  /api/admin/system-configs/{config_id}/update/:
+    put:
+      operationId: admin_system_configs_update_update
+      parameters:
+      - in: path
+        name: config_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemConfig'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SystemConfig'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SystemConfig'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemConfig'
+          description: ''
+    patch:
+      operationId: admin_system_configs_update_partial_update
+      parameters:
+      - in: path
+        name: config_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSystemConfig'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSystemConfig'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSystemConfig'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemConfig'
+          description: ''
+  /api/admin/system-configs/create/:
+    post:
+      operationId: admin_system_configs_create_create
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemConfig'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SystemConfig'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SystemConfig'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemConfig'
+          description: ''
+  /api/admin/system-configs/default/:
+    get:
+      operationId: admin_system_configs_default_retrieve
+      description: Lista las configuraciones definidas en settings.SYSTEM_CONFIG y
+        su existencia en BD
+      summary: Obtener configuraciones por defecto
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DefaultSystemConfigsResponse'
+          description: Lista de configuraciones
+  /api/admin/system-configs/key/{key}/:
+    get:
+      operationId: admin_system_configs_key_retrieve
+      description: Devuelve el valor como entero (o error si no existe)
+      summary: Obtener configuración por clave
+      parameters:
+      - in: path
+        name: key
+        schema:
+          type: string
+        required: true
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemConfigByKeyResponse'
+          description: Valor encontrado
+        '404':
+          description: Clave no encontrada
+  /api/admin/users/{user_id}/quota-months/:
+    get:
+      operationId: admin_users_quota_months_retrieve
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      responses:
+        '200':
+          description: No response body
+  /api/admin/users/{user_id}/quotas/:
+    get:
+      operationId: admin_users_quotas_list
+      description: Devuelve la cuota del usuario para un mes dado (o la más reciente
+        si no se especifica)
+      summary: Obtener cuota de un usuario específico
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedQuotaByUserResponseList'
+          description: Cuota encontrada
+        '404':
+          description: Cuota no encontrada
+  /api/ai-requests/generate-ai-test/:
+    post:
+      operationId: ai_requests_generate_ai_test_create
+      description: Generar un test usando IA
+      tags:
+      - ai-requests
+      responses:
+        '200':
+          description: No response body
+  /api/ai-requests/logs/:
+    get:
+      operationId: ai_requests_logs_list
+      description: Obtener historial de solicitudes de IA del usuario
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - ai-requests
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAIRequestLogList'
+          description: ''
+  /api/ai-requests/logs/{log_id}/:
+    get:
+      operationId: ai_requests_logs_retrieve
+      description: Obtener detalle de una solicitud de IA
+      parameters:
+      - in: path
+        name: log_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - ai-requests
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIRequestLogDetail'
+          description: ''
+  /api/ai-requests/quota/:
+    get:
+      operationId: ai_requests_quota_retrieve
+      description: Obtener la quota actual del usuario
+      tags:
+      - ai-requests
+      responses:
+        '200':
+          description: No response body
+  /api/auth/check-auth:
+    get:
+      operationId: auth_check_auth_retrieve
+      description: Comprueba si el token JWT es válido y devuelve los datos del usuario
+        autenticado
+      summary: Verificar autenticación
+      tags:
+      - auth
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckAuthResponse'
+          description: Estado de autenticación
+  /api/auth/forgot-password:
+    post:
+      operationId: auth_forgot_password_create
+      description: Envía un correo con un enlace para restablecer la contraseña
+      summary: Solicitar recuperación de contraseña
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ForgotPassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ForgotPassword'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForgotPasswordResponse'
+          description: Correo enviado (si existe el email)
+        '400':
+          description: Datos inválidos
+  /api/auth/login:
+    post:
+      operationId: auth_login_create
+      description: Autentica un usuario y devuelve un token JWT en cookie HttpOnly
+      summary: Inicio de sesión
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+          description: Login exitoso
+        '401':
+          description: Credenciales inválidas o cuenta desactivada
+  /api/auth/logout:
+    post:
+      operationId: auth_logout_create
+      description: Elimina la cookie de autenticación
+      summary: Cerrar sesión
+      tags:
+      - auth
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutResponse'
+          description: Sesión cerrada
+  /api/auth/register:
+    post:
+      operationId: auth_register_create
+      description: Crea una nueva cuenta de usuario
+      summary: Registro de usuario
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Register'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Register'
+        required: true
+      security:
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+          description: Usuario creado
+        '400':
+          description: Datos inválidos
+  /api/auth/reset-password-with-token:
+    post:
+      operationId: auth_reset_password_with_token_create
+      description: Cambia la contraseña usando un token válido
+      summary: Restablecer contraseña con token
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ResetPassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ResetPassword'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetPasswordResponse'
+          description: Contraseña actualizada
+        '400':
+          description: Token inválido, expirado o datos incorrectos
+  /api/auth/validate-reset-token:
+    get:
+      operationId: auth_validate_reset_token_retrieve
+      description: Comprueba si el token de restablecimiento es válido y no ha expirado
+      summary: Validar token de recuperación
+      tags:
+      - auth
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidateResetTokenResponse'
+          description: Token válido
+        '400':
+          description: Token inválido o expirado
+  /api/invitations/accept-invitation/:
+    post:
+      operationId: invitations_accept_invitation_create
+      description: Aceptar una invitación
+      tags:
+      - invitations
+      responses:
+        '200':
+          description: No response body
+  /api/invitations/admin/{invitation_id}/delete/:
+    delete:
+      operationId: invitations_admin_delete_destroy
+      description: Eliminar una invitación específica
+      parameters:
+      - in: path
+        name: invitation_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - invitations
+      responses:
+        '204':
+          description: No response body
+  /api/invitations/admin/bulk-delete/:
+    delete:
+      operationId: invitations_admin_bulk_delete_destroy
+      description: Eliminar múltiples invitaciones
+      tags:
+      - invitations
+      responses:
+        '204':
+          description: No response body
+  /api/invitations/admin/list/:
+    get:
+      operationId: invitations_admin_list_list
+      description: Obtener todas las invitaciones con filtros y paginación
+      parameters:
+      - in: query
+        name: end_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: invited_by
+        schema:
+          type: number
+      - in: query
+        name: is_guest
+        schema:
+          type: boolean
+      - in: query
+        name: is_used
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: start_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - active
+          - expired
+          - used
+        description: |-
+          * `active` - Active
+          * `used` - Used
+          * `expired` - Expired
+      tags:
+      - invitations
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInvitationListList'
+          description: ''
+  /api/invitations/admin/stats/:
+    get:
+      operationId: invitations_admin_stats_retrieve
+      description: Obtener estadísticas de invitaciones
+      tags:
+      - invitations
+      responses:
+        '200':
+          description: No response body
+  /api/invitations/check-invitation/:
+    get:
+      operationId: invitations_check_invitation_retrieve
+      description: Verificar estado de una invitación
+      tags:
+      - invitations
+      responses:
+        '200':
+          description: No response body
+  /api/invitations/create/:
+    post:
+      operationId: invitations_create_create
+      description: Crear una nueva invitación
+      tags:
+      - invitations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvitationCreate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/InvitationCreate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/InvitationCreate'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvitationCreate'
+          description: ''
+  /api/results/:
+    get:
+      operationId: results_list
+      parameters:
+      - in: query
+        name: max_score
+        schema:
+          type: number
+      - in: query
+        name: min_score
+        schema:
+          type: number
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+      - in: query
+        name: started_at
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: test_created_by
+        schema:
+          type: integer
+      - in: query
+        name: test_id
+        schema:
+          type: number
+      - in: query
+        name: test_level
+        schema:
+          type: string
+      - in: query
+        name: test_main_topic
+        schema:
+          type: string
+      - in: query
+        name: test_specific_topic
+        schema:
+          type: string
+      - in: query
+        name: test_sub_topic
+        schema:
+          type: string
+      - in: query
+        name: test_title
+        schema:
+          type: string
+      - in: query
+        name: updated_at
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: user_email
+        schema:
+          type: string
+      - in: query
+        name: user_id
+        schema:
+          type: number
+      - in: query
+        name: user_role
+        schema:
+          type: string
+      - in: query
+        name: user_username
+        schema:
+          type: string
+      tags:
+      - results
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResultListList'
+          description: ''
+  /api/results/{result_id}/:
+    get:
+      operationId: results_retrieve
+      parameters:
+      - in: path
+        name: result_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - results
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultDetail'
+          description: ''
+  /api/results/{result_id}/delete/:
+    delete:
+      operationId: results_delete_destroy
+      parameters:
+      - in: path
+        name: result_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - results
+      responses:
+        '204':
+          description: No response body
+  /api/results/{result_id}/incorrect-answers/:
+    get:
+      operationId: results_incorrect_answers_retrieve
+      description: Obtener respuestas incorrectas de un resultado completado
+      parameters:
+      - in: path
+        name: result_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - results
+      responses:
+        '200':
+          description: No response body
+  /api/results/{result_id}/user/{user_id}/:
+    get:
+      operationId: results_user_retrieve
+      parameters:
+      - in: path
+        name: result_id
+        schema:
+          type: integer
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - results
+      responses:
+        '200':
+          description: No response body
+  /api/results/bulk-delete/:
+    delete:
+      operationId: results_bulk_delete_destroy
+      tags:
+      - results
+      responses:
+        '204':
+          description: No response body
+  /api/results/export-csv/:
+    get:
+      operationId: results_export_csv_retrieve
+      tags:
+      - results
+      responses:
+        '200':
+          description: No response body
+  /api/results/stats/:
+    get:
+      operationId: results_stats_retrieve
+      tags:
+      - results
+      responses:
+        '200':
+          description: No response body
+  /api/results/user/{user_id}/:
+    get:
+      operationId: results_user_list
+      parameters:
+      - in: query
+        name: from_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: level
+        schema:
+          type: string
+      - in: query
+        name: main_topic
+        schema:
+          type: string
+      - in: query
+        name: max_score
+        schema:
+          type: number
+      - in: query
+        name: min_score
+        schema:
+          type: number
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+      - in: query
+        name: started_at
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: sub_topic
+        schema:
+          type: string
+      - in: query
+        name: to_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: updated_at
+        schema:
+          type: string
+          format: date
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - results
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserResultListList'
+          description: ''
+  /api/test/{test_id}/:
+    get:
+      operationId: test_retrieve
+      parameters:
+      - in: path
+        name: test_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - test
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDetail'
+          description: ''
+  /api/test/{test_id}/next-question/:
+    get:
+      operationId: test_next_question_retrieve
+      parameters:
+      - in: path
+        name: test_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - test
+      responses:
+        '200':
+          description: No response body
+  /api/test/{test_id}/progress/:
+    get:
+      operationId: test_progress_retrieve
+      parameters:
+      - in: path
+        name: test_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - test
+      responses:
+        '200':
+          description: No response body
+  /api/test/{test_id}/progress/delete/:
+    delete:
+      operationId: test_progress_delete_destroy
+      parameters:
+      - in: path
+        name: test_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - test
+      responses:
+        '204':
+          description: No response body
+  /api/test/{test_id}/save/:
+    post:
+      operationId: test_save_create
+      parameters:
+      - in: path
+        name: test_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveResultInput'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SaveResultInput'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SaveResultInput'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaveResultInput'
+          description: ''
+  /api/test/admin/{test_id}/:
+    get:
+      operationId: test_admin_retrieve
+      parameters:
+      - in: path
+        name: test_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - test
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDetail'
+          description: ''
+  /api/test/admin/{test_id}/delete/:
+    delete:
+      operationId: test_admin_delete_destroy
+      parameters:
+      - in: path
+        name: test_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - test
+      responses:
+        '204':
+          description: No response body
+  /api/test/admin/{test_id}/edit/:
+    put:
+      operationId: test_admin_edit_update
+      parameters:
+      - in: path
+        name: test_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestCreateUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TestCreateUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TestCreateUpdate'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestCreateUpdate'
+          description: ''
+    patch:
+      operationId: test_admin_edit_partial_update
+      parameters:
+      - in: path
+        name: test_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTestCreateUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTestCreateUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTestCreateUpdate'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestCreateUpdate'
+          description: ''
+  /api/test/admin/create/:
+    post:
+      operationId: test_admin_create_create
+      tags:
+      - test
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestCreateUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TestCreateUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TestCreateUpdate'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestCreateUpdate'
+          description: ''
+  /api/test/admin/list/:
+    get:
+      operationId: test_admin_list_list
+      parameters:
+      - in: query
+        name: level
+        schema:
+          type: string
+      - in: query
+        name: main_topic
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
+      - in: query
+        name: sub_topic
+        schema:
+          type: string
+      tags:
+      - test
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTestListList'
+          description: ''
+  /api/test/completed/:
+    get:
+      operationId: test_completed_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - test
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCompletedTestList'
+          description: ''
+  /api/test/in-progress/:
+    get:
+      operationId: test_in_progress_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - test
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInProgressTestList'
+          description: ''
+  /api/test/not-started/:
+    get:
+      operationId: test_not_started_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - test
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTestListList'
+          description: ''
+  /api/user/{user_id}/:
+    get:
+      operationId: user_retrieve
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - user
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/user/{user_id}/delete/:
+    delete:
+      operationId: user_delete_destroy
+      description: Elimina permanentemente un usuario. Transfiere sus tests y resultados
+        al usuario contenedor.
+      summary: Eliminar usuario (admin)
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - user
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteUserResponse'
+          description: Usuario eliminado
+        '400':
+          description: Error (admin único, usuario contenedor, etc.)
+        '401':
+          description: No autenticado
+        '403':
+          description: Sin permisos de administrador
+        '404':
+          description: Usuario no encontrado
+  /api/user/{user_id}/profile/:
+    get:
+      operationId: user_profile_retrieve_2
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - user
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+  /api/user/dashboard/:
+    get:
+      operationId: user_dashboard_retrieve
+      description: Estadísticas del usuario (primeros intentos, todos los intentos,
+        por nivel, etc.)
+      summary: Datos del dashboard personal
+      tags:
+      - user
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardResponse'
+          description: Datos del dashboard
+  /api/user/deactivate-account/:
+    delete:
+      operationId: user_deactivate_account_destroy
+      description: Elimina la cuenta del usuario autenticado (anonimiza y transfiere
+        datos)
+      summary: Desactivar cuenta
+      tags:
+      - user
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeactivateAccountResponse'
+          description: Cuenta desactivada
+        '400':
+          description: Error de validación o contraseña incorrecta
+  /api/user/profile/:
+    get:
+      operationId: user_profile_retrieve
+      summary: Obtener perfil del usuario autenticado
+      tags:
+      - user
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileGetResponse'
+          description: Datos del perfil
+    put:
+      operationId: user_profile_update
+      description: Actualiza los campos del perfil (username, nombre, etc.)
+      summary: Obtener perfil del usuario autenticado
+      tags:
+      - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserUpdate'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileGetResponse'
+          description: Datos del perfil
+    patch:
+      operationId: user_profile_partial_update
+      summary: Obtener perfil del usuario autenticado
+      tags:
+      - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfile'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfile'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfile'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileGetResponse'
+          description: Datos del perfil
+  /api/user/rankings/:
+    get:
+      operationId: user_rankings_retrieve
+      description: Obtiene los top usuarios por distintas métricas (tests, precisión,
+        tiempo, etc.)
+      summary: Rankings globales
+      tags:
+      - user
+      responses:
+        '200':
+          description: Datos de rankings
+  /api/user/stats/:
+    get:
+      operationId: user_stats_list
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - in: query
+        name: min_tests_completed
+        schema:
+          type: number
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: registered_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: registered_before
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: role
+        schema:
+          type: string
+          enum:
+          - admin
+          - deleted
+          - guest
+          - user
+        description: |-
+          * `user` - Usuario
+          * `admin` - Administrador
+          * `guest` - Invitado
+          * `deleted` - Eliminado
+      - in: query
+        name: search
+        schema:
+          type: string
+      tags:
+      - user
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserWithStatsList'
+          description: ''
+  /api/user/update-email-password/:
+    post:
+      operationId: user_update_email_password_create
+      description: Cambia el email o la contraseña del usuario autenticado (requiere
+        contraseña actual)
+      summary: Actualizar email y/o contraseña
+      tags:
+      - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: {}
+              description: Unspecified request body
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              additionalProperties: {}
+              description: Unspecified request body
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: {}
+              description: Unspecified request body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateEmailPasswordResponse'
+          description: Actualizado
+        '400':
+          description: Error de validación o contraseña incorrecta
+  /api/user/update-guest-profile/:
+    post:
+      operationId: user_update_guest_profile_create
+      description: Convierte un usuario guest en usuario permanente completando sus
+        datos
+      summary: Actualizar perfil de usuario invitado
+      tags:
+      - user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: {}
+              description: Unspecified request body
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              additionalProperties: {}
+              description: Unspecified request body
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: {}
+              description: Unspecified request body
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateGuestProfileResponse'
+          description: Perfil actualizado y convertido a usuario
+        '400':
+          description: Datos inválidos o usuario no es guest
+components:
+  schemas:
+    AIRequestLog:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        test_id:
+          type: integer
+          readOnly: true
+          nullable: true
+        test_title:
+          type: string
+          readOnly: true
+          nullable: true
+        main_topic:
+          type: string
+          maxLength: 255
+        sub_topic:
+          type: string
+          maxLength: 255
+        specific_topic:
+          type: string
+          maxLength: 255
+        level:
+          type: string
+          maxLength: 20
+        num_questions:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        num_answers:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        language:
+          type: string
+          maxLength: 2
+        generation_mode:
+          type: string
+          maxLength: 20
+        status:
+          $ref: '#/components/schemas/Status8bfEnum'
+        error_message:
+          type: string
+        response_time:
+          type: number
+          format: double
+        tokens_used:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - level
+      - num_answers
+      - num_questions
+      - test_id
+      - test_title
+      - updated_at
+    AIRequestLogDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        test:
+          type: string
+          readOnly: true
+        input:
+          type: string
+          readOnly: true
+        ai_provider:
+          type: string
+          maxLength: 50
+        ai_model:
+          type: string
+          maxLength: 100
+        status:
+          $ref: '#/components/schemas/Status8bfEnum'
+        error_message:
+          type: string
+        response_time:
+          type: number
+          format: double
+        tokens_used:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - input
+      - test
+      - updated_at
+    AccuracyTimeItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        total_attempts:
+          type: integer
+        accuracy_rate:
+          type: number
+          format: double
+        avg_time:
+          type: number
+          format: double
+      required:
+      - id
+      - title
+      - total_attempts
+    ActivitySummaryResponse:
+      type: object
+      properties:
+        daily_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyResultItem'
+        daily_users:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyCountItem'
+        daily_tests:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyCountItem'
+        start_date:
+          type: string
+        end_date:
+          type: string
+      required:
+      - daily_results
+      - daily_tests
+      - daily_users
+      - end_date
+      - start_date
+    Answer:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        answer_text:
+          type: string
+        is_correct:
+          type: boolean
+      required:
+      - answer_text
+      - id
+    AnswerCreate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        answer_text:
+          type: string
+        is_correct:
+          type: boolean
+      required:
+      - answer_text
+      - id
+    BulkDeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        deleted_count:
+          type: integer
+        deleted_ids:
+          type: array
+          items:
+            type: integer
+      required:
+      - deleted_count
+      - deleted_ids
+      - message
+    CheckAuthResponse:
+      type: object
+      properties:
+        authenticated:
+          type: boolean
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+      - authenticated
+    CompletedTest:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user_id:
+          type: integer
+          readOnly: true
+        test_id:
+          type: integer
+          readOnly: true
+        correct_answers:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        wrong_answers:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        time_taken:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        status:
+          $ref: '#/components/schemas/Status090Enum'
+        started_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        test_title:
+          type: string
+        test_description:
+          type: string
+        test_main_topic:
+          type: string
+        test_sub_topic:
+          type: string
+        test_specific_topic:
+          type: string
+        test_level:
+          type: string
+        test_created_at:
+          type: string
+          format: date-time
+        total_questions:
+          type: integer
+          readOnly: true
+        score_percent:
+          type: string
+          readOnly: true
+        score_rounded:
+          type: string
+          readOnly: true
+        attempt_position:
+          type: integer
+          readOnly: true
+        total_attempts:
+          type: integer
+          readOnly: true
+      required:
+      - attempt_position
+      - id
+      - score_percent
+      - score_rounded
+      - test_created_at
+      - test_description
+      - test_id
+      - test_level
+      - test_main_topic
+      - test_specific_topic
+      - test_sub_topic
+      - test_title
+      - total_attempts
+      - total_questions
+      - user_id
+    DailyCountItem:
+      type: object
+      properties:
+        date:
+          type: string
+        count:
+          type: integer
+      required:
+      - count
+      - date
+    DailyResultItem:
+      type: object
+      properties:
+        date:
+          type: string
+        total:
+          type: integer
+        completed:
+          type: integer
+        in_progress:
+          type: integer
+        expired:
+          type: integer
+      required:
+      - completed
+      - date
+      - expired
+      - in_progress
+      - total
+    DashboardResponse:
+      type: object
+      properties:
+        totals:
+          $ref: '#/components/schemas/DashboardTotals'
+        top_tests:
+          $ref: '#/components/schemas/TopTestsLists'
+        user_lists:
+          $ref: '#/components/schemas/UserLists'
+      required:
+      - top_tests
+      - totals
+      - user_lists
+    DashboardTotals:
+      type: object
+      properties:
+        total_users:
+          type: integer
+        active_users:
+          type: integer
+        completed_tests:
+          type: integer
+        in_progress_tests:
+          type: integer
+        expired_tests:
+          type: integer
+        total_tests:
+          type: integer
+        inactive_tests:
+          type: integer
+        advanced_tests:
+          type: integer
+        intermediate_tests:
+          type: integer
+        beginner_tests:
+          type: integer
+      required:
+      - active_users
+      - advanced_tests
+      - beginner_tests
+      - completed_tests
+      - expired_tests
+      - in_progress_tests
+      - inactive_tests
+      - intermediate_tests
+      - total_tests
+      - total_users
+    DeactivateAccountResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+      - message
+    DefaultSystemConfigItem:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        exists_in_db:
+          type: boolean
+      required:
+      - exists_in_db
+      - key
+      - value
+    DefaultSystemConfigsResponse:
+      type: object
+      properties:
+        configs:
+          type: array
+          items:
+            $ref: '#/components/schemas/DefaultSystemConfigItem'
+      required:
+      - configs
+    DeleteUserResponse:
+      type: object
+      description: Serializer para la respuesta de eliminación de usuario
+      properties:
+        message:
+          type: string
+        deleted_user_id:
+          type: integer
+        deleted_username:
+          type: string
+        transferred_to_user_id:
+          type: integer
+        transferred_to_username:
+          type: string
+        transferred_tests:
+          type: integer
+        transferred_results:
+          type: integer
+      required:
+      - deleted_user_id
+      - deleted_username
+      - message
+      - transferred_results
+      - transferred_tests
+      - transferred_to_user_id
+      - transferred_to_username
+    ForgotPassword:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    ForgotPasswordResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        reset_link:
+          type: string
+      required:
+      - message
+    InProgressTest:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user_id:
+          type: integer
+          readOnly: true
+        test_id:
+          type: integer
+          readOnly: true
+        time_taken:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        status:
+          $ref: '#/components/schemas/Status090Enum'
+        started_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        test_title:
+          type: string
+        test_description:
+          type: string
+        test_main_topic:
+          type: string
+        test_sub_topic:
+          type: string
+        test_specific_topic:
+          type: string
+        test_level:
+          type: string
+        test_created_at:
+          type: string
+          format: date-time
+        total_questions:
+          type: integer
+          readOnly: true
+        answered_count:
+          type: string
+          readOnly: true
+        remaining_count:
+          type: string
+          readOnly: true
+        progress:
+          type: string
+          readOnly: true
+      required:
+      - answered_count
+      - id
+      - progress
+      - remaining_count
+      - test_created_at
+      - test_description
+      - test_id
+      - test_level
+      - test_main_topic
+      - test_specific_topic
+      - test_sub_topic
+      - test_title
+      - total_questions
+      - user_id
+    InvitationCreate:
+      type: object
+      properties:
+        test_id:
+          type: integer
+        message:
+          type: string
+          nullable: true
+          default: ''
+      required:
+      - test_id
+    InvitationList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        test_id:
+          type: integer
+        test_title:
+          type: string
+        invited_by:
+          type: integer
+        inviter_name:
+          type: string
+        guest_user_id:
+          type: integer
+          readOnly: true
+          nullable: true
+        guest_name:
+          type: string
+          readOnly: true
+        message:
+          type: string
+        is_used:
+          type: boolean
+        is_guest:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        invitation_url:
+          type: string
+          readOnly: true
+      required:
+      - created_at
+      - expires_at
+      - guest_name
+      - guest_user_id
+      - id
+      - invitation_url
+      - invited_by
+      - inviter_name
+      - status
+      - test_id
+      - test_title
+      - updated_at
+    LevelEnum:
+      enum:
+      - Principiante
+      - Intermedio
+      - Avanzado
+      type: string
+      description: |-
+        * `Principiante` - Principiante
+        * `Intermedio` - Intermedio
+        * `Avanzado` - Avanzado
+    Login:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+    LoginResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        message:
+          type: string
+        access_token:
+          type: string
+        token_type:
+          type: string
+      required:
+      - access_token
+      - message
+      - token_type
+      - user
+    LogoutResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+      - message
+    PaginatedAIRequestLogList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AIRequestLog'
+    PaginatedCompletedTestList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompletedTest'
+    PaginatedInProgressTestList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/InProgressTest'
+    PaginatedInvitationListList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvitationList'
+    PaginatedQuotaByUserResponseList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuotaByUserResponse'
+    PaginatedResultListList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResultList'
+    PaginatedSystemConfigList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SystemConfig'
+    PaginatedTestListList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestList'
+    PaginatedUserQuotaList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserQuota'
+    PaginatedUserResultListList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserResultList'
+    PaginatedUserWithStatsList:
+      type: object
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserWithStats'
+    PatchedSystemConfig:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        key:
+          type: string
+          maxLength: 255
+        value:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedTestCreateUpdate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        main_topic:
+          type: string
+          maxLength: 255
+        sub_topic:
+          type: string
+          maxLength: 255
+        specific_topic:
+          type: string
+          maxLength: 255
+        level:
+          $ref: '#/components/schemas/LevelEnum'
+        is_active:
+          type: boolean
+        created_by:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionCreate'
+    PatchedUserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 100
+        first_name:
+          type: string
+          maxLength: 50
+        last_name:
+          type: string
+          maxLength: 50
+        phone:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+        country:
+          type: string
+          maxLength: 100
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        registered_at:
+          type: string
+          format: date-time
+        login_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedUserQuotaUpdate:
+      type: object
+      properties:
+        max_requests:
+          type: integer
+          minimum: 1
+        used_requests:
+          type: integer
+          minimum: 0
+    PerformanceMetricsResponse:
+      type: object
+      properties:
+        completion_rate:
+          type: number
+          format: double
+        overall_accuracy:
+          type: number
+          format: double
+        average_time_minutes:
+          type: number
+          format: double
+        level_distribution:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        role_distribution:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - average_time_minutes
+      - completion_rate
+      - level_distribution
+      - overall_accuracy
+      - role_distribution
+    ProfileGetResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserProfile'
+      required:
+      - user
+    Question:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        question_text:
+          type: string
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Answer'
+          readOnly: true
+      required:
+      - answers
+      - id
+      - question_text
+    QuestionCreate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        question_text:
+          type: string
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/AnswerCreate'
+      required:
+      - answers
+      - id
+      - question_text
+    QuotaByUserResponse:
+      type: object
+      properties:
+        quota:
+          allOf:
+          - $ref: '#/components/schemas/UserQuota'
+          nullable: true
+      required:
+      - quota
+    QuotaStatsResponse:
+      type: object
+      properties:
+        stats:
+          type: object
+          additionalProperties: {}
+        current_month:
+          type: object
+          additionalProperties: {}
+        monthly_stats:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        top_users:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        timestamp:
+          type: string
+      required:
+      - current_month
+      - monthly_stats
+      - stats
+      - timestamp
+      - top_users
+    RecentActivityItem:
+      type: object
+      properties:
+        test_title:
+          type: string
+        status:
+          type: string
+        accuracy:
+          type: number
+          format: double
+        time_taken:
+          type: integer
+        started_at:
+          type: string
+      required:
+      - accuracy
+      - started_at
+      - status
+      - test_title
+      - time_taken
+    Register:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 50
+          minLength: 3
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          writeOnly: true
+          minLength: 6
+        first_name:
+          type: string
+        last_name:
+          type: string
+        phone:
+          type: string
+        address:
+          type: string
+        country:
+          type: string
+        birth_date:
+          type: string
+          format: date
+      required:
+      - birth_date
+      - country
+      - email
+      - password
+      - username
+    RegisterResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+      - user
+    ResetPassword:
+      type: object
+      properties:
+        token:
+          type: string
+        new_password:
+          type: string
+          writeOnly: true
+          minLength: 6
+        confirm_password:
+          type: string
+          writeOnly: true
+          minLength: 6
+      required:
+      - confirm_password
+      - new_password
+      - token
+    ResetPasswordResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+      - message
+    ResultDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user_id:
+          type: integer
+          readOnly: true
+        test_id:
+          type: integer
+          readOnly: true
+        correct_answers:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        wrong_answers:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        time_taken:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        status:
+          $ref: '#/components/schemas/Status090Enum'
+        answers: {}
+        started_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        user_username:
+          type: string
+        user_email:
+          type: string
+        user_first_name:
+          type: string
+        user_last_name:
+          type: string
+        user_role:
+          type: string
+        test_title:
+          type: string
+        test_description:
+          type: string
+        test_main_topic:
+          type: string
+        test_sub_topic:
+          type: string
+        test_specific_topic:
+          type: string
+        test_level:
+          type: string
+        total_questions:
+          type: string
+          readOnly: true
+        score:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - score
+      - test_description
+      - test_id
+      - test_level
+      - test_main_topic
+      - test_specific_topic
+      - test_sub_topic
+      - test_title
+      - total_questions
+      - user_email
+      - user_first_name
+      - user_id
+      - user_last_name
+      - user_role
+      - user_username
+    ResultList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user_id:
+          type: integer
+          readOnly: true
+        test_id:
+          type: integer
+          readOnly: true
+        correct_answers:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        wrong_answers:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        time_taken:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        status:
+          $ref: '#/components/schemas/Status090Enum'
+        answers: {}
+        started_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        user__username:
+          type: string
+        user__email:
+          type: string
+        user__first_name:
+          type: string
+        user__last_name:
+          type: string
+        user__role:
+          type: string
+        test__title:
+          type: string
+        test__description:
+          type: string
+        test__main_topic:
+          type: string
+        test__sub_topic:
+          type: string
+        test__specific_topic:
+          type: string
+        test__level:
+          type: string
+        total_questions:
+          type: string
+          readOnly: true
+        score:
+          type: string
+          readOnly: true
+      required:
+      - id
+      - score
+      - test__description
+      - test__level
+      - test__main_topic
+      - test__specific_topic
+      - test__sub_topic
+      - test__title
+      - test_id
+      - total_questions
+      - user__email
+      - user__first_name
+      - user__last_name
+      - user__role
+      - user__username
+      - user_id
+    RoleEnum:
+      enum:
+      - user
+      - admin
+      - guest
+      - deleted
+      type: string
+      description: |-
+        * `user` - Usuario
+        * `admin` - Administrador
+        * `guest` - Invitado
+        * `deleted` - Eliminado
+    SaveResultInput:
+      type: object
+      properties:
+        answers:
+          type: object
+          additionalProperties:
+            type: integer
+        time_taken:
+          type: integer
+          default: 0
+        status:
+          $ref: '#/components/schemas/SaveResultInputStatusEnum'
+      required:
+      - status
+    SaveResultInputStatusEnum:
+      enum:
+      - in_progress
+      - completed
+      - expired
+      type: string
+      description: |-
+        * `in_progress` - in_progress
+        * `completed` - completed
+        * `expired` - expired
+    Status090Enum:
+      enum:
+      - in_progress
+      - completed
+      - expired
+      type: string
+      description: |-
+        * `in_progress` - En progreso
+        * `completed` - Completado
+        * `expired` - Expirado
+    Status8bfEnum:
+      enum:
+      - pending
+      - completed
+      - failed
+      type: string
+      description: |-
+        * `pending` - Pendiente
+        * `completed` - Completado
+        * `failed` - Fallido
+    SystemConfig:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        key:
+          type: string
+          maxLength: 255
+        value:
+          type: string
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - key
+      - updated_at
+      - value
+    SystemConfigByKeyResponse:
+      type: object
+      properties:
+        value:
+          type: integer
+        error:
+          type: string
+    TestCreateUpdate:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        main_topic:
+          type: string
+          maxLength: 255
+        sub_topic:
+          type: string
+          maxLength: 255
+        specific_topic:
+          type: string
+          maxLength: 255
+        level:
+          $ref: '#/components/schemas/LevelEnum'
+        is_active:
+          type: boolean
+        created_by:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionCreate'
+      required:
+      - created_at
+      - created_by
+      - id
+      - level
+      - questions
+      - title
+      - updated_at
+    TestDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        main_topic:
+          type: string
+          maxLength: 255
+        sub_topic:
+          type: string
+          maxLength: 255
+        specific_topic:
+          type: string
+          maxLength: 255
+        level:
+          $ref: '#/components/schemas/LevelEnum'
+        is_active:
+          type: boolean
+        created_by:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question'
+          readOnly: true
+      required:
+      - created_at
+      - created_by
+      - id
+      - level
+      - questions
+      - title
+      - updated_at
+    TestDetailedStatsResponse:
+      type: object
+      properties:
+        test_title:
+          type: string
+        test_level:
+          type: string
+        topic_hierarchy:
+          type: object
+          additionalProperties: {}
+        total_attempts:
+          type: integer
+        completed_attempts:
+          type: integer
+        in_progress_attempts:
+          type: integer
+        expired_attempts:
+          type: integer
+        avg_accuracy:
+          type: number
+          format: double
+        avg_time:
+          type: number
+          format: double
+        completion_rate:
+          type: number
+          format: double
+      required:
+      - avg_accuracy
+      - avg_time
+      - completed_attempts
+      - completion_rate
+      - expired_attempts
+      - in_progress_attempts
+      - test_level
+      - test_title
+      - topic_hierarchy
+      - total_attempts
+    TestList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        main_topic:
+          type: string
+          maxLength: 255
+        sub_topic:
+          type: string
+          maxLength: 255
+        specific_topic:
+          type: string
+          maxLength: 255
+        level:
+          $ref: '#/components/schemas/LevelEnum'
+        is_active:
+          type: boolean
+        created_by:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        total_questions:
+          type: integer
+          readOnly: true
+      required:
+      - created_at
+      - created_by
+      - id
+      - level
+      - title
+      - total_questions
+      - updated_at
+    TestStats:
+      type: object
+      properties:
+        total_tests:
+          type: integer
+        completed_tests:
+          type: integer
+        in_progress_tests:
+          type: integer
+        expired_tests:
+          type: integer
+        avg_accuracy:
+          type: number
+          format: double
+        avg_time_per_test:
+          type: number
+          format: double
+        favorite_topic:
+          type: string
+        favorite_level:
+          type: string
+      required:
+      - avg_accuracy
+      - avg_time_per_test
+      - completed_tests
+      - expired_tests
+      - favorite_level
+      - favorite_topic
+      - in_progress_tests
+      - total_tests
+    TopTestItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        count:
+          type: integer
+        attempt_count:
+          type: integer
+        date:
+          type: string
+      required:
+      - id
+      - title
+    TopTestsLists:
+      type: object
+      properties:
+        most_completed:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopTestItem'
+        most_incomplete:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopTestItem'
+        most_expired:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopTestItem'
+        least_started_oldest:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopTestItem'
+        highest_accuracy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccuracyTimeItem'
+        lowest_accuracy:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccuracyTimeItem'
+        highest_avg_time:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccuracyTimeItem'
+        lowest_avg_time:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccuracyTimeItem'
+      required:
+      - highest_accuracy
+      - highest_avg_time
+      - least_started_oldest
+      - lowest_accuracy
+      - lowest_avg_time
+      - most_completed
+      - most_expired
+      - most_incomplete
+    UpdateEmailPasswordResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserProfile'
+      required:
+      - message
+      - user
+    UpdateGuestProfileResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserProfile'
+      required:
+      - message
+      - user
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 100
+        first_name:
+          type: string
+          maxLength: 50
+        last_name:
+          type: string
+          maxLength: 50
+        phone:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+        country:
+          type: string
+          maxLength: 100
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        login_at:
+          type: string
+          format: date-time
+          readOnly: true
+        registered_at:
+          type: string
+          format: date-time
+        is_active:
+          type: boolean
+      required:
+      - email
+      - id
+      - login_at
+      - username
+    UserDetailedStatsResponse:
+      type: object
+      properties:
+        user_info:
+          $ref: '#/components/schemas/UserInfo'
+        test_stats:
+          $ref: '#/components/schemas/TestStats'
+        recent_activity:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecentActivityItem'
+      required:
+      - recent_activity
+      - test_stats
+      - user_info
+    UserInfo:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+        registered_at:
+          type: string
+          nullable: true
+        last_login:
+          type: string
+          nullable: true
+        role:
+          type: string
+      required:
+      - email
+      - last_login
+      - registered_at
+      - role
+      - username
+    UserListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        role:
+          type: string
+        count:
+          type: integer
+        date:
+          type: string
+      required:
+      - id
+      - role
+      - username
+    UserLists:
+      type: object
+      properties:
+        new_users_by_month:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserListItem'
+        most_active_users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserListItem'
+        least_active_oldest:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserListItem'
+        recent_login:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserListItem'
+        oldest_login:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserListItem'
+      required:
+      - least_active_oldest
+      - most_active_users
+      - new_users_by_month
+      - oldest_login
+      - recent_login
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          maxLength: 50
+        email:
+          type: string
+          format: email
+          maxLength: 100
+        first_name:
+          type: string
+          maxLength: 50
+        last_name:
+          type: string
+          maxLength: 50
+        phone:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+        country:
+          type: string
+          maxLength: 100
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        registered_at:
+          type: string
+          format: date-time
+        login_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - email
+      - id
+      - login_at
+      - username
+    UserQuota:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user_id:
+          type: integer
+          readOnly: true
+        user__username:
+          type: string
+          readOnly: true
+        user__email:
+          type: string
+          readOnly: true
+        month_year:
+          type: string
+          maxLength: 7
+        max_requests:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        used_requests:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        remaining_requests:
+          type: string
+          readOnly: true
+        usage_percentage:
+          type: string
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - month_year
+      - remaining_requests
+      - status
+      - updated_at
+      - usage_percentage
+      - user__email
+      - user__username
+      - user_id
+    UserQuotaCreate:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        month_year:
+          type: string
+          maxLength: 7
+        max_requests:
+          type: integer
+          minimum: 1
+      required:
+      - max_requests
+      - month_year
+      - user_id
+    UserQuotaCreateResponse:
+      type: object
+      properties:
+        quota:
+          $ref: '#/components/schemas/UserQuota'
+        message:
+          type: string
+      required:
+      - message
+      - quota
+    UserQuotaDeleteResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        deleted:
+          type: object
+          additionalProperties: {}
+      required:
+      - deleted
+      - message
+    UserQuotaUpdate:
+      type: object
+      properties:
+        max_requests:
+          type: integer
+          minimum: 1
+        used_requests:
+          type: integer
+          minimum: 0
+    UserQuotaUpdateResponse:
+      type: object
+      properties:
+        quota:
+          $ref: '#/components/schemas/UserQuota'
+        message:
+          type: string
+      required:
+      - message
+      - quota
+    UserResultList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        test_id:
+          type: integer
+          readOnly: true
+        correct_answers:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        wrong_answers:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        time_taken:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        status:
+          $ref: '#/components/schemas/Status090Enum'
+        started_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        test__title:
+          type: string
+        test__description:
+          type: string
+        test__main_topic:
+          type: string
+        test__sub_topic:
+          type: string
+        test__specific_topic:
+          type: string
+        test__level:
+          type: string
+        test__created_at:
+          type: string
+          format: date-time
+        total_questions:
+          type: integer
+          readOnly: true
+        score:
+          type: string
+          readOnly: true
+        answered_count:
+          type: string
+          readOnly: true
+      required:
+      - answered_count
+      - id
+      - score
+      - test__created_at
+      - test__description
+      - test__level
+      - test__main_topic
+      - test__specific_topic
+      - test__sub_topic
+      - test__title
+      - test_id
+      - total_questions
+    UserUpdate:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 50
+        first_name:
+          type: string
+          maxLength: 50
+        last_name:
+          type: string
+          maxLength: 50
+        phone:
+          type: string
+          maxLength: 20
+        address:
+          type: string
+        country:
+          type: string
+          maxLength: 100
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - username
+    UserWithStats:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        role:
+          type: string
+        registered_at:
+          type: string
+          format: date-time
+        login_at:
+          type: string
+          format: date-time
+        tests_completed:
+          type: integer
+        tests_in_progress:
+          type: integer
+        average_score:
+          type: number
+          format: double
+        total_tests_taken:
+          type: integer
+      required:
+      - average_score
+      - email
+      - first_name
+      - id
+      - last_name
+      - login_at
+      - registered_at
+      - role
+      - tests_completed
+      - tests_in_progress
+      - total_tests_taken
+      - username
+    ValidateResetTokenResponse:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        message:
+          type: string
+      required:
+      - message
+      - valid

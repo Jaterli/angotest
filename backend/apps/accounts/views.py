@@ -1,11 +1,11 @@
-# apps/accounts/views.py 
-from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView, ListAPIView # type: ignore
-from rest_framework.permissions import IsAuthenticated, AllowAny # type: ignore
-from rest_framework.response import Response # type: ignore
-from rest_framework import status # type: ignore
-from rest_framework.views import APIView # type: ignore
-from django_filters.rest_framework import DjangoFilterBackend # type: ignore
-from rest_framework.filters import OrderingFilter # type: ignore
+# apps/accounts/views.py
+from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView, ListAPIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
 from django.db.models import Count, Avg, Q, F, FloatField, Case, When, Value
 from django.db.models.functions import Coalesce, Cast
 from django.contrib.auth.hashers import make_password, check_password
@@ -14,11 +14,22 @@ from datetime import timedelta, datetime
 from django.db import transaction
 import secrets
 import logging
+
+# drf-spectacular imports
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
+
 from .models import User, PasswordResetToken
 from .serializers import (
     UserSerializer, UserProfileSerializer, UserUpdateSerializer,
     UserWithStatsSerializer, RegisterSerializer, LoginSerializer,
-    ForgotPasswordSerializer, ResetPasswordSerializer
+    ForgotPasswordSerializer, ResetPasswordSerializer,
+    DeleteUserResponseSerializer, LoginResponseSerializer,
+    CheckAuthResponseSerializer, RegisterResponseSerializer,
+    ProfileGetResponseSerializer, ProfileUpdateResponseSerializer,
+    UpdateEmailPasswordResponseSerializer, UpdateGuestProfileResponseSerializer,
+    DeactivateAccountResponseSerializer, ForgotPasswordResponseSerializer,
+    ValidateResetTokenResponseSerializer, ResetPasswordResponseSerializer,
+    LogoutResponseSerializer, DashboardResponseSerializer, RankingsResponseSerializer
 )
 from .filters import UserFilter
 from apps.shared.pagination import CustomPagination
@@ -33,6 +44,15 @@ logger = logging.getLogger(__name__)
 # Autenticación (públicos)
 # ===========================================================================
 
+@extend_schema(
+    summary="Registro de usuario",
+    description="Crea una nueva cuenta de usuario",
+    request=RegisterSerializer,
+    responses={
+        201: OpenApiResponse(description="Usuario creado", response=RegisterResponseSerializer),
+        400: OpenApiResponse(description="Datos inválidos"),
+    }
+)
 class RegisterView(CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = RegisterSerializer
@@ -58,6 +78,15 @@ class RegisterView(CreateAPIView):
         return Response({'user': UserSerializer(user).data}, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(
+    summary="Inicio de sesión",
+    description="Autentica un usuario y devuelve un token JWT en cookie HttpOnly",
+    request=LoginSerializer,
+    responses={
+        200: OpenApiResponse(description="Login exitoso", response=LoginResponseSerializer),
+        401: OpenApiResponse(description="Credenciales inválidas o cuenta desactivada"),
+    }
+)
 class LoginView(APIView):
     permission_classes = [AllowAny]
 
@@ -78,7 +107,7 @@ class LoginView(APIView):
         if not user.is_active:
             return Response({'error': 'Cuenta desactivada'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # Generar token JWT (tu función)
+        # Generar token JWT
         from .views import generate_jwt_token, set_auth_cookie
         token = generate_jwt_token(user, False)
 
@@ -92,6 +121,13 @@ class LoginView(APIView):
         return response
 
 
+@extend_schema(
+    summary="Verificar autenticación",
+    description="Comprueba si el token JWT es válido y devuelve los datos del usuario autenticado",
+    responses={
+        200: OpenApiResponse(description="Estado de autenticación", response=CheckAuthResponseSerializer),
+    }
+)
 class CheckAuthView(APIView):
     permission_classes = [AllowAny]
 
@@ -111,6 +147,13 @@ class CheckAuthView(APIView):
         })
 
 
+@extend_schema(
+    summary="Cerrar sesión",
+    description="Elimina la cookie de autenticación",
+    responses={
+        200: OpenApiResponse(description="Sesión cerrada", response=LogoutResponseSerializer),
+    }
+)
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -120,6 +163,15 @@ class LogoutView(APIView):
         return response
 
 
+@extend_schema(
+    summary="Solicitar recuperación de contraseña",
+    description="Envía un correo con un enlace para restablecer la contraseña",
+    request=ForgotPasswordSerializer,
+    responses={
+        200: OpenApiResponse(description="Correo enviado (si existe el email)", response=ForgotPasswordResponseSerializer),
+        400: OpenApiResponse(description="Datos inválidos"),
+    }
+)
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
 
@@ -142,12 +194,10 @@ class ForgotPasswordView(APIView):
         )
         reset_token.save()
 
-        # Construir enlace
         scheme = "https" if request.is_secure() else "http"
         reset_link = f"{scheme}://{settings.SITE_URL}/reset-password?token={token}"
         logger.info(f"Password reset link for {user.email}: {reset_link}")
 
-        # Enviar email
         send_password_reset_email(user.email, reset_link)
 
         response_data = {'message': 'Si el email existe, se ha enviado un enlace de recuperación'}
@@ -156,6 +206,14 @@ class ForgotPasswordView(APIView):
         return Response(response_data)
 
 
+@extend_schema(
+    summary="Validar token de recuperación",
+    description="Comprueba si el token de restablecimiento es válido y no ha expirado",
+    responses={
+        200: OpenApiResponse(description="Token válido", response=ValidateResetTokenResponseSerializer),
+        400: OpenApiResponse(description="Token inválido o expirado"),
+    }
+)
 class ValidateResetTokenView(APIView):
     permission_classes = [AllowAny]
 
@@ -175,6 +233,15 @@ class ValidateResetTokenView(APIView):
             return Response({'valid': False, 'error': 'Token inválido o expirado'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    summary="Restablecer contraseña con token",
+    description="Cambia la contraseña usando un token válido",
+    request=ResetPasswordSerializer,
+    responses={
+        200: OpenApiResponse(description="Contraseña actualizada", response=ResetPasswordResponseSerializer),
+        400: OpenApiResponse(description="Token inválido, expirado o datos incorrectos"),
+    }
+)
 class ResetPasswordWithTokenView(APIView):
     permission_classes = [AllowAny]
 
@@ -206,6 +273,22 @@ class ResetPasswordWithTokenView(APIView):
 # Perfil de usuario (autenticado)
 # ===========================================================================
 
+@extend_schema(
+    summary="Obtener perfil del usuario autenticado",
+    responses={
+        200: OpenApiResponse(description="Datos del perfil", response=ProfileGetResponseSerializer),
+    }
+)
+@extend_schema(
+    methods=['put'],
+    summary="Actualizar perfil",
+    description="Actualiza los campos del perfil (username, nombre, etc.)",
+    request=UserUpdateSerializer,
+    responses={
+        200: OpenApiResponse(description="Perfil actualizado", response=ProfileUpdateResponseSerializer),
+        400: OpenApiResponse(description="Datos inválidos o nombre de usuario duplicado"),
+    }
+)
 class ProfileView(RetrieveAPIView, UpdateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = UserProfileSerializer
@@ -223,16 +306,9 @@ class ProfileView(RetrieveAPIView, UpdateAPIView):
         serializer = UserUpdateSerializer(user, data=request.data, partial=False)
         serializer.is_valid(raise_exception=True)
 
-        # Validar username único
         username = serializer.validated_data.get('username')
         if username and User.objects.filter(username=username).exclude(id=user.id).exists():
             return Response({'error': 'El nombre de usuario ya está en uso'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Validar birth_date
-        birth_date = serializer.validated_data.get('birth_date')
-        if birth_date:
-            # Ya validado por el serializer
-            pass
 
         serializer.save()
         return Response({
@@ -241,6 +317,23 @@ class ProfileView(RetrieveAPIView, UpdateAPIView):
         })
 
 
+@extend_schema(
+    summary="Actualizar email y/o contraseña",
+    description="Cambia el email o la contraseña del usuario autenticado (requiere contraseña actual)",
+    request=OpenApiExample(
+        name="UpdateEmailPassword",
+        value={
+            "current_password": "string",
+            "new_email": "user@example.com",
+            "new_password": "newpassword123"
+        },
+        request_only=True,
+    ),
+    responses={
+        200: OpenApiResponse(description="Actualizado", response=UpdateEmailPasswordResponseSerializer),
+        400: OpenApiResponse(description="Error de validación o contraseña incorrecta"),
+    }
+)
 class UpdateEmailPasswordView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -278,6 +371,27 @@ class UpdateEmailPasswordView(APIView):
         return Response({'message': message, 'user': UserProfileSerializer(user).data})
 
 
+@extend_schema(
+    summary="Actualizar perfil de usuario invitado",
+    description="Convierte un usuario guest en usuario permanente completando sus datos",
+    request=OpenApiExample(
+        name="UpdateGuestProfile",
+        value={
+            "username": "nuevo_user",
+            "email": "nuevo@email.com",
+            "first_name": "Nombre",
+            "last_name": "Apellido",
+            "country": "España",
+            "birth_date": "1990-01-01",
+            "new_password": "password123"
+        },
+        request_only=True,
+    ),
+    responses={
+        200: OpenApiResponse(description="Perfil actualizado y convertido a usuario", response=UpdateGuestProfileResponseSerializer),
+        400: OpenApiResponse(description="Datos inválidos o usuario no es guest"),
+    }
+)
 class UpdateGuestProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -300,7 +414,6 @@ class UpdateGuestProfileView(APIView):
         birth_date_str = data['birth_date']
         new_password = data['new_password']
 
-        # Validaciones
         if len(username) < 3 or len(username) > 30:
             return Response({'error': 'Username debe tener entre 3 y 30 caracteres'}, status=status.HTTP_400_BAD_REQUEST)
         if '@' not in email or '.' not in email:
@@ -336,6 +449,22 @@ class UpdateGuestProfileView(APIView):
         })
 
 
+@extend_schema(
+    summary="Desactivar cuenta",
+    description="Elimina la cuenta del usuario autenticado (anonimiza y transfiere datos)",
+    request=OpenApiExample(
+        name="DeactivateAccount",
+        value={
+            "current_password": "string",
+            "confirm_text": "CONFIRMAR ELIMINAR CUENTA"
+        },
+        request_only=True,
+    ),
+    responses={
+        200: OpenApiResponse(description="Cuenta desactivada", response=DeactivateAccountResponseSerializer),
+        400: OpenApiResponse(description="Error de validación o contraseña incorrecta"),
+    }
+)
 class DeactivateAccountView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -352,13 +481,11 @@ class DeactivateAccountView(APIView):
         if not check_password(current_password, user.password):
             return Response({'error': 'Contraseña actual incorrecta'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Verificar que no sea el único admin
         if user.role == 'admin':
             admin_count = User.objects.filter(role='admin', is_active=True).count()
             if admin_count <= 1:
                 return Response({'error': 'No se puede eliminar el único administrador activo'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Obtener usuario contenedor
         container_user, error = get_container_user()
         if container_user is None:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
@@ -367,16 +494,12 @@ class DeactivateAccountView(APIView):
             return Response({'error': 'No se puede eliminar el usuario contenedor'}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
-            # Transferir tests y resultados
             Test.objects.filter(created_by=user.id).update(created_by=container_user.pk)
             Result.objects.filter(user_id=user.id).update(user_id=container_user.pk)
-            # Eliminar cuotas
             from apps.admin_panel.models import UserQuota
             UserQuota.objects.filter(user_id=user.id).delete()
-            # Eliminar invitaciones enviadas
             from apps.invitations.models import TestInvitation
             TestInvitation.objects.filter(invited_by_id=user.id).delete()
-            # Anonimizar
             user.username = f"del_{user.username}_{user.id}"
             email_local = user.email.split('@')[0] if '@' in user.email else user.username
             user.email = f"{email_local}_{user.id}@deleted.local"
@@ -391,7 +514,6 @@ class DeactivateAccountView(APIView):
             user.deleted_at = timezone.now()
             user.save()
 
-        # Cerrar sesión
         from django.contrib.auth import logout as django_logout
         django_logout(request)
         response = Response({'message': 'Tu cuenta ha sido cerrada correctamente.'})
@@ -403,6 +525,13 @@ class DeactivateAccountView(APIView):
 # Dashboard y Rankings (autenticado)
 # ===========================================================================
 
+@extend_schema(
+    summary="Datos del dashboard personal",
+    description="Estadísticas del usuario (primeros intentos, todos los intentos, por nivel, etc.)",
+    responses={
+        200: OpenApiResponse(description="Datos del dashboard", response=DashboardResponseSerializer),
+    }
+)
 class DashboardView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -419,6 +548,13 @@ class DashboardView(APIView):
         })
 
 
+@extend_schema(
+    summary="Rankings globales",
+    description="Obtiene los top usuarios por distintas métricas (tests, precisión, tiempo, etc.)",
+    responses={
+        200: OpenApiResponse(description="Datos de rankings", response=RankingsResponseSerializer),
+    }
+)
 class RankingsView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -468,7 +604,6 @@ class AdminUserListView(ListAPIView):
     ordering = ['-registered_at']
 
     def get_queryset(self):
-
         queryset = User.objects.annotate(
             tests_completed=Coalesce(Count('results', filter=Q(results__status='completed')), Value(0)),
             tests_in_progress=Coalesce(Count('results', filter=Q(results__status='in_progress')), Value(0)),
@@ -498,7 +633,6 @@ class AdminUserListView(ListAPIView):
             serializer = self.get_serializer(queryset, many=True)
             response = Response(serializer.data)
 
-        # Añadir estadísticas adicionales
         response.data['stats'] = {
             'total_unfiltered': User.objects.count(),
             'total_filtered': total_filtered,
@@ -522,11 +656,23 @@ class AdminUserProfileView(RetrieveAPIView):
     lookup_url_kwarg = 'user_id'
 
 
+@extend_schema(
+    summary="Eliminar usuario (admin)",
+    description="Elimina permanentemente un usuario. Transfiere sus tests y resultados al usuario contenedor.",
+    responses={
+        200: OpenApiResponse(description="Usuario eliminado", response=DeleteUserResponseSerializer),
+        400: OpenApiResponse(description="Error (admin único, usuario contenedor, etc.)"),
+        401: OpenApiResponse(description="No autenticado"),
+        403: OpenApiResponse(description="Sin permisos de administrador"),
+        404: OpenApiResponse(description="Usuario no encontrado"),
+    }
+)
 class AdminDeleteUserView(DestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = User.objects.all()
     lookup_field = 'id'
     lookup_url_kwarg = 'user_id'
+    serializer_class = None  # Importante para que drf-spectacular no intente obtener un serializer inexistente
 
     def destroy(self, request, *args, **kwargs):
         user = self.get_object()
@@ -535,7 +681,6 @@ class AdminDeleteUserView(DestroyAPIView):
             if admin_count <= 1:
                 return Response({'error': 'No se puede eliminar el único administrador activo'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Verificar usuario contenedor
         container_user, error = get_container_user()
         if container_user is None:
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
@@ -544,7 +689,6 @@ class AdminDeleteUserView(DestroyAPIView):
             return Response({'error': 'No se puede eliminar el usuario contenedor'}, status=status.HTTP_400_BAD_REQUEST)
 
         with transaction.atomic():
-            # Transferir datos
             PasswordResetToken.objects.filter(user_id=user.id).delete()
             from apps.test.models import Test
             transferred_tests = Test.objects.filter(created_by=user.id).update(created_by=container_user.pk)
@@ -563,11 +707,14 @@ class AdminDeleteUserView(DestroyAPIView):
             'transferred_tests': transferred_tests,
             'transferred_results': transferred_results
         })
-    
 
+
+# ------------------------------------------------------------------
+# Funciones auxiliares (JWT, cookies, etc.)
+# ------------------------------------------------------------------
 
 from django.conf import settings
-import jwt # type: ignore
+import jwt
 
 def get_user_from_token(token):
     """Obtiene el usuario a partir del token JWT"""
@@ -575,26 +722,19 @@ def get_user_from_token(token):
         secret = settings.JWT_SECRET
         if not secret:
             return None
-        
         payload = jwt.decode(token, secret, algorithms=['HS256'])
         user_id = payload.get('user_id')
-        
         if not user_id:
             return None
-        
-        # Usar only() para mejorar rendimiento
         return User.objects.only('id', 'email', 'username', 'role', 'is_active').filter(id=user_id).first()
-        
     except jwt.InvalidTokenError:
-        return None    
-    
+        return None
 
 def generate_jwt_token(user, is_guest=False):
     """Genera un token JWT para el usuario"""
     secret = settings.JWT_SECRET
     if not secret:
         raise ValueError("JWT_SECRET no configurado en el entorno")
-    
     payload = {
         'user_id': user.id,
         'role': user.role,
@@ -602,22 +742,15 @@ def generate_jwt_token(user, is_guest=False):
         'exp': timezone.now() + timedelta(hours=24),
         'iat': timezone.now(),
     }
-    
     return jwt.encode(payload, secret, algorithm='HS256')
-
 
 def set_auth_cookie(response, user, is_guest=False):
     """Configura la cookie de autenticación"""
     try:
         token = generate_jwt_token(user, is_guest)
-        
-        # Actualizar login_at
         user.login_at = timezone.now()
         user.save(update_fields=['login_at'])
-        
-        # Configuración de la cookie
         is_production = getattr(settings, 'ENV', 'development') == 'production'
-        
         response.set_cookie(
             'auth_token',
             token,
@@ -628,22 +761,17 @@ def set_auth_cookie(response, user, is_guest=False):
             httponly=True,
             samesite='Strict' if is_production else 'Lax'
         )
-        
         logger.info(f"Setting auth cookie | secure={is_production} | env={settings.ENV}")
-        
     except Exception as e:
         logger.error(f"Error setting auth cookie: {str(e)}")
         raise
-
 
 def get_token_from_request(request):
     """Extrae el token de Authorization header o cookie"""
     auth_header = request.headers.get('Authorization', '')
     if auth_header.startswith('Bearer '):
         return auth_header[7:]
-
     return request.COOKIES.get('auth_token')
-
 
 def get_container_user():
     """
@@ -651,7 +779,6 @@ def get_container_user():
     Retorna (container_user, error_message)
     """
     from apps.admin_panel.models import SystemConfig
-    
     try:
         container_user_id = int(SystemConfigManager.get_value(key='CONTAINER_USER_ID'))
         container_user = User.objects.get(id=container_user_id)
@@ -666,7 +793,6 @@ def get_container_user():
             'error': 'La configuración "CONTAINER_USER_ID" no está definida',
             'message': 'Por favor, asegúrate de que la configuración de "CONTAINER_USER_ID" esté presente en el sistema.'
         }
-    
 
 
 # ============== RECUPERACIÓN DE CONTRASEÑA ==============
@@ -697,4 +823,4 @@ def send_password_reset_email(to_email, reset_link):
         [to_email],
         html_message=html_message,
         fail_silently=False
-    )    
+    )
