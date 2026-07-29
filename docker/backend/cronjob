@@ -1,5 +1,8 @@
 # docker/backend/cronjob
-# Ejecutar diariamente a las 2:00 AM
+# Ejecutar diariamente a las 2:00 AM (expiración de tests en progreso)
 0 2 * * * root cd /app && /usr/local/bin/python manage.py expire_in_progress_results >> /var/log/expire_results.log 2>&1
 
+
+# Backup de la base de datos a las 3:00 AM (después del expire)
+0 3 * * * root pg_dump -U $DB_USER -h $DB_HOST $DB_NAME | gzip > /backups/backup_$(date +\%Y\%m\%d).sql.gz
 # Línea vacía requerida al final del archivo

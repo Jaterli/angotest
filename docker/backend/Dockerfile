@@ -15,12 +15,12 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 COPY ./backend /app/
 
 # Copiar el script de cron
-COPY ./docker/backend/cronjob /etc/cron.d/expire-results-cron
-RUN chmod 0644 /etc/cron.d/expire-results-cron
-RUN crontab /etc/cron.d/expire-results-cron
+COPY ./docker/backend/cronjob /etc/cron.d/angotest-cron
+RUN chmod 0644 /etc/cron.d/angotest-cron
+RUN crontab /etc/cron.d/angotest-cron
 
 # Crear archivo de log para cron
-RUN touch /var/log/expire_results.log
+RUN touch /var/log/angotest-cron.log
 
 # Script de entrada para ejecutar Gunicorn y Cron
 COPY ./docker/backend/entrypoint.sh /entrypoint.sh

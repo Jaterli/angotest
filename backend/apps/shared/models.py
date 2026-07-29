@@ -4,9 +4,6 @@ from django.core.cache import cache
 from django.db.models import Count
 import logging
 
-from apps.test.models import Test
-from apps.results.models import Result
-
 CACHE_KEY_PREFIXES = {
     'topics_hierarchy': 'topics_hierarchy_',
     'main_topics': 'main_topics_',
