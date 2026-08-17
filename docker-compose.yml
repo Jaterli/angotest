@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: angotest_dj_postgres
+    container_name: angotest_postgres
     restart: always
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -25,7 +25,7 @@ services:
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
-    container_name: angotest_dj_backend
+    container_name: angotest_backend
     restart: always
     volumes:
       - static_volume:/app/staticfiles
@@ -35,7 +35,7 @@ services:
         condition: service_healthy
     environment:
       ENV: production
-      DB_HOST: angotest_dj_postgres # Sobreescribe a .env
+      DB_HOST: angotest_postgres # Sobreescribe a .env
 
     networks:
       - web_network
@@ -48,7 +48,7 @@ services:
     build:
       context: .
       dockerfile: docker/frontend/Dockerfile
-    container_name: angotest_dj_frontend
+    container_name: angotest_frontend
     restart: always
     depends_on:
       - backend
