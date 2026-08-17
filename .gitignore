@@ -75,6 +75,7 @@ frontend/.pnp.*
 *.swo
 *.tmp
 *.temp
+*.sql
 
 # Documentación que no debería versionarse
 *.pdf
