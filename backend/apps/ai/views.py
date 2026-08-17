@@ -8,7 +8,6 @@ from django_filters.rest_framework import DjangoFilterBackend # type: ignore
 from rest_framework.filters import OrderingFilter # type: ignore
 from django.utils import timezone
 import time
-import json
 import logging
 
 from .models import AIRequestLog
@@ -20,7 +19,7 @@ from .serializers import (
 from .filters import AIRequestLogFilter
 from .services import (
     get_ai_provider, get_system_prompt, build_prompt,
-    check_quota_available, consume_quota, generate_mock_test, make_ai_request,
+    check_quota_available, consume_quota, make_ai_request,
     parse_ai_response, create_test_from_ai_response, get_or_create_user_quota, quota_to_dict
 )
 from apps.shared.pagination import CustomPagination
@@ -33,6 +32,7 @@ class GenerateAITestView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        
         serializer = GenerateAITestSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -64,6 +64,12 @@ class GenerateAITestView(APIView):
 
         provider = get_ai_provider()
 
+        if not provider:
+            logger.error("No AI provider configured")
+            return Response({
+                'error': 'No hay configuración de IA disponible. Contacte con el administrador.'
+            }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
         # Crear log
         ai_log = AIRequestLog.objects.create(
             user_id=user_id,
@@ -84,33 +90,28 @@ class GenerateAITestView(APIView):
         try:
             start_time = time.time()
 
-            if provider:
-                # Usar IA
-                prompt = build_prompt(input_data)
-                messages = [
-                    {'role': 'system', 'content': get_system_prompt(provider.name)},
-                    {'role': 'user', 'content': prompt}
-                ]
+            # Usar IA
+            prompt = build_prompt(input_data)
+            messages = [
+                {'role': 'system', 'content': get_system_prompt(provider.name)},
+                {'role': 'user', 'content': prompt}
+            ]
 
-                payload = {
-                    'model': provider.model,
-                    'messages': messages,
-                    'temperature': provider.temperature,
-                    #'max_completion_tokens': provider.max_tokens,
-                    'stream': False
-                }
+            payload = {
+                'model': provider.model,
+                'messages': messages,
+                'temperature': provider.temperature,
+                #'max_completion_tokens': provider.max_tokens,
+                'stream': False
+            }
 
-                result = make_ai_request(provider, payload)
-                ai_response = parse_ai_response(result, input_data)
+            result = make_ai_request(provider, payload)
+            ai_response = parse_ai_response(result, input_data)
 
-                ai_log.ai_response = result
-                ai_log.response_time = time.time() - start_time
-                ai_log.tokens_used = result.get('usage', {}).get('total_tokens', 0)
+            ai_log.ai_response = result
+            ai_log.response_time = time.time() - start_time
+            ai_log.tokens_used = result.get('usage', {}).get('total_tokens', 0)
 
-            else:
-                # Mock
-                ai_response = generate_mock_test(input_data)
-                ai_log.ai_response = ai_response
 
             # Crear test en BD
             test = create_test_from_ai_response(ai_response, user_id, input_data)

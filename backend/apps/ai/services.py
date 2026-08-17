@@ -10,6 +10,8 @@ from apps.test.models import Test, Question, Answer
 from apps.admin_panel.models import SystemConfig, UserQuota
 from apps.shared.models import get_main_topics, get_topics, insert_or_update_topic, invalidate_topics_cache
 from apps.admin_panel.utils import SystemConfigManager
+import logging
+logger = logging.getLogger(__name__)
 
 # Configuración de proveedores de IA
 class AIProviderConfig:
@@ -36,74 +38,92 @@ def get_ai_provider():
     return None
 
 def get_system_prompt(provider: str) -> str:
-    return """Eres un experto en tests educativos. Genera preguntas con exactamente una respuesta correcta.
-Responde ÚNICAMENTE con JSON válido sin markdown.
-Jerarquía de temas: main_topic > sub_topic > specific_topic.
-Respuestas incorrectas: plausibles pero incorrectas."""
-
+    return (
+        "Eres un generador de tests educativos. Tu tarea es crear preguntas de opción múltiple con una sola respuesta correcta. "
+        "Debes responder ÚNICAMENTE con un objeto JSON válido, sin markdown, sin explicaciones, sin texto adicional. "
+        "Asegúrate de que el JSON tenga la estructura exacta que se indica. "
+        "Si no puedes generar el test, devuelve un JSON con un campo 'error' explicativo, pero siempre en formato JSON. "
+        "Las preguntas deben ser claras, las respuestas incorrectas deben ser plausibles pero claramente incorrectas."
+    )
 
 def build_prompt(input_data: Dict[str, Any]) -> str:
-    """Construye el prompt para la IA"""
-    language_names = {
+    """Construye el prompt para la IA (unificado para modo guiado y libre)"""
+    lang = input_data.get('language', 'es')
+    lang_name = {
         'es': 'español',
         'en': 'inglés',
         'fr': 'francés',
         'de': 'alemán',
         'it': 'italiano',
         'pt': 'portugués',
-    }
-    
-    lang_name = language_names.get(input_data.get('language', 'es'), 'español')
-    is_free_mode = input_data.get('generation_mode') == 'prompt' and input_data.get('ai_prompt')
-    
-    if is_free_mode:
-        return build_free_mode_prompt(input_data, lang_name)
+    }.get(lang, 'español')
+
+    # Parte del tema
+    if input_data.get('generation_mode') == 'prompt' and input_data.get('ai_prompt'):
+        # Modo libre
+        topic_part = f"CONTENIDO: {input_data['ai_prompt']}\n\n"
+        topic_part += build_topics_summary()
+        topic_part += "\nINSTRUCCIÓN: Usa categorías existentes si encajan, si no crea una jerarquía nueva coherente (main_topic > sub_topic > specific_topic)."
     else:
-        return build_guided_mode_prompt(input_data, lang_name)
+        # Modo guiado
+        topic_part = (
+            f"TEMA: {input_data.get('main_topic')} > {input_data.get('sub_topic')} > {input_data.get('specific_topic')}\n"
+            "INSTRUCCIÓN: Usa exactamente estos temas."
+        )
 
-def build_free_mode_prompt(input_data: Dict[str, Any], lang_name: str) -> str:
-    topics_summary = build_topics_summary()
     n_q = input_data.get('num_questions')
     n_a = input_data.get('num_answers')
+    level = input_data.get('level')
 
-    return f"""Genera un test educativo en {lang_name}.
+    # Ejemplo de estructura (siempre el mismo, solo muestra formato)
+    example_json = {
+        "title": "Ejemplo de test",
+        "description": "Breve descripción",
+        "main_topic": "Matemáticas",
+        "sub_topic": "Álgebra",
+        "specific_topic": "Ecuaciones",
+        "questions": [
+            {
+                "question_text": "¿Cuál es la solución de 2x + 3 = 7?",
+                "answers": [
+                    {"answer_text": "x = 2", "is_correct": True},
+                    {"answer_text": "x = 3", "is_correct": False},
+                    {"answer_text": "x = 1", "is_correct": False},
+                    {"answer_text": "x = 4", "is_correct": False}
+                ]
+            }
+        ]
+    }
+    example_str = json.dumps(example_json, ensure_ascii=False, indent=2)
 
-CONTENIDO: {input_data.get('ai_prompt', '')}
+    prompt = f"""
+Genera un test educativo en {lang_name} con las siguientes especificaciones:
 
-{topics_summary}
+{topic_part}
 
-CLASIFICACIÓN: Usa categorías existentes si encajan, si no crea una jerarquía nueva coherente (main_topic > sub_topic > specific_topic).
+ESPECIFICACIONES:
+- Dificultad: {level}
+- Número de preguntas: {n_q}
+- Opciones por pregunta: {n_a}
 
-SPECS: dificultad={input_data.get('level')} | preguntas={n_q} | opciones/pregunta={n_a}
+REGLAS OBLIGATORIAS:
+1. Debes generar EXACTAMENTE {n_q} preguntas.
+2. Cada pregunta debe tener EXACTAMENTE {n_a} opciones.
+3. Solo una opción por pregunta debe ser correcta (is_correct: true).
+4. Las opciones incorrectas deben ser plausibles pero claramente incorrectas.
+5. No repitas la misma opción dentro de una misma pregunta.
+6. Las preguntas deben ser variadas y relacionadas con el tema.
+7. El título y la descripción deben ser coherentes con el contenido.
 
-REGLAS:
-- Exactamente {n_q} preguntas y {n_a} opciones cada una
-- Solo 1 opción correcta por pregunta ("is_correct": true)
-- Opciones incorrectas verosímiles pero claramente erróneas
-- Sin opciones repetidas por pregunta
+FORMATO DE RESPUESTA:
+Responde ÚNICAMENTE con un objeto JSON que tenga la siguiente estructura. NO incluyas markdown, ni texto adicional, ni explicaciones. Solo el JSON.
 
-RESPONDE SOLO CON ESTE JSON:
-{{"title":"...","description":"1-2 frases","main_topic":"...","sub_topic":"...","specific_topic":"...","questions":[{{"question_text":"...","answers":[{{"answer_text":"...","is_correct":true/false}}]}}]}}"""
+ESTRUCTURA OBLIGATORIA (copia esta estructura exacta, rellenando con tus valores):
+{example_str}
 
-
-def build_guided_mode_prompt(input_data: Dict[str, Any], lang_name: str) -> str:
-    n_q = input_data.get('num_questions')
-    n_a = input_data.get('num_answers')
-
-    return f"""Genera un test educativo en {lang_name}.
-
-TEMA: {input_data.get('main_topic')} > {input_data.get('sub_topic')} > {input_data.get('specific_topic')}
-SPECS: dificultad={input_data.get('level')} | preguntas={n_q} | opciones/pregunta={n_a}
-
-REGLAS:
-- Exactamente {n_q} preguntas y {n_a} opciones cada una
-- Solo 1 opción correcta ("is_correct": true), resto false
-- Opciones incorrectas verosímiles pero claramente erróneas
-- Sin opciones repetidas por pregunta
-
-RESPONDE SOLO CON ESTE JSON:
-{{"title":"...","description":"1-2 frases","questions":[{{"question_text":"...","answers":[{{"answer_text":"...","is_correct":true/false}}]}}]}}"""
-
+Asegúrate de que tu respuesta sea un JSON válido. Si hay algún error, incluye un campo "error" explicativo pero siempre en formato JSON.
+"""
+    return prompt
 
 
 def build_topics_summary() -> str:
@@ -201,40 +221,6 @@ def consume_quota(user_id: int) -> Tuple[bool, Dict[str, Any]]:
     return True, quota_to_dict(quota)
 
 
-def generate_mock_test(input_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Genera un test mock para desarrollo"""
-    main_topic = input_data.get('main_topic', 'General')
-    sub_topic = input_data.get('sub_topic', 'General')
-    specific_topic = input_data.get('specific_topic', 'General')
-    num_questions = input_data.get('num_questions', 10)
-    num_answers = input_data.get('num_answers', 4)
-    level = input_data.get('level', 'Intermedio')
-    
-    questions = []
-    for i in range(1, num_questions + 1):
-        correct_index = i % num_answers
-        answers = []
-        for j in range(num_answers):
-            is_correct = j == correct_index
-            answers.append({
-                'answer_text': f"Opción {chr(65+j)} {'(Correcta)' if is_correct else ''}",
-                'is_correct': is_correct
-            })
-        
-        questions.append({
-            'question_text': f"Pregunta {i} sobre {specific_topic}",
-            'answers': answers
-        })
-    
-    return {
-        'title': f"Test de {main_topic} - {sub_topic} - {specific_topic}",
-        'description': f"Test sobre {main_topic}, en la categoría {sub_topic}, tema específico: {specific_topic}",
-        'main_topic': main_topic,
-        'sub_topic': sub_topic,
-        'specific_topic': specific_topic,
-        'questions': questions
-    }
-
 def make_ai_request(provider: AIProviderConfig, payload: Dict[str, Any]) -> Dict[str, Any]:
     """Hace la solicitud a la API del proveedor"""
     headers = {
@@ -309,7 +295,7 @@ def parse_ai_response(result: Dict[str, Any], input_data: Dict[str, Any]) -> Dic
             content = choice['message']['content']
     
     if not content:
-        return generate_mock_test(input_data)
+        raise ValueError("La respuesta de la IA está vacía")
     
     content = clean_ai_content(content)
     
@@ -320,11 +306,13 @@ def parse_ai_response(result: Dict[str, Any], input_data: Dict[str, Any]) -> Dic
         try:
             ai_response = json.loads(repaired)
         except json.JSONDecodeError:
-            return generate_mock_test(input_data)
+            logger.error("Failed to parse AI response JSON, returning mock test")
+            raise ValueError("La respuesta de la IA no es un JSON válido\n Estructura devuelta: " + content)
     
     # Validar estructura
     if 'questions' not in ai_response or not ai_response['questions']:
-        return generate_mock_test(input_data)
+        logger.error("AI response JSON missing 'questions' or empty, returning mock test")
+        raise ValueError("La respuesta de la IA no contiene preguntas")
     
     is_free_mode = input_data.get('generation_mode') == 'prompt' and input_data.get('ai_prompt')
     

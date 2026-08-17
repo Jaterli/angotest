@@ -47,9 +47,9 @@ class RegisterSerializer(serializers.Serializer):
 
     def validate(self, data):
         if User.objects.filter(email=data['email']).exists():
-            raise serializers.ValidationError({'email': 'El email ya está registrado'})
+            raise serializers.ValidationError({'error': 'El email ya está registrado'})
         if User.objects.filter(username=data['username']).exists():
-            raise serializers.ValidationError({'username': 'El nombre de usuario ya está en uso'})
+            raise serializers.ValidationError({'error': 'El nombre de usuario ya está en uso'})
         return data
 
 class LoginSerializer(serializers.Serializer):

@@ -67,10 +67,10 @@ export class LoginComponent implements OnInit {
         
         // Si no hay returnUrl, continuar con la lógica original
         if (response.user.role !== 'admin') {
-          this.router.navigate(['/tests/not-started/']);
+          this.router.navigate(['/dashboard']);
           return;
         }
-        this.router.navigate(['/admin/tests/']);
+        this.router.navigate(['/admin/dashboard']);
       },
       error: (err) => {
         console.error('Error en login:', err);        
