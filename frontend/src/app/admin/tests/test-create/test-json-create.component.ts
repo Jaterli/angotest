@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,6 +7,7 @@ import { ModalComponent } from '../../../shared/components/modal.component';
 import { TestsManagementService } from '../../services/tests-management.service';
 import { TopicsViewerComponent } from './topics-viewer.component';
 import { SharedUtilsService } from '../../../shared/services/shared-utils.service';
+import { TopicsService } from '../../../shared/services/topics.service'; 
 
 @Component({
   selector: 'app-test-json-create',
@@ -19,15 +20,13 @@ import { SharedUtilsService } from '../../../shared/services/shared-utils.servic
   ],
   templateUrl: './test-json-create.component.html'
 })
-export class TestJsonCreateComponent {
-  // Señales para el estado
+export class TestJsonCreateComponent implements OnInit {
+  // Señales existentes
   jsonInput = signal('');
   loading = signal(false);
   previewTest = signal<any>(null);
   showPreview = signal(false);
   validationErrors = signal<string[]>([]);
-
-  // Señales para modales
   showSuccessModal = signal(false);
   showErrorModal = signal(false);
   showConfirmCreateModal = signal(false);
@@ -36,8 +35,21 @@ export class TestJsonCreateComponent {
   successMessage = signal('');
   showTopicsModal = signal(false);
 
-  // Opciones de nivel predefinidas
+  // Nuevas señales para el asistente de IA
+  language = signal('Español');
+  level = signal('Intermedio');
+  numQuestions = signal(10);
+  numAnswers = signal(4);
+  extraPrompt = signal('');
+  topicsHierarchy = signal<any>(null);        // Almacena la jerarquía de topics
+  topicsLoaded = signal(false);
+  copyPromptMessage = signal('');
+
   levels = ['Principiante', 'Intermedio', 'Avanzado'];
+  languages = ['Español', 'Inglés', 'Francés', 'Alemán', 'Italiano', 'Portugués', 'Chino', 'Japonés', 'Ruso'];
+
+  // Inyectamos el servicio de topics (debe existir)
+  private topicsService = inject(TopicsService);
 
   constructor(
     private testsManagementService: TestsManagementService,
@@ -45,6 +57,124 @@ export class TestJsonCreateComponent {
     private sharedUtilsService: SharedUtilsService,
     private router: Router
   ) {}
+
+  ngOnInit(): void {
+    this.loadTopics();
+  }
+
+  /**
+   * Carga los topics existentes desde el servicio
+   */
+  loadTopics(): void {
+    this.topicsService.getTopics().subscribe({
+      next: (data) => {
+        this.topicsHierarchy.set(data);
+        this.topicsLoaded.set(true);
+      },
+      error: (err) => {
+        console.error('Error cargando topics:', err);
+        // Si falla, podemos seguir sin topics (el prompt se genera sin ellos)
+        this.topicsLoaded.set(false);
+      }
+    });
+  }
+
+  /**
+   * Construye el prompt para la IA y lo copia al portapapeles
+   */
+  generateAIPrompt(): void {
+    const language = this.language();
+    const level = this.level();
+    const numQ = this.numQuestions();
+    const numA = this.numAnswers();
+    const extra = this.extraPrompt().trim();
+
+    // Ejemplo de estructura JSON (se adapta a numA opciones)
+    const exampleQuestions = [
+      {
+        question_text: 'Ejemplo de pregunta',
+        answers: Array.from({ length: numA }, (_, i) => ({
+          answer_text: `Opción ${i + 1}`,
+          is_correct: i === 0 // Solo una correcta
+        }))
+      }
+    ];
+
+    const exampleJson = {
+      title: 'Título del test',
+      description: 'Descripción del test',
+      main_topic: 'Tema principal',
+      sub_topic: 'Subtema',
+      specific_topic: 'Tema específico',
+      language: language,
+      level: level,
+      questions: exampleQuestions
+    };
+
+    const exampleStr = JSON.stringify(exampleJson, null, 2);
+
+    // Construir la parte de los topics existentes
+    let topicsText = 'No se pudieron cargar los temas existentes.';
+    if (this.topicsLoaded() && this.topicsHierarchy()) {
+      topicsText = this.formatTopics(this.topicsHierarchy());
+    }
+
+    const prompt = `Genera un test educativo en ${language} con las siguientes especificaciones:
+
+- Nivel: ${level}
+- Número de preguntas: ${numQ}
+- Opciones por pregunta: ${numA}
+
+Debes devolver ÚNICAMENTE un objeto JSON con la estructura exacta que se muestra a continuación. No incluyas markdown, ni texto adicional, ni explicaciones. Solo el JSON.
+
+ESTRUCTURA OBLIGATORIA (copia este formato, rellena con tus valores):
+${exampleStr}
+
+REGLAS:
+- Cada pregunta debe tener EXACTAMENTE ${numA} opciones.
+- Solo una opción por pregunta debe ser correcta (is_correct: true).
+- Las opciones incorrectas deben ser plausibles pero claramente incorrectas.
+- El título, descripción y temas deben ser coherentes con el contenido.
+
+TEMAS EXISTENTES (puedes usar estos o crear nuevos si es necesario):
+${topicsText}
+
+${extra ? `INSTRUCCIONES ADICIONALES DEL USUARIO:\n${extra}` : ''}
+
+Asegúrate de que el JSON sea válido. Si hay algún error, incluye un campo "error" explicativo pero siempre en formato JSON.`;
+
+    // Copiar al portapapeles
+    navigator.clipboard.writeText(prompt).then(() => {
+      this.copyPromptMessage.set('✅ Prompt copiado al portapapeles');
+      setTimeout(() => this.copyPromptMessage.set(''), 4000);
+    }).catch(() => {
+      this.copyPromptMessage.set('❌ Error al copiar. Cópialo manualmente.');
+      setTimeout(() => this.copyPromptMessage.set(''), 4000);
+    });
+  }
+
+  /**
+   * Formatea la jerarquía de topics para mostrarla en texto
+   */
+  private formatTopics(hierarchy: any): string {
+    let text = '';
+    for (const [mainTopic, subTopics] of Object.entries(hierarchy)) {
+      text += `📚 ${mainTopic}\n`;
+      for (const [subTopic, specificTopics] of Object.entries(subTopics as Record<string, string[]>)) {
+        text += `  ├─ 📖 ${subTopic}\n`;
+        if (Array.isArray(specificTopics)) {
+          specificTopics.slice(0, 5).forEach(spec => {
+            text += `  │   ├─ • ${spec}\n`;
+          });
+          if (specificTopics.length > 5) {
+            text += `  │   └─ ... y ${specificTopics.length - 5} más\n`;
+          }
+        }
+      }
+      text += '\n';
+    }
+    return text || 'No hay temas registrados. Puedes crear nuevos.';
+  }
 
   // Método para procesar el JSON pegado
   processJson(): void {

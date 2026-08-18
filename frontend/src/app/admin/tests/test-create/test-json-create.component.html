@@ -18,25 +18,81 @@
       </button>
     </div>
 
-    <!-- Información de ayuda -->
-    <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/30 rounded-xl p-4 mb-6">
-      <div class="flex items-start">
-        <svg class="w-5 h-5 text-blue-500 dark:text-blue-400 mt-0.5 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+<!-- Nuevo panel: Asistente para generar prompt IA -->
+<div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-800/30 rounded-xl p-6 mb-8">
+  <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+    <!-- Título y descripción -->
+    <div class="flex-1 min-w-0">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+        <svg class="w-5 h-5 mr-2 text-indigo-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+          <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
         </svg>
-        <div class="text-sm text-blue-800 dark:text-blue-300">
-          <p class="font-medium mb-1">Formato JSON requerido:</p>
-          <ul class="list-disc pl-5 space-y-1">
-            <li>Campos obligatorios: <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">title</code>, <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">main_topic</code>, <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">level</code> (Principiante, Intermedio, Avanzado)</li>
-            <li>Campos opcionales: <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">description</code>, <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">sub_topic</code>, <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">specific_topic</code> (si no se proporcionan, se usarán 'General')</li>
-            <li>Cada pregunta debe tener <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">question_text</code> y un array de <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">answers</code></li>
-            <li>Cada respuesta debe tener <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">answer_text</code> y <code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">is_correct</code> (boolean)</li>
-            <li>Al menos una respuesta por pregunta debe ser correcta (<code class="bg-blue-100 dark:bg-blue-900 px-1 py-0.5 rounded">is_correct: true</code>)</li>
-          </ul>
-        </div>
-      </div>
+        Asistente IA
+      </h3>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        Configura los parámetros y copia un prompt listo para usar con ChatGPT, Claude, etc.
+      </p>
+    </div>
+    <!-- Botón copiar y mensaje -->
+    <div class="flex flex-col items-start md:items-end flex-shrink-0">
+      <button (click)="generateAIPrompt()"
+              class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-700 dark:hover:bg-indigo-600 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
+          <path fill-rule="evenodd" d="M6 6a2 2 0 012-2h4a2 2 0 012 2v1h2a2 2 0 012 2v7a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2V6zm4 2a1 1 0 000-2H8v2h2zm-4 4a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/>
+        </svg>
+        Copiar Prompt IA
+      </button>
+      <span class="text-xs text-green-600 dark:text-green-400 mt-1 h-4">{{ copyPromptMessage() }}</span>
     </div>
   </div>
+
+  <!-- Controles en fila responsive -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+    <!-- Idioma -->
+    <div>
+      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Idioma</label>
+      <select [ngModel]="language()" (ngModelChange)="language.set($event)"
+              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500">
+        <option *ngFor="let lang of languages" [value]="lang">{{ lang }}</option>
+      </select>
+    </div>
+    <!-- Nivel -->
+    <div>
+      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nivel</label>
+      <select [ngModel]="level()" (ngModelChange)="level.set($event)"
+              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500">
+        <option *ngFor="let lvl of levels" [value]="lvl">{{ lvl }}</option>
+      </select>
+    </div>
+    <!-- Nº preguntas -->
+    <div>
+      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Preguntas</label>
+      <input type="number" [ngModel]="numQuestions()" (ngModelChange)="numQuestions.set($event)"
+             min="1" max="50"
+             class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500">
+    </div>
+    <!-- Opciones -->
+    <div>
+      <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Opciones</label>
+      <input type="number" [ngModel]="numAnswers()" (ngModelChange)="numAnswers.set($event)"
+             min="2" max="6"
+             class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500">
+    </div>
+    <!-- Espacio para alinear (vacío) o podríamos poner el botón aquí, pero ya está arriba -->
+    <div class="hidden md:block"></div>
+  </div>
+
+  <!-- Textarea para instrucciones adicionales (ocupa toda la fila) -->
+  <div class="mt-4">
+    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Instrucciones adicionales (opcional)</label>
+    <textarea [ngModel]="extraPrompt()" (ngModelChange)="extraPrompt.set($event)"
+              rows="2"
+              placeholder="Ej: Enfócate en ejemplos prácticos, incluye preguntas sobre casos límite, etc."
+              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 resize-y"></textarea>
+  </div>
+</div>
 
   <!-- Errores de validación -->
   @if (validationErrors().length > 0) {
