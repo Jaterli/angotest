@@ -5,7 +5,6 @@
   "compilerOptions": {
     "outDir": "./out-tsc/app",
     "rootDir": "./src",      
-    "types": ["node"]
   },
   "include": [
     "src/**/*.ts", "src/app/admin/tests/test-create/topics-viewer.component.ts" ],

@@ -1,6 +1,6 @@
 // home.component.ts
 import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID, signal } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 
 @Component({
@@ -48,7 +48,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   
   ngOnDestroy(): void {
     // Limpiar listeners
-    if (this.mediaQuery && this.mediaQueryListener && isPlatformBrowser(this.platformId)) {
+    if (this.mediaQuery && this.mediaQueryListener) {
       this.mediaQuery.removeEventListener('change', this.mediaQueryListener);
     }
   }
@@ -57,7 +57,6 @@ export class HomeComponent implements OnInit, OnDestroy {
    * Inicia la animación de los contadores
    */
   private startCountersAnimation(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
     
     const duration = 2000; // 2 segundos
     const steps = 60;
@@ -90,7 +89,6 @@ export class HomeComponent implements OnInit, OnDestroy {
    * Detecta el tema del sistema y sincroniza con el script del index.html
    */
   private initThemeDetection(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
     
     // Leer tema actual del HTML (ya lo pone el script del index.html)
     const isDark = document.documentElement.classList.contains('dark');
@@ -115,7 +113,6 @@ export class HomeComponent implements OnInit, OnDestroy {
    * Precarga imágenes importantes (como el logo)
    */
   private preloadImages(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
     
     // Si tienes un logo real, precárgalo
     const logoImg = new Image();
@@ -131,7 +128,6 @@ export class HomeComponent implements OnInit, OnDestroy {
    * Configura smooth scroll para enlaces internos (#)
    */
   private setupSmoothScroll(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
     
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', (e) => {

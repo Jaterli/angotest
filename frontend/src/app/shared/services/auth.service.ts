@@ -1,7 +1,6 @@
 import { Injectable, Inject, signal, computed, PLATFORM_ID, effect } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { isPlatformBrowser } from '@angular/common';
 import { Observable, tap, shareReplay, of, catchError, firstValueFrom, map } from 'rxjs';
 import { User, RegisterData, ForgotPasswordResponse, ResetPasswordRequest } from '../models/user.models';
 import { environment } from '../../../environments/environment';
@@ -39,23 +38,16 @@ export class AuthService {
     private router: Router,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
-    if (this.isBrowser()) {
       effect(() => {
         if (this.userSignal() === null) {
           void this.checkAuthStatus();
         }
       });
-    }
   }
 
-  /* ---------------- Utils ---------------- */
-  private isBrowser(): boolean {
-    return isPlatformBrowser(this.platformId);
-  }
 
   /* ---------------- Auth bootstrap ---------------- */
   private async checkAuthStatus(): Promise<void> {
-    if (!this.isBrowser()) return;
 
     try {
       const response = await firstValueFrom(this.getCachedAuthCheck());
@@ -167,11 +159,10 @@ export class AuthService {
     this.invalidateCache();
     
     // Opcional: notificar al backend
-    if (this.isBrowser()) {
-      void firstValueFrom(
-        this.http.post(`${this.apiUrl}/logout`, {})
-      ).catch(err => console.error('Error cerrando sesión:', err));
-    }
+    void firstValueFrom(
+      this.http.post(`${this.apiUrl}/logout`, {})
+    ).catch(err => console.error('Error cerrando sesión:', err));
+    
     
     if (redirect) {
       this.router.navigate(['/login'], {
@@ -188,7 +179,7 @@ export class AuthService {
   }
 
   get CurrentUser(): Observable<User | null> {
-    if (!this.userSignal() && this.isBrowser()) {
+    if (!this.userSignal()) {
       return this.verifyAuth().pipe(map(res => res.user ?? null));
     }
     return of(this.userSignal());
@@ -258,9 +249,7 @@ export class AuthService {
   }
 
  setCurrentUser(user: User): void {
-    if (this.isBrowser()) {
-      this.setUser(user);
-    }
+    this.setUser(user);
   }
  
 }

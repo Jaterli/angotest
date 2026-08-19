@@ -15,9 +15,12 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular/build:application",
+          "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "browser": "src/main.ts",
+            "outputPath": "dist/frontend",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -37,7 +40,7 @@
                   "replace": "src/environments/environment.ts",
                   "with": "src/environments/environment.prod.ts"
                 }
-              ],          
+              ],
               "budgets": [
                 {
                   "type": "initial",
@@ -56,8 +59,8 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,
-              "watch": true, 
-              "poll": 2000 
+              "watch": true,
+              "poll": 2000
             }
           },
           "defaultConfiguration": "production"
@@ -65,7 +68,8 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "liveReload": true, 
+            "buildTarget": "frontend:build",
+            "liveReload": true,
             "hmr": true,
             "port": 4200,
             "host": "localhost"
@@ -82,12 +86,11 @@
           },
           "defaultConfiguration": "development"
         },
-        "extract-i18n": {
-          "builder": "@angular/build:extract-i18n"
-        },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular-devkit/build-angular:karma",
           "options": {
+            "main": "src/test.ts",
+            "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": [
