@@ -1,0 +1,32 @@
+{% extends "docs/base.html" %}
+
+{% block title %}Documentación de API - AngoTest{% endblock %}
+
+{% block content %}
+<div class="prose max-w-4xl mx-auto">
+    <h1>API Reference</h1>
+    <p>AngoTest expone una API REST para integraciones. La documentación interactiva está disponible en:</p>
+    <p><a href="/api/docs/" target="_blank" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        <span>📖 Abrir documentación Swagger</span>
+    </a></p>
+    <p>También puedes descargar el esquema OpenAPI en <code>/api/schema/</code>.</p>
+
+    <h2>Autenticación</h2>
+    <p>La API usa JWT almacenado en una cookie HttpOnly. Para peticiones desde otros clientes, puedes utilizar el header <code>Authorization: Bearer &lt;token&gt;</code>.</p>
+
+    <h2>Endpoints principales</h2>
+    <ul>
+        <li><strong>POST /api/auth/login</strong> - Inicia sesión y devuelve token.</li>
+        <li><strong>GET /api/auth/check-auth</strong> - Verifica la sesión actual.</li>
+        <li><strong>GET /api/test/not-started/</strong> - Lista de tests disponibles.</li>
+        <li><strong>GET /api/test/&lt;id&gt;/</strong> - Obtiene detalles de un test.</li>
+        <li><strong>POST /api/test/&lt;id&gt;/save/</strong> - Guarda progreso o finaliza un test.</li>
+        <li><strong>GET /api/results/&lt;id&gt;/</strong> - Obtiene detalles de un resultado.</li>
+        <li><strong>POST /api/ai-requests/generate-ai-test/</strong> - Genera test con IA (solo admin).</li>
+        <li><strong>GET /api/admin/quotas/</strong> - Lista de cuotas (admin).</li>
+        <!-- Añadir más según necesidades -->
+    </ul>
+
+    <p>Para más detalles, consulta la documentación interactiva.</p>
+</div>
+{% endblock %}

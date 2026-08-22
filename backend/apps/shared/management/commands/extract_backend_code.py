@@ -11,11 +11,11 @@ import fnmatch
 
 class Command(BaseCommand):
     """
-    Comando Django para extraer código de archivos .py específicos
+    Comando Django para extraer código de archivos .py y .html específicos
     Uso: python manage.py extract_code [opciones]
     """
     
-    help = 'Extrae el contenido de archivos .py específicos del proyecto Django'
+    help = 'Extrae el contenido de archivos .py y .html del proyecto Django'
     
     # Directorios a ignorar (siempre)
     IGNORE_DIRS = [
@@ -97,6 +97,13 @@ class Command(BaseCommand):
         )
         
         include_group.add_argument(
+            '--include-templates',
+            '-T',
+            action='store_true',
+            help='Incluir archivos de plantillas HTML (templates)'
+        )
+        
+        include_group.add_argument(
             '--app',
             '-a',
             type=str,
@@ -123,8 +130,8 @@ class Command(BaseCommand):
             '--output',
             '-o',
             type=str,
-            default='django_code_extract.txt',
-            help='Nombre del archivo de salida (default: django_code_extract.txt)'
+            default='backend_code_extract.txt',
+            help='Nombre del archivo de salida (default: backend_code_extract.txt)'
         )
         
         output_group.add_argument(
@@ -178,6 +185,7 @@ class Command(BaseCommand):
         self.include_all = options.get('include_all', False)
         self.include_migrations = options.get('include_migrations', False)
         self.include_tests = options.get('include_tests', False)
+        self.include_templates = options.get('include_templates', False)
         
         # Configurar exclusiones
         self.exclude_files = set(options.get('exclude', []) or [])
@@ -204,7 +212,7 @@ class Command(BaseCommand):
     def validate_configuration(self):
         """Valida la configuración de inclusión/exclusión"""
         # Si no se especifica nada, incluir archivos comunes por defecto
-        if not self.include_all and not self.include_files and not self.include_patterns:
+        if not self.include_all and not self.include_files and not self.include_patterns and not self.include_templates:
             if self.verbosity >= 1:
                 self.stdout.write(
                     self.style.WARNING('⚠️ No se especificaron archivos a incluir.')
@@ -265,8 +273,8 @@ class Command(BaseCommand):
         Determina si un archivo debe ser incluido en la extracción
         Usa un enfoque de whitelist (solo lo especificado)
         """
-        # Verificar si es un archivo .py
-        if file_path.suffix != '.py':
+        # Verificar si es un archivo .py o .html
+        if file_path.suffix not in ('.py', '.html'):
             return False
         
         # Verificar si el archivo está en IGNORE_FILES
@@ -317,6 +325,10 @@ class Command(BaseCommand):
             if fnmatch.fnmatch(rel_path, pattern):
                 return True
         
+        # Incluir plantillas HTML si está activado
+        if self.include_templates and file_path.suffix == '.html':
+            return True
+        
         # 3. VERIFICAR LÍNEAS MÍNIMAS
         if self.min_lines > 0:
             try:
@@ -348,14 +360,24 @@ class Command(BaseCommand):
                 except ValueError:
                     relative_path = str(file_path)
             
-            # Obtener estadísticas básicas
-            class_count = len(re.findall(r'^class\s+\w+', content, re.MULTILINE))
-            def_count = len(re.findall(r'^def\s+\w+', content, re.MULTILINE))
-            import_count = len(re.findall(r'^import\s+|^from\s+', content, re.MULTILINE))
+            # Detectar tipo de archivo
+            file_type = 'python' if file_path.suffix == '.py' else 'html'
+            
+            # Estadísticas específicas por tipo
+            if file_type == 'python':
+                class_count = len(re.findall(r'^class\s+\w+', content, re.MULTILINE))
+                def_count = len(re.findall(r'^def\s+\w+', content, re.MULTILINE))
+                import_count = len(re.findall(r'^import\s+|^from\s+', content, re.MULTILINE))
+            else:
+                # Para HTML no contamos clases/funciones/imports
+                class_count = 0
+                def_count = 0
+                import_count = 0
             
             return {
                 'file_path': relative_path,
                 'file_name': file_path.name,
+                'file_type': file_type,
                 'content': content,
                 'lines': lines,
                 'classes': class_count,
@@ -398,7 +420,7 @@ class Command(BaseCommand):
             # Filtrar directorios a ignorar
             dirs[:] = [d for d in dirs if not self.should_ignore_dir(root_path / d)]
             
-            # Procesar archivos .py
+            # Procesar archivos .py y .html
             for file in files:
                 file_path = root_path / file
                 total_files_scanned += 1
@@ -436,6 +458,7 @@ class Command(BaseCommand):
             self.stdout.write('  • Use --include para especificar archivos específicos')
             self.stdout.write('  • Use --include-pattern para patrones')
             self.stdout.write('  • Use --include-migrations para incluir migraciones')
+            self.stdout.write('  • Use --include-templates para incluir plantillas HTML')
             return
         
         # Extraer contenido de cada archivo
@@ -469,11 +492,15 @@ class Command(BaseCommand):
         # Mostrar estadísticas finales
         total_lines = sum(d['lines'] for d in extracted_data)
         total_files = len(extracted_data)
+        py_files = sum(1 for d in extracted_data if d['file_type'] == 'python')
+        html_files = sum(1 for d in extracted_data if d['file_type'] == 'html')
         
         if self.verbosity >= 1:
             self.stdout.write('-' * 80)
             self.stdout.write(self.style.SUCCESS('✅ Extracción completada!'))
             self.stdout.write(f'📊 Archivos procesados: {total_files}')
+            self.stdout.write(f'   🐍 Python: {py_files}')
+            self.stdout.write(f'   🌐 HTML: {html_files}')
             self.stdout.write(f'📝 Líneas de código: {total_lines}')
             self.stdout.write(f'💾 Guardado en: {self.output_file}')
             
@@ -501,6 +528,8 @@ class Command(BaseCommand):
                 f.write(f"📌 Archivos incluidos: {', '.join(self.include_files)}\n")
             if self.include_patterns:
                 f.write(f"📌 Patrones incluidos: {', '.join(self.include_patterns)}\n")
+            if self.include_templates:
+                f.write(f"🌐 Incluyendo plantillas HTML\n")
             f.write("=" * 100 + "\n\n")
             
             # Índice
@@ -509,10 +538,12 @@ class Command(BaseCommand):
             
             for data in extracted_data:
                 f.write(f"📄 {data['file_path']} ")
-                f.write(f"({data['lines']} líneas, ")
-                f.write(f"{data['classes']} clases, ")
-                f.write(f"{data['functions']} funciones, ")
-                f.write(f"{data['imports']} imports)")
+                f.write(f"({data['lines']} líneas")
+                if data['file_type'] == 'python':
+                    f.write(f", {data['classes']} clases, {data['functions']} funciones, {data['imports']} imports")
+                else:
+                    f.write(f", plantilla HTML")
+                f.write(")")
                 if data['app_name'] != 'unknown':
                     f.write(f" [app: {data['app_name']}]")
                 f.write("\n")
@@ -527,9 +558,12 @@ class Command(BaseCommand):
                 f.write(f"\n{'=' * 100}\n")
                 f.write(f"📄 ARCHIVO: {data['file_path']}\n")
                 f.write(f"📝 Líneas: {data['lines']}\n")
-                f.write(f"🔷 Clases: {data['classes']}\n")
-                f.write(f"🔹 Funciones: {data['functions']}\n")
-                f.write(f"📦 Imports: {data['imports']}\n")
+                if data['file_type'] == 'python':
+                    f.write(f"🔷 Clases: {data['classes']}\n")
+                    f.write(f"🔹 Funciones: {data['functions']}\n")
+                    f.write(f"📦 Imports: {data['imports']}\n")
+                else:
+                    f.write(f"🌐 Tipo: HTML\n")
                 if data['app_name'] != 'unknown':
                     f.write(f"📱 Aplicación: {data['app_name']}\n")
                 f.write(f"{'=' * 100}\n\n")
@@ -558,6 +592,8 @@ class Command(BaseCommand):
                 f.write(f"**Archivos incluidos:** `{', '.join(self.include_files)}`\n\n")
             if self.include_patterns:
                 f.write(f"**Patrones incluidos:** `{', '.join(self.include_patterns)}`\n\n")
+            if self.include_templates:
+                f.write(f"**Incluyendo plantillas HTML**\n\n")
             
             f.write("---\n\n")
             
@@ -566,10 +602,12 @@ class Command(BaseCommand):
             
             for data in extracted_data:
                 f.write(f"- `{data['file_path']}` ")
-                f.write(f"({data['lines']} líneas, ")
-                f.write(f"{data['classes']} clases, ")
-                f.write(f"{data['functions']} funciones, ")
-                f.write(f"{data['imports']} imports)")
+                f.write(f"({data['lines']} líneas")
+                if data['file_type'] == 'python':
+                    f.write(f", {data['classes']} clases, {data['functions']} funciones, {data['imports']} imports")
+                else:
+                    f.write(f", plantilla HTML")
+                f.write(")")
                 if data['app_name'] != 'unknown':
                     f.write(f" *app: {data['app_name']}*")
                 f.write("\n")
@@ -582,15 +620,21 @@ class Command(BaseCommand):
                 # Encabezado del archivo
                 f.write(f"\n### 📄 `{data['file_path']}`\n\n")
                 f.write(f"**Líneas:** {data['lines']}  \n")
-                f.write(f"**Clases:** {data['classes']}  \n")
-                f.write(f"**Funciones:** {data['functions']}  \n")
-                f.write(f"**Imports:** {data['imports']}  \n")
+                if data['file_type'] == 'python':
+                    f.write(f"**Clases:** {data['classes']}  \n")
+                    f.write(f"**Funciones:** {data['functions']}  \n")
+                    f.write(f"**Imports:** {data['imports']}  \n")
+                else:
+                    f.write(f"**Tipo:** HTML  \n")
                 if data['app_name'] != 'unknown':
                     f.write(f"**Aplicación:** `{data['app_name']}`  \n")
                 f.write("\n")
                 
                 # Contenido del código
-                f.write("```python\n")
+                if data['file_type'] == 'python':
+                    f.write("```python\n")
+                else:
+                    f.write("```html\n")
                 f.write(data['content'])
                 if not data['content'].endswith('\n'):
                     f.write('\n')
@@ -615,6 +659,7 @@ class Command(BaseCommand):
                 'include_patterns': self.include_patterns,
                 'include_migrations': self.include_migrations,
                 'include_tests': self.include_tests,
+                'include_templates': self.include_templates,
                 'min_lines': self.min_lines
             },
             'files': extracted_data

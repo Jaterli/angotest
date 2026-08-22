@@ -1,0 +1,427 @@
+<!-- templates/admin/admin_guide.html -->
+{% extends "admin/admin_base.html" %}
+
+{% block title %}Guía de Administración - AngoTest{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto prose prose-slate dark:prose-invert">
+
+    <!-- Índice rápido (anclas) -->
+    <div class="bg-orange-50 dark:bg-orange-900/20 p-6 rounded-xl mb-10 border border-orange-200 dark:border-orange-800">
+        <h2 class="text-xl font-semibold mb-3">📑 Contenido de esta guía</h2>
+        <ul class="list-disc pl-5 space-y-1 text-sm">
+            <li><a href="#introduccion" class="text-orange-600 hover:underline">Introducción</a></li>
+            <li><a href="#dashboard" class="text-orange-600 hover:underline">Dashboard</a></li>
+            <li><a href="#usuarios" class="text-orange-600 hover:underline">Gestión de Usuarios</a></li>
+            <li><a href="#tests" class="text-orange-600 hover:underline">Gestión de Tests</a></li>
+            <li><a href="#resultados" class="text-orange-600 hover:underline">Resultados</a></li>
+            <li><a href="#invitaciones" class="text-orange-600 hover:underline">Invitaciones</a></li>
+            <li><a href="#cuotas" class="text-orange-600 hover:underline">Cuotas</a></li>
+            <li><a href="#configuracion" class="text-orange-600 hover:underline">Configuración del Sistema</a></li>
+            <li><a href="#ai_logs" class="text-orange-600 hover:underline">Registros de generación con IA</a></li>
+            <li><a href="#faq" class="text-orange-600 hover:underline">Preguntas frecuentes</a></li>
+            <li><a href="#ayuda" class="text-orange-600 hover:underline">Ayuda y soporte</a></li>
+        </ul>
+    </div>
+
+    <!-- INTRODUCCIÓN -->
+    <section id="introduccion" class="pt-4">
+        <h1>🚀 Introducción</h1>
+        <p>Como administrador de AngoTest, tienes acceso a un conjunto de herramientas para gestionar la plataforma. Esta guía cubre todas las funcionalidades disponibles en el panel de administración, según la implementación actual del sistema.</p>
+
+        <div class="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-400 p-4 my-4">
+            <p class="font-medium">✅ Capacidades del administrador</p>
+            <ul class="text-sm list-disc pl-5">
+                <li>Visualizar el dashboard con métricas globales (totales, tests destacados, actividad de usuarios).</li>
+                <li>Gestionar usuarios: listar, ver perfil, ver resultados y eliminar cuentas.</li>
+                <li>Gestionar tests: crear (manual, JSON, IA), editar (con advertencia), eliminar, y ver estadísticas detalladas.</li>
+                <li>Gestionar resultados: listar, filtrar, ver detalle, eliminar (individual o masivo) y exportar a CSV.</li>
+                <li>Gestionar invitaciones: listar, crear (solo con enlace único, sin asignar usuario concreto), eliminar y ver estadísticas.</li>
+                <li>Gestionar cuotas de generación con IA: listar, crear, editar, eliminar (individual o masivo), exportar a CSV y ver estadísticas.</li>
+                <li>Gestionar configuraciones del sistema: listar, crear, editar y eliminar parámetros clave.</li>
+                <li>Consultar registros de solicitudes de generación con IA (logs).</li>
+            </ul>
+            <p class="text-sm mt-2"><strong>Nota:</strong> No se pueden crear usuarios ni modificar roles desde el panel de administración. Los usuarios solo se registran a través del formulario público. El rol se asigna por defecto al registrarse y no se puede cambiar desde la interfaz de administración.</p>
+        </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="pt-4">
+        <h1>📊 Dashboard</h1>
+        <p>El Dashboard es el punto de entrada al panel de administración. Ofrece una visión general del estado de la plataforma con datos agregados.</p>
+
+        <h2>Métricas principales</h2>
+        <ul>
+            <li><strong>Total de usuarios</strong> y <strong>usuarios activos</strong> (aquellos con al menos 5 tests completados, valor configurable).</li>
+            <li><strong>Tests completados, en progreso y expirados</strong> (estado de los intentos).</li>
+            <li><strong>Total de tests creados</strong> y <strong>tests inactivos</strong>.</li>
+            <li><strong>Distribución por nivel</strong> (Principiante, Intermedio, Avanzado).</li>
+        </ul>
+
+        <h2>Listas destacadas</h2>
+        <ul>
+            <li><strong>Tests más completados, más incompletos y más expirados.</strong></li>
+            <li><strong>Tests menos iniciados (con menos intentos y más antiguos).</strong></li>
+            <li><strong>Tests con mayor y menor tasa de aciertos (precisión).</strong></li>
+            <li><strong>Tests con mayor y menor tiempo promedio de realización.</strong></li>
+            <li><strong>Nuevos usuarios por mes, usuarios más activos, menos activos.</strong></li>
+            <li><strong>Últimos inicios de sesión (más recientes y más antiguos).</strong></li>
+        </ul>
+
+        <h2>Filtros</h2>
+        <p>El dashboard permite filtrar por rango de fechas (inicio y fin) y ajustar el número de elementos mostrados en las listas (5, 10, 20 o 50). También incluye atajos para los últimos 7 días, 30 días o 3 meses.</p>
+
+        <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-4 my-4">
+            <p class="font-medium">💡 Consejo</p>
+            <p class="text-sm">Los filtros se guardan en el localStorage del navegador, por lo que al recargar la página se mantienen.</p>
+        </div>
+    </section>
+
+    <!-- GESTIÓN DE USUARIOS -->
+    <section id="usuarios" class="pt-4">
+        <h1>👥 Gestión de Usuarios</h1>
+        <p>El panel de usuarios permite listar, buscar, ver información detallada y eliminar cuentas.</p>
+
+        <h2>Lista de usuarios</h2>
+        <p>Se muestra una tabla con las siguientes columnas:</p>
+        <ul>
+            <li><strong>Usuario</strong> (nombre de usuario con avatar de iniciales).</li>
+            <li><strong>Información</strong> (nombre completo, email, fecha de registro).</li>
+            <li><strong>Estadísticas</strong> (tests completados, en progreso, total).</li>
+            <li><strong>Puntuación media</strong> (sobre los tests completados).</li>
+        </ul>
+
+        <h2>Filtros y búsqueda</h2>
+        <ul>
+            <li><strong>Búsqueda general</strong> por nombre de usuario o email.</li>
+            <li><strong>Filtro por rol</strong> (admin, user, guest, deleted).</li>
+            <li><strong>Ordenación</strong> por cualquiera de las columnas (ascendente/descendente).</li>
+        </ul>
+
+        <h2>Acciones sobre un usuario</h2>
+        <ul>
+            <li><strong>Ver perfil:</strong> Muestra un modal con todos los datos del usuario (email, nombre, teléfono, dirección, país, fecha de nacimiento, rol, fechas de registro y último acceso).</li>
+            <li><strong>Ver resultados:</strong> Redirige a la vista de resultados del usuario (filtrables y con estadísticas personales).</li>
+            <li><strong>Eliminar usuario:</strong> Elimina permanentemente la cuenta. Los tests creados por él y sus resultados se transfieren a un <strong>usuario contenedor</strong> (configurable mediante <code>CONTAINER_USER_ID</code>). No se puede eliminar al único administrador activo ni al propio usuario contenedor.</li>
+        </ul>
+
+        <div class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 p-4 my-4">
+            <p class="font-medium">⚠️ Importante</p>
+            <p class="text-sm">La eliminación es irreversible. El usuario se anonimiza (cambia su username, email y se desactiva) y todos sus datos (tests, resultados, cuotas, invitaciones) se transfieren o eliminan según corresponda.</p>
+        </div>
+
+        <h2>Estadísticas detalladas de usuario</h2>
+        <p>Desde el botón de estadísticas (icono de gráfico) en la lista o desde el dashboard, se abre un modal con:</p>
+        <ul>
+            <li>Información personal y de cuenta.</li>
+            <li>Resumen de tests (total, completados, en progreso, expirados).</li>
+            <li>Precisión promedio y tiempo promedio por test.</li>
+            <li>Tema favorito (el que más ha realizado) y nivel favorito.</li>
+            <li>Actividad reciente (últimos 10 tests con estado, precisión y tiempo).</li>
+            <li>Distribución de actividad (gráfico de barras de completados, en progreso y expirados).</li>
+        </ul>
+    </section>
+
+    <!-- GESTIÓN DE TESTS -->
+    <section id="tests" class="pt-4">
+        <h1>📋 Gestión de Tests</h1>
+        <p>Los administradores pueden gestionar todos los tests del sistema, incluyendo su creación, edición, eliminación y estadísticas.</p>
+
+        <h2>Lista de tests</h2>
+        <p>Muestra todos los tests con columnas:</p>
+        <ul>
+            <li>Test (título, nivel, estado activo/inactivo).</li>
+            <li>Temas (principal, subtema, específico).</li>
+            <li>Fechas de creación y actualización.</li>
+            <li>Número de preguntas.</li>
+        </ul>
+        <p>Filtros disponibles:</p>
+        <ul>
+            <li>Búsqueda por título o descripción.</li>
+            <li>Tema principal y subtema (cargados dinámicamente).</li>
+            <li>Nivel.</li>
+            <li>Ordenación por cualquier campo.</li>
+        </ul>
+
+        <h2>Crear un test</h2>
+        <p>Existen tres métodos:</p>
+        <ol>
+            <li><strong>Creación manual</strong> (formulario):
+                <ul>
+                    <li>Completar título, descripción, nivel y jerarquía de temas (principal, subtema, específico).</li>
+                    <li>Añadir preguntas (cada una con texto y al menos 2 respuestas).</li>
+                    <li>Seleccionar una respuesta correcta por pregunta (radio button).</li>
+                    <li>Indicar si el test está activo (disponible para usuarios).</li>
+                    <li>Validación: cada pregunta debe tener exactamente una respuesta correcta, al menos 2 respuestas y sin duplicados.</li>
+                </ul>
+            </li>
+            <li><strong>Creación desde JSON</strong> (editor):
+                <ul>
+                    <li>Pegar un objeto JSON con la estructura adecuada (título, descripción, temas, nivel y array de preguntas con respuestas).</li>
+                    <li>El sistema valida la estructura y muestra una previsualización.</li>
+                    <li>Se puede usar el asistente para generar un prompt para IA (copia al portapapeles).</li>
+                    <li>El JSON debe incluir campos obligatorios como <code>title</code>, <code>main_topic</code>, <code>level</code>, <code>questions</code>.</li>
+                </ul>
+            </li>
+            <li><strong>Generación con IA</strong> (accesible desde el menú de usuario y también desde el admin):
+                <ul>
+                    <li>Modo guiado: seleccionar tema principal, subtema y tema específico (jerarquía existente).</li>
+                    <li>Modo libre (solo administradores): escribir instrucciones en lenguaje natural.</li>
+                    <li>Configurar nivel, número de preguntas, número de opciones por pregunta e idioma.</li>
+                    <li>La IA genera un test completo que se guarda automáticamente.</li>
+                    <li><strong>Límite mensual:</strong> cada usuario tiene una cuota de generaciones (configurable en <code>AI_REQUESTS_PER_MONTH</code>). Los administradores también consumen cuota (comparten el límite).</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h2>Editar un test</h2>
+        <p>Se puede editar cualquier campo y también modificar preguntas y respuestas. Si el test ya tiene resultados asociados, se muestra una advertencia:</p>
+        <ul>
+            <li>Se recomienda <strong>guardar una copia</strong> para preservar los datos originales.</li>
+            <li>Si se confirma la edición directa, los cambios se aplican al test existente y los resultados previos podrían quedar inconsistentes (por ejemplo, si se elimina una pregunta, los resultados de los usuarios que ya la respondieron se ven afectados).</li>
+        </ul>
+        <p>Además, hay un botón para <strong>guardar como copia</strong>, que crea un nuevo test con el título modificado (añade "(copia YYYY-MM-DD HH:mm)").</p>
+
+        <h2>Eliminar un test</h2>
+        <p>Elimina el test, todas sus preguntas y respuestas, así como los resultados asociados. También se eliminan las invitaciones vinculadas. Acción irreversible.</p>
+
+        <h2>Estadísticas del test</h2>
+        <p>Desde la lista o el dashboard, se puede acceder a un modal con:</p>
+        <ul>
+            <li>Total de intentos, completados, en progreso y expirados.</li>
+            <li>Tasa de finalización y expiración.</li>
+            <li>Precisión promedio y tiempo promedio.</li>
+            <li>Distribución de intentos (barras de progreso).</li>
+        </ul>
+        <p>Estos datos se calculan a partir de los resultados registrados.</p>
+    </section>
+
+    <!-- RESULTADOS -->
+    <section id="resultados" class="pt-4">
+        <h1>📈 Resultados</h1>
+        <p>El panel de resultados permite a los administradores revisar todos los intentos de tests realizados por cualquier usuario.</p>
+
+        <h2>Lista global de resultados</h2>
+        <p>Muestra una tabla con:</p>
+        <ul>
+            <li>Usuario (nombre, email).</li>
+            <li>Test (título, nivel, temas).</li>
+            <li>Resultado (estado, puntuación si está completado, tiempo empleado).</li>
+            <li>Fechas de inicio y última actualización.</li>
+        </ul>
+        <p><strong>Filtros disponibles:</strong></p>
+        <ul>
+            <li>Búsqueda general (por usuario, email, título del test).</li>
+            <li>Estado (completado, en progreso, expirado).</li>
+            <li>Nivel del test.</li>
+            <li>Tema principal.</li>
+            <li>Rol del usuario.</li>
+            <li>Rango de fechas (inicio y actualización).</li>
+            <li>Rango de puntuación (min/max).</li>
+            <li>Ordenación por múltiples campos.</li>
+        </ul>
+
+        <h2>Resultados por usuario</h2>
+        <p>Desde la lista de usuarios o desde el enlace "Resultados" en el perfil, se muestra una vista específica con los resultados de ese usuario, con los mismos filtros y además estadísticas personales (número de tests, completados, en progreso, puntuación media, tiempo total, etc.).</p>
+
+        <h2>Ver detalle de un resultado</h2>
+        <p>Al hacer clic en "Detalles" (icono de ojo) se abre un modal con:</p>
+        <ul>
+            <li>Información completa del usuario y del test.</li>
+            <li>Puntuación global, respuestas correctas/incorrectas, tiempo empleado.</li>
+            <li>Lista de preguntas con todas las respuestas, indicando cuál fue seleccionada por el usuario y cuál es la correcta (resaltada en verde si acertó, rojo si falló).</li>
+            <li>En caso de fallo, se muestra la respuesta correcta.</li>
+        </ul>
+
+        <h2>Eliminar resultados</h2>
+        <p>Se pueden eliminar resultados individuales (botón "Eliminar") o en masa (seleccionando varios y usando el botón de eliminación masiva). Esta acción es irreversible y afecta a las estadísticas del usuario y del test.</p>
+
+        <h2>Exportar a CSV</h2>
+        <p>El botón "Exportar" descarga un archivo CSV con todos los resultados que cumplen los filtros actuales. Incluye campos como ID, usuario, email, test, nivel, temas, puntuación, tiempo, estado, fechas, etc. Útil para análisis externos.</p>
+    </section>
+
+    <!-- INVITACIONES -->
+    <section id="invitaciones" class="pt-4">
+        <h1>📨 Invitaciones</h1>
+        <p>El sistema de invitaciones permite a los usuarios compartir tests con otras personas. Los administradores tienen una visión completa y pueden gestionar todas las invitaciones.</p>
+
+        <h2>¿Cómo funciona una invitación?</h2>
+        <ul>
+            <li>Cualquier usuario autenticado (incluido el administrador) puede crear una invitación desde un test completado (en la lista de tests completados) o desde la lista de tests del administrador (botón "Invitar").</li>
+            <li>La invitación genera un <strong>enlace único</strong> con un token que expira a los 7 días por defecto (configurable).</li>
+            <li><strong>No se asigna un usuario concreto</strong> al crear la invitación; el enlace es público y puede ser utilizado por cualquier persona.</li>
+            <li>Al aceptar la invitación, el sistema permite:
+                <ul>
+                    <li>Iniciar sesión con un usuario existente (asociando el test a su cuenta).</li>
+                    <li>Crear un usuario <strong>guest</strong> automáticamente (si se elige la opción "Como invitado").</li>
+                </ul>
+            </li>
+            <li>Una vez aceptada, la invitación se marca como <strong>usada</strong> y no se puede reutilizar.</li>
+        </ul>
+
+        <h2>Panel de administración de invitaciones</h2>
+        <p>Desde el menú "Invitaciones", el administrador puede:</p>
+        <ul>
+            <li><strong>Listar todas las invitaciones</strong> con columnas: test, creador, receptor (si existe), estado, fechas.</li>
+            <li><strong>Filtrar</strong> por estado (activa, usada, expirada), rango de fechas de creación, y ordenar por diferentes campos.</li>
+            <li><strong>Crear una invitación</strong> desde este panel (seleccionando un test y un mensaje opcional). Al igual que los usuarios, se genera un enlace único sin destinatario fijo.</li>
+            <li><strong>Eliminar</strong> invitaciones individuales o en masa (solo las que no hayan sido usadas).</li>
+            <li><strong>Copiar el enlace</strong> de cualquier invitación al portapapeles.</li>
+            <li><strong>Ver estadísticas</strong> de invitaciones: totales, activas, usadas, expiradas, con guest, desglose por test, por usuario, y evolución diaria en los últimos 30 y 7 días.</li>
+        </ul>
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 my-4">
+            <p class="font-medium">📌 Nota</p>
+            <p class="text-sm">Las invitaciones no se pueden cancelar una vez creadas, pero pueden expirar automáticamente. El administrador puede eliminarlas manualmente si es necesario.</p>
+        </div>
+    </section>
+
+    <!-- CUOTAS  -->
+    <section id="cuotas" class="pt-4">
+        <h1>💰 Cuotas</h1>
+        <p>Las cuotas controlan el número de solicitudes de generación de tests con IA que un usuario puede realizar por mes. El administrador puede gestionar estas cuotas de forma granular.</p>
+
+        <h2>Estructura de una cuota</h2>
+        <ul>
+            <li><strong>Usuario</strong> (referencia al usuario).</li>
+            <li><strong>Mes/Año</strong> (formato YYYY-MM).</li>
+            <li><strong>Límite máximo</strong> (<code>max_requests</code>).</li>
+            <li><strong>Solicitudes usadas</strong> (<code>used_requests</code>), que se incrementa automáticamente al generar un test con IA.</li>
+        </ul>
+        <p>Si no existe una cuota para un usuario en un mes, se crea automáticamente con el límite por defecto (<code>AI_REQUESTS_PER_MONTH</code>) al realizar la primera solicitud.</p>
+
+        <h2>Panel de gestión de cuotas</h2>
+        <p>Acceso desde el menú "Cuotas". Permite:</p>
+        <ul>
+            <li><strong>Listar todas las cuotas</strong> con información de usuario, mes, límite, uso, porcentaje de uso y estado (normal, warning, critical, exceeded).</li>
+            <li><strong>Filtros avanzados:</strong> búsqueda por usuario, ID de usuario, mes/año, rango de solicitudes (mín/máx), porcentaje de uso mínimo, fechas de creación.</li>
+            <li><strong>Crear una cuota</strong> para un usuario y mes específicos, estableciendo el límite máximo.</li>
+            <li><strong>Editar</strong> una cuota existente (modificar límite y/o solicitudes usadas).</li>
+            <li><strong>Eliminar</strong> cuotas individuales o en masa (selección múltiple).</li>
+            <li><strong>Exportar a CSV</strong> con los filtros aplicados.</li>
+            <li><strong>Ver estadísticas</strong> globales: total de usuarios con cuota, solicitudes totales permitidas/usadas, usuarios que han excedido la cuota, en estado crítico, etc., y distribución mensual.</li>
+        </ul>
+        <p>El estado se calcula automáticamente en función del uso:</p>
+        <ul>
+            <li><strong>Normal</strong> (&lt; 50% de uso).</li>
+            <li><strong>Warning</strong> (50-80%).</li>
+            <li><strong>Critical</strong> (80-100%).</li>
+            <li><strong>Exceeded</strong> (≥ 100%).</li>
+        </ul>
+        <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-4 my-4">
+            <p class="font-medium">💡 Consejo</p>
+            <p class="text-sm">Puedes ajustar el límite por defecto modificando la configuración del sistema <code>AI_REQUESTS_PER_MONTH</code>. Esto afectará a las nuevas cuotas que se creen automáticamente.</p>
+        </div>
+    </section>
+
+    <!-- CONFIGURACIÓN DEL SISTEMA -->
+    <section id="configuracion" class="pt-4">
+        <h1>⚙️ Configuración del Sistema</h1>
+        <p>El panel de configuración permite gestionar parámetros clave de la aplicación almacenados en la base de datos.</p>
+
+        <h2>Lista de configuraciones</h2>
+        <p>Muestra todas las configuraciones con clave, valor y descripción. También se puede visualizar un panel con las configuraciones <strong>predeterminadas</strong> (definidas en <code>settings.SYSTEM_CONFIG</code>) y su estado en base de datos (si existen o no).</p>
+
+        <h2>Operaciones CRUD</h2>
+        <ul>
+            <li><strong>Crear</strong> una nueva configuración (clave única, valor y descripción).</li>
+            <li><strong>Editar</strong> una configuración existente (cambiar clave, valor y descripción).</li>
+            <li><strong>Eliminar</strong> una configuración (se elimina de la base de datos, pero el valor predeterminado seguirá siendo usado si existe en settings).</li>
+        </ul>
+
+        <h2>Configuraciones importantes</h2>
+        <ul>
+            <li><code>AI_REQUESTS_PER_MONTH</code>: Número máximo de generaciones con IA por usuario y mes (por defecto 5).</li>
+            <li><code>MARK_IN_PROGRESS_AS_EXPIRED_AFTER_DAYS</code>: Días tras los cuales un test en progreso se considera expirado (por defecto 120).</li>
+            <li><code>CONTAINER_USER_ID</code>: ID del usuario contenedor para transferir datos al eliminar usuarios (debe existir un usuario con ese ID).</li>
+            <li><code>MIN_TESTS_FOR_RANKING</code>: Número mínimo de tests completados para aparecer en los rankings (por defecto 5).</li>
+        </ul>
+        <div class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 p-4 my-4">
+            <p class="font-medium">⚠️ Atención</p>
+            <p class="text-sm">Modificar estas configuraciones afecta al comportamiento global del sistema. Asegúrate de que los valores sean válidos (especialmente el ID del usuario contenedor).</p>
+        </div>
+    </section>
+
+    <!-- REGISTROS DE GENERACIÓN CON IA -->
+    <section id="ai_logs" class="pt-4">
+        <h1>🤖 Registros de generación con IA</h1>
+        <p>El sistema guarda un registro detallado de todas las solicitudes de generación de tests con IA. Aunque no hay un panel específico en el menú principal, los administradores pueden acceder a estos logs a través de la API (endpoint <code>/api/ai-requests/logs/</code>) o mediante el componente <code>AIRequestLogListView</code> si se integra en la interfaz.</p>
+
+        <h2>Información registrada</h2>
+        <ul>
+            <li>Usuario que realizó la solicitud.</li>
+            <li>Parámetros de entrada (tema, nivel, número de preguntas, opciones, idioma, modo de generación, prompt).</li>
+            <li>Test generado (si tuvo éxito).</li>
+            <li>Respuesta de la IA (JSON completo), proveedor y modelo utilizado.</li>
+            <li>Estado (pending, completed, failed).</li>
+            <li>Mensaje de error (si falló).</li>
+            <li>Tiempo de respuesta y tokens utilizados.</li>
+            <li>Fechas de creación y actualización.</li>
+        </ul>
+        <p>Estos logs son útiles para auditar el uso de la IA, diagnosticar fallos y analizar el rendimiento.</p>
+        <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg my-4">
+            <p class="font-medium">📌 Nota</p>
+            <p class="text-sm">El acceso a estos logs está disponible para administradores mediante la vista <code>AIRequestLogListView</code>. Si no aparece en el menú, puede ser necesario añadir un enlace manualmente.</p>
+        </div>
+    </section>
+
+    <!-- PREGUNTAS FRECUENTES -->
+    <section id="faq" class="pt-4">
+        <h1>❓ Preguntas frecuentes</h1>
+        <div class="space-y-4">
+            <div>
+                <h3>¿Puedo cambiar el rol de un usuario desde el panel de administración?</h3>
+                <p>No, actualmente no hay una interfaz para modificar roles. El rol se asigna al registrarse y solo se puede cambiar mediante acceso directo a la base de datos o comandos de gestión.</p>
+            </div>
+            <div>
+                <h3>¿Cómo se crea un usuario administrador?</h3>
+                <p>Se debe crear mediante el comando <code>python manage.py createsuperuser</code> o directamente en la base de datos. También se puede modificar manualmente el rol de un usuario existente.</p>
+            </div>
+            <div>
+                <h3>¿Puedo importar preguntas en masa?</h3>
+                <p>Sí, a través de la creación desde JSON. Puedes preparar un archivo con la estructura requerida y pegarlo en el editor JSON.</p>
+            </div>
+            <div>
+                <h3>¿Qué sucede si un usuario alcanza su cuota de generación con IA?</h3>
+                <p>El usuario recibirá un error <code>QUOTA_EXCEEDED</code> al intentar generar un nuevo test. La cuota se reinicia automáticamente al mes siguiente.</p>
+            </div>
+            <div>
+                <h3>¿Puedo cancelar o eliminar una invitación ya enviada?</h3>
+                <p>Las invitaciones no se pueden cancelar, pero el administrador puede eliminarlas manualmente desde el panel de invitaciones (si no han sido usadas).</p>
+            </div>
+            <div>
+                <h3>¿Los tests generados con IA son editables?</h3>
+                <p>Sí, una vez generados, aparecen en la lista de tests y se pueden editar como cualquier otro test (manual o JSON).</p>
+            </div>
+            <div>
+                <h3>¿Cómo puedo poner la plataforma en modo mantenimiento?</h3>
+                <p>No hay un modo mantenimiento integrado. Se puede lograr desactivando el acceso a nivel de servidor o mediante una configuración personalizada (por ejemplo, una variable de entorno).</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- AYUDA Y SOPORTE -->
+    <section id="ayuda" class="pt-4">
+        <h1>📞 Ayuda y soporte</h1>
+        <p>Recursos adicionales para administradores:</p>
+        <ul>
+            <li><strong>Esta guía</strong> es la principal fuente de información.</li>
+            <li><strong>Logs del sistema</strong> (accesibles en el servidor) para depuración avanzada.</li>
+            <li><strong>Soporte técnico</strong>: <a href="mailto:soporte@angotest.com">soporte@angotest.com</a>.</li>
+            <li><strong>Documentación de la API</strong> (Swagger) disponible en <code>/api/docs/</code> para consultar los endpoints.</li>
+        </ul>
+
+        <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg my-4">
+            <p class="font-medium">📌 Recomendación</p>
+            <p class="text-sm">Antes de contactar con soporte, revisa los logs y verifica que las configuraciones críticas (como <code>CONTAINER_USER_ID</code>) sean correctas.</p>
+        </div>
+
+        <h2>Reportar problemas</h2>
+        <ol>
+            <li>Revisa los logs del servidor para obtener detalles del error.</li>
+            <li>Documenta el problema con capturas de pantalla y pasos para reproducirlo.</li>
+            <li>Envía un correo a <a href="mailto:soporte@angotest.com">soporte@angotest.com</a> con la información.</li>
+        </ol>
+    </section>
+
+</div>
+{% endblock %}

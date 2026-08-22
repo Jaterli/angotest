@@ -1,0 +1,60 @@
+<!-- templates/admin/admin_base.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AngoTest - Documentación de Administración{% endblock %}</title>
+
+    <!-- Tailwind CSS vía CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Estilos adicionales para legibilidad -->
+    <style>
+        .prose { max-width: 75ch; }
+        .prose h1 { font-size: 2.25rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; }
+        .prose h2 { font-size: 1.875rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .prose h3 { font-size: 1.5rem; font-weight: 500; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+        .prose p { margin-bottom: 1rem; line-height: 1.75; }
+        .prose ul, .prose ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .prose li { margin-bottom: 0.5rem; }
+        .prose a { color: #ea580c; text-decoration: underline; }
+        .prose a:hover { color: #c2410c; }
+        .prose code { background: #0000005d; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.875rem; }
+        .prose table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        .prose table th, .prose table td { border: 1px solid #e5e7eb; padding: 0.5rem; text-align: left; }
+        .prose table th { background: #0000005d; font-weight: 600; }
+        .dark .prose table th { background: #374151; }
+        .dark .prose table td { border-color: #374151; }
+        .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+        .badge-admin { background: #fef3c7; color: #92400e; }
+        .badge-user { background: #dbeafe; color: #1e40af; }
+        .badge-guest { background: #d1fae5; color: #065f46; }
+        .badge-deleted { background: #e5e7eb; color: #374151; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
+
+    <!-- Navbar específica para documentación de admin -->
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-3 flex flex-wrap items-center justify-between">
+            <a href="{% url 'docs:admin_index' %}" class="text-2xl text-orange-600 dark:text-orange-400 flex items-center">
+                <img src="https://angotest.com/assets/Logo-AngoTest_nav.png" alt="AngoTest Logo" class="h-10 mr-2">
+                <span>Admin Docs</span>
+            </a>
+            <nav class="space-x-4 text-sm">
+                <a href="{% url 'docs:admin_index' %}" class="hover:text-orange-600 dark:hover:text-orange-400">Inicio</a>
+                <a href="{% url 'docs:admin_guide' %}" class="hover:text-orange-600 dark:hover:text-orange-400">Guía completa</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="border-t border-gray-200 dark:border-gray-700 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        &copy; 2026 AngoTest — Documentación para administradores
+    </footer>
+</body>
+</html>

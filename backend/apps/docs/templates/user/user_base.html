@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AngoTest - Documentación de Usuario{% endblock %}</title>
+    
+    <!-- Tailwind CSS vía CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Estilos adicionales para mejorar la legibilidad -->
+    <style>
+        .prose { max-width: 75ch; }
+        .prose h1 { font-size: 2.25rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; }
+        .prose h2 { font-size: 1.875rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.75rem; }
+        .prose h3 { font-size: 1.5rem; font-weight: 500; margin-top: 1.25rem; margin-bottom: 0.5rem; }
+        .prose p { margin-bottom: 1rem; line-height: 1.75; }
+        .prose ul, .prose ol { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .prose li { margin-bottom: 0.5rem; }
+        .prose a { color: #2563eb; text-decoration: underline; }
+        .prose a:hover { color: #1d4ed8; }
+        .prose code { background: #0000005d; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.875rem; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
+
+    <!-- Navbar similar a la de Angular -->
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-3 flex flex-wrap items-center justify-between">
+            <a href="{% url 'docs:user_index' %}" class="text-2xl text-blue-600 dark:text-blue-400 flex items-center">
+                <img src="https://angotest.com/assets/Logo-AngoTest_nav.png" alt="AngoTest Logo" class="h-10 mr-2">
+                Docs
+            </a>
+            <nav class="space-x-4 text-sm">
+                <a href="{% url 'docs:user_index' %}" class="hover:text-blue-600 dark:hover:text-blue-400">Inicio</a>
+                <a href="{% url 'docs:user_guide' %}" class="hover:text-blue-600 dark:hover:text-blue-400">Guía completa</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="border-t border-gray-200 dark:border-gray-700 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        &copy; 2026 AngoTest — Documentación para usuarios
+    </footer>
+</body>
+</html>

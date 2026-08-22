@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'apps.invitations',
     'apps.ai',
     'apps.shared',
+    'apps.docs',
 ]
 
 MIDDLEWARE = [

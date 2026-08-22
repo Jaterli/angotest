@@ -1,7 +1,7 @@
 # angotest/urls.py
 from django.contrib import admin
 from django.urls import path, include
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView # type: ignore
 
 urlpatterns = [
 
@@ -17,5 +17,5 @@ urlpatterns = [
     path('api/invitations/', include('apps.invitations.urls')),
     path('api/ai-requests/', include('apps.ai.urls')),
     path('api/shared/', include('apps.shared.urls')),
-
+    path('docs/', include('apps.docs.urls')),
 ]

@@ -156,7 +156,7 @@ def build_topics_summary() -> str:
         return "No se pudo cargar la estructura de temas existente."
 
 
-# Lógica de quotas
+# Lógica de cuotas
 def get_default_max_requests() -> int:
     """Obtiene el máximo de requests mensuales configurado (única fuente de verdad)."""
     try:

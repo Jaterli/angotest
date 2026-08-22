@@ -1,0 +1,67 @@
+<!-- templates/admin/admin_index.html -->
+{% extends "admin/admin_base.html" %}
+
+{% block title %}AngoTest - Documentación de Administración{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold text-center mb-8">🛠️ Documentación de Administración</h1>
+    <p class="text-lg text-center text-gray-600 dark:text-gray-400 mb-12">
+        Bienvenido a la guía completa de administración de AngoTest. Aquí encontrarás todo lo que necesitas para gestionar la plataforma.
+    </p>
+
+    <!-- Índice de secciones (enlaces directos a la guía) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <a href="{% url 'docs:admin_guide' %}#introduccion" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">🚀</div>
+            <h2 class="text-xl font-semibold">Introducción</h2>
+            <p class="text-gray-600 dark:text-gray-400">Rol del administrador y visión general</p>
+        </a>
+        <a href="{% url 'docs:admin_guide' %}#dashboard" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">📊</div>
+            <h2 class="text-xl font-semibold">Dashboard</h2>
+            <p class="text-gray-600 dark:text-gray-400">Panel de control y estadísticas globales</p>
+        </a>
+        <a href="{% url 'docs:admin_guide' %}#usuarios" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">👥</div>
+            <h2 class="text-xl font-semibold">Gestión de Usuarios</h2>
+            <p class="text-gray-600 dark:text-gray-400">Administrar cuentas, roles y permisos</p>
+        </a>
+        <a href="{% url 'docs:admin_guide' %}#tests" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">📋</div>
+            <h2 class="text-xl font-semibold">Gestión de Tests</h2>
+            <p class="text-gray-600 dark:text-gray-400">Crear, editar y eliminar tests</p>
+        </a>
+        <a href="{% url 'docs:admin_guide' %}#resultados" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">📈</div>
+            <h2 class="text-xl font-semibold">Resultados</h2>
+            <p class="text-gray-600 dark:text-gray-400">Revisar y analizar resultados de usuarios</p>
+        </a>
+        <a href="{% url 'docs:admin_guide' %}#invitaciones" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">📨</div>
+            <h2 class="text-xl font-semibold">Invitaciones</h2>
+            <p class="text-gray-600 dark:text-gray-400">Gestionar invitaciones a tests</p>
+        </a>
+        <a href="{% url 'docs:admin_guide' %}#cuotas" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">💰</div>
+            <h2 class="text-xl font-semibold">Cuotas</h2>
+            <p class="text-gray-600 dark:text-gray-400">Control de límites y suscripciones</p>
+        </a>
+        <a href="{% url 'docs:admin_guide' %}#configuracion" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">⚙️</div>
+            <h2 class="text-xl font-semibold">Configuración del Sistema</h2>
+            <p class="text-gray-600 dark:text-gray-400">Parámetros globales de la aplicación</p>
+        </a>
+        <a href="{% url 'docs:admin_guide' %}#faq" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">❓</div>
+            <h2 class="text-xl font-semibold">Preguntas frecuentes</h2>
+            <p class="text-gray-600 dark:text-gray-400">Dudas comunes de administración</p>
+        </a>
+        <a href="{% url 'docs:admin_guide' %}#ayuda" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">📞</div>
+            <h2 class="text-xl font-semibold">Ayuda y soporte</h2>
+            <p class="text-gray-600 dark:text-gray-400">Recursos y contacto para administradores</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

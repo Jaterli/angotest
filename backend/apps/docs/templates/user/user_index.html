@@ -1,0 +1,56 @@
+{% extends "user/user_base.html" %}
+
+{% block title %}AngoTest - Documentación de Usuario{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h1 class="text-4xl font-bold text-center mb-8">📖 Documentación de Usuario</h1>
+    <p class="text-lg text-center text-gray-600 dark:text-gray-400 mb-12">
+        Bienvenido a la guía completa de AngoTest. Aquí encontrarás todo lo que necesitas saber para usar la plataforma como usuario.
+    </p>
+
+    <!-- Índice de secciones -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <a href="{% url 'docs:user_guide' %}#introduccion" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">🚀</div>
+            <h2 class="text-xl font-semibold">Introducción</h2>
+            <p class="text-gray-600 dark:text-gray-400">Qué es AngoTest y cómo empezar</p>
+        </a>
+        <a href="{% url 'docs:user_guide' %}#registro" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">📝</div>
+            <h2 class="text-xl font-semibold">Registro y autenticación</h2>
+            <p class="text-gray-600 dark:text-gray-400">Crear cuenta, iniciar sesión y recuperar contraseña</p>
+        </a>
+        <a href="{% url 'docs:user_guide' %}#navegacion" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">🧭</div>
+            <h2 class="text-xl font-semibold">Navegación</h2>
+            <p class="text-gray-600 dark:text-gray-400">Cómo moverte por la plataforma</p>
+        </a>
+        <a href="{% url 'docs:user_guide' %}#tests" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">📋</div>
+            <h2 class="text-xl font-semibold">Realizar un test</h2>
+            <p class="text-gray-600 dark:text-gray-400">Iniciar, responder y completar tests</p>
+        </a>
+        <a href="{% url 'docs:user_guide' %}#resultados" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">📊</div>
+            <h2 class="text-xl font-semibold">Ver resultados</h2>
+            <p class="text-gray-600 dark:text-gray-400">Revisar tus puntuaciones y progreso</p>
+        </a>
+        <a href="{% url 'docs:user_guide' %}#perfil" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">👤</div>
+            <h2 class="text-xl font-semibold">Gestión de perfil</h2>
+            <p class="text-gray-600 dark:text-gray-400">Actualizar datos personales y preferencias</p>
+        </a>
+        <a href="{% url 'docs:user_guide' %}#invitaciones" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">📨</div>
+            <h2 class="text-xl font-semibold">Invitaciones</h2>
+            <p class="text-gray-600 dark:text-gray-400">Recibir y aceptar invitaciones a tests</p>
+        </a>
+        <a href="{% url 'docs:user_guide' %}#faq" class="block p-6 bg-white dark:bg-gray-800 rounded-xl shadow hover:shadow-md transition border border-gray-200 dark:border-gray-700">
+            <div class="text-3xl mb-2">❓</div>
+            <h2 class="text-xl font-semibold">Preguntas frecuentes</h2>
+            <p class="text-gray-600 dark:text-gray-400">Dudas comunes y respuestas</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

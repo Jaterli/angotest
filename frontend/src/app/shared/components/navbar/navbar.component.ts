@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ThemeToggleComponent } from '../theme-toggle.component';
 import { AuthService } from '../../services/auth.service';
+import { SharedUtilsService } from '../../services/shared-utils.service';
 
 @Component({
   selector: 'app-navbar',
@@ -22,7 +23,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   // Clases específicas para cada tipo de enlace
   classes = {
     logo: 'text-xl font-bold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer',
-    link: 'text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors',
+    link: 'text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors inline-flex items-center justify-center',
     mobileLink: 'block py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors',
     dropdownLink: 'flex items-center px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors',
     userButton: 'flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors',
@@ -36,7 +37,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     dropdown: 'bg-blue-50 dark:bg-blue-900/20 text-sky-600 dark:text-sky-400 font-semibold'
   };
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private sharedUtils: SharedUtilsService 
+  ) {}
 
   ngOnInit() {
     // Verificar posición inicial del scroll
@@ -148,4 +152,10 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.showUserDropdown.set(false);
     this.showMobileMenu.set(false);    
   }
+
+  getDocumentationLinkClass(role: string): string {
+    // Obtener clases completas del badge y añadir hover
+    return this.sharedUtils.getSharedRoleBadgeClass(role) + ' hover:opacity-80 transition-opacity';
+  }
+
 }

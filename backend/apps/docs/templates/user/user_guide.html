@@ -1,0 +1,332 @@
+<!-- templates/user/user_guide.html -->
+{% extends "user/user_base.html" %}
+
+{% block title %}Guía de usuario - AngoTest{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto prose prose-slate dark:prose-invert">
+
+    <!-- Índice rápido (anclas) -->
+    <div class="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl mb-10 border border-blue-200 dark:border-blue-800">
+        <h2 class="text-xl font-semibold mb-3">📑 Contenido de esta guía</h2>
+        <ul class="list-disc pl-5 space-y-1 text-sm">
+            <li><a href="#introduccion" class="text-blue-600 hover:underline">Introducción</a></li>
+            <li><a href="#registro" class="text-blue-600 hover:underline">Registro y autenticación</a></li>
+            <li><a href="#navegacion" class="text-blue-600 hover:underline">Navegación por la plataforma</a></li>
+            <li><a href="#dashboard" class="text-blue-600 hover:underline">Dashboard y rankings</a></li>
+            <li><a href="#tests" class="text-blue-600 hover:underline">Realizar un test</a></li>
+            <li><a href="#resultados" class="text-blue-600 hover:underline">Ver resultados</a></li>
+            <li><a href="#perfil" class="text-blue-600 hover:underline">Gestión de perfil</a></li>
+            <li><a href="#invitaciones" class="text-blue-600 hover:underline">Invitaciones</a></li>
+            <li><a href="#ai" class="text-blue-600 hover:underline">Generación de tests con IA</a></li>
+            <li><a href="#faq" class="text-blue-600 hover:underline">Preguntas frecuentes</a></li>
+            <li><a href="#ayuda" class="text-blue-600 hover:underline">Ayuda y contacto</a></li>
+        </ul>
+    </div>
+
+    <!-- INTRODUCCIÓN -->
+    <section id="introduccion" class="pt-4">
+        <h1>🚀 Introducción</h1>
+        <p><strong>AngoTest</strong> es una plataforma educativa que te permite poner a prueba tus conocimientos mediante tests de opción múltiple. Como <strong>usuario estándar</strong> (rol <code>user</code>) o <strong>invitado</strong> (rol <code>guest</code>), tienes acceso a diferentes funcionalidades, que se detallan en esta guía.</p>
+        <div class="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-400 p-4 my-4">
+            <p class="font-medium">✅ ¿Qué puedo hacer como usuario?</p>
+            <ul class="text-sm list-disc pl-5">
+                <li>Registrarme e iniciar sesión.</li>
+                <li><strong>Usuarios estándar:</strong> ver el Dashboard con estadísticas y rankings, realizar tests disponibles, gestionar perfil, enviar invitaciones.</li>
+                <li><strong>Usuarios invitados (guest):</strong> acceso limitado a tests en progreso y completados, pero no pueden ver tests disponibles ni enviar invitaciones hasta completar su perfil.</li>
+                <li>Ambos pueden generar tests con IA (los guest también, una vez completado el perfil).</li>
+            </ul>
+        </div>
+        <p>Si eres administrador, consulta la documentación específica para administradores.</p>
+    </section>
+
+    <!-- REGISTRO Y AUTENTICACIÓN -->
+    <section id="registro" class="pt-4">
+        <h1>📝 Registro y autenticación</h1>
+        <h2>Crear una cuenta</h2>
+        <p>Para registrarte, accede a <strong>Registrate</strong> desde el menú principal y completa el formulario con los siguientes campos obligatorios:</p>
+        <ul>
+            <li><strong>Nombre de usuario</strong> (único, entre 3 y 50 caracteres).</li>
+            <li><strong>Email</strong> (válido y no registrado previamente).</li>
+            <li><strong>Contraseña</strong> (mínimo 6 caracteres).</li>
+            <li><strong>País</strong> (selecciona de la lista).</li>
+            <li><strong>Fecha de nacimiento</strong> (formato YYYY-MM-DD).</li>
+        </ul>
+        <p>Opcionalmente puedes añadir nombre, apellidos, teléfono y dirección. Al hacer clic en <strong>Registrarse</strong>, la cuenta se crea inmediatamente (no se requiere verificación de email en la versión actual).</p>
+        <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-4 my-4">
+            <p class="font-medium">💡 Consejo</p>
+            <p class="text-sm">Elige un nombre de usuario identificable, ya que aparecerá en tus resultados y en las invitaciones que envíes.</p>
+        </div>
+
+        <h2>Iniciar sesión</h2>
+        <p>Ve a <strong>Iniciar sesión</strong> e introduce tu email y contraseña. Si son correctos, se creará una cookie de autenticación (token JWT) y accederás a tu área personal.</p>
+        <ul>
+            <li>Si olvidaste tu contraseña, usa el enlace <strong>¿Olvidaste tu contraseña?</strong> en la página de login. Recibirás un correo con un enlace para restablecerla (válido por 24 horas). En entornos de desarrollo, el enlace se muestra en la respuesta.</li>
+            <li>Si tu cuenta está desactivada, contacta con el soporte.</li>
+        </ul>
+
+        <h2>Cerrar sesión</h2>
+        <p>Haz clic en tu avatar (arriba a la derecha) y selecciona <strong>Salir</strong> en el menú desplegable.</p>
+    </section>
+
+    <!-- NAVEGACIÓN -->
+    <section id="navegacion" class="pt-4">
+        <h1>🧭 Navegación por la plataforma</h1>
+        <p>El menú principal se adapta a tu rol y estado de autenticación.</p>
+
+        <h3>Usuarios estándar (rol <code>user</code>)</h3>
+        <ul>
+            <li><strong>Dashboard</strong> – Estadísticas personales, rankings y evolución de tu rendimiento.</li>
+            <li><strong>Tests disponibles</strong> – Tests que aún no has comenzado. Puedes filtrarlos por tema, nivel y búsqueda.</li>
+            <li><strong>En Progreso</strong> – Tests que has iniciado pero no completado. Puedes retomarlos donde los dejaste.</li>
+            <li><strong>Completados</strong> – Tests finalizados con tu puntuación y análisis detallado.</li>
+            <li><strong>Mi Perfil</strong> – Gestiona tus datos personales, cambia tu email/contraseña o desactiva tu cuenta.</li>
+            <li><strong>Generación de tests con IA</strong> – Crea nuevos tests automáticamente (disponible en el menú, también accesible desde el perfil).</li>
+        </ul>
+
+        <h3>Usuarios invitados (rol <code>guest</code>)</h3>
+        <ul>
+            <li><strong>En Progreso</strong> y <strong>Completados</strong> (visible en el menú).</li>
+            <li><strong>Mi Perfil</strong> – Debes completar tu perfil (nombre, apellidos, país, fecha de nacimiento, email, contraseña) para convertirte en usuario estándar y desbloquear el resto de funcionalidades.</li>
+            <li>No tienes acceso a <strong>Tests disponibles</strong> ni a <strong>Dashboard</strong> hasta que completes tu perfil.</li>
+        </ul>
+        <p>Además, en la parte superior de la página aparece un mensaje recordatorio para los usuarios guest: <em>“Completa tu perfil para desbloquear acceso a tests, comparaciones y todas las funcionalidades”</em>.</p>
+    </section>
+
+    <!-- DASHBOARD Y RANKINGS -->
+    <section id="dashboard" class="pt-4">
+        <h1>📊 Dashboard y rankings</h1>
+        <p>El Dashboard (solo para usuarios estándar) te ofrece una visión completa de tu actividad y comparativas con otros usuarios.</p>
+
+        <h2>Estadísticas personales</h2>
+        <ul>
+            <li><strong>Resumen general:</strong> tests completados, en progreso y expirados.</li>
+            <li><strong>Datos de todos los intentos:</strong> número total de preguntas respondidas, aciertos, fallos y tiempo empleado.</li>
+            <li><strong>Datos del primer intento:</strong> similar, pero solo considerando la primera vez que realizaste cada test (para medir tu rendimiento inicial).</li>
+            <li><strong>Desglose por nivel:</strong> estadísticas separadas para tests de nivel Principiante, Intermedio y Avanzado.</li>
+        </ul>
+
+        <h2>Rankings globales</h2>
+        <p>Compara tu posición con otros usuarios en diferentes métricas. Solo se consideran usuarios con al menos <strong>5 tests completados</strong> (valor configurable).</p>
+        <ul>
+            <li><strong>Más tests completados</strong> (total de tests únicos).</li>
+            <li><strong>Mejor precisión</strong> (porcentaje de aciertos).</li>
+            <li><strong>Menor tiempo medio por pregunta</strong> (rapidez).</li>
+            <li><strong>Más preguntas respondidas</strong> (volumen de actividad).</li>
+            <li><strong>Rankings por nivel</strong> (número de tests completados y precisión en cada nivel).</li>
+        </ul>
+        <p>En cada ranking se indica tu posición actual (si estás entre los primeros 50, según el límite configurable).</p>
+        <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-4 my-4">
+            <p class="font-medium">💡 Consejo</p>
+            <p class="text-sm">Cuanto más tests completes, mejor será tu posición en los rankings. ¡Esfuérzate por mejorar tu precisión y velocidad!</p>
+        </div>
+    </section>
+
+    <!-- REALIZAR UN TEST -->
+    <section id="tests" class="pt-4">
+        <h1>📋 Realizar un test</h1>
+        <p>Los tests son la actividad central de AngoTest. Sigue estos pasos para realizarlos correctamente.</p>
+
+        <h2>Antes de empezar</h2>
+        <ul>
+            <li>Asegúrate de tener conexión a Internet estable.</li>
+            <li>Revisa el <strong>tiempo límite</strong> (si lo tiene) y el <strong>número de preguntas</strong>.</li>
+            <li>Los tests tienen un tema principal, subtema y tema específico, y un nivel (Principiante, Intermedio, Avanzado).</li>
+        </ul>
+
+        <h2>Iniciar un test</h2>
+        <ol>
+            <li>Ve a <strong>Tests disponibles</strong> (solo para usuarios estándar; los guest no tienen acceso).</li>
+            <li>Busca el test que te interese (puedes usar los filtros y la búsqueda).</li>
+            <li>Haz clic en el botón <strong>Realizar</strong> (o en el enlace “Realizar” desde la lista de tests).</li>
+            <li>Se cargará la primera pregunta. Verás el progreso (número de preguntas respondidas / total) y, si aplica, un temporizador.</li>
+        </ol>
+
+        <h2>Responder preguntas</h2>
+        <ul>
+            <li>Cada pregunta tiene entre 2 y 6 opciones, con una única respuesta correcta.</li>
+            <li>Puedes navegar entre preguntas con los botones <strong>Anterior</strong> y <strong>Siguiente</strong>.</li>
+            <li>Puedes saltar preguntas y volver a ellas más tarde; el progreso se guarda automáticamente en el servidor.</li>
+            <li>Si el test tiene límite de tiempo, una cuenta atrás te avisará. Al agotarse, el test se enviará automáticamente.</li>
+        </ul>
+
+        <h2>Finalizar el test</h2>
+        <p>Cuando hayas respondido todas las preguntas (o quieras terminar antes), haz clic en <strong>Finalizar</strong>. El sistema calcula tu puntuación y te muestra los resultados al instante.</p>
+        <div class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 p-4 my-4">
+            <p class="font-medium">⚠️ Importante</p>
+            <p class="text-sm">Una vez finalizado un test, <strong>no podrás volver a realizarlo</strong>. Asegúrate de revisar todas tus respuestas antes de enviar.</p>
+        </div>
+
+        <h2>¿Qué pasa si abandono un test a medias?</h2>
+        <p>Puedes salir del test en cualquier momento (cerrando la pestaña o navegando a otra página). El progreso se guarda automáticamente y el test aparecerá en la sección <strong>En Progreso</strong>, donde podrás retomarlo más tarde.</p>
+        <p>Si un test permanece en progreso durante más de <strong>120 días</strong> (valor configurable), se marcará automáticamente como <strong>Expirado</strong> y no podrás continuarlo.</p>
+    </section>
+
+    <!-- RESULTADOS -->
+    <section id="resultados" class="pt-4">
+        <h1>📊 Ver resultados</h1>
+        <p>Después de completar un test, obtienes un informe detallado de tu rendimiento.</p>
+
+        <h2>Información del resultado</h2>
+        <ul>
+            <li><strong>Puntuación global</strong> (porcentaje de aciertos).</li>
+            <li><strong>Número de respuestas correctas e incorrectas</strong>.</li>
+            <li><strong>Tiempo empleado</strong> (formato hh:mm:ss).</li>
+            <li><strong>Análisis pregunta por pregunta</strong>: verás el enunciado, tus respuestas seleccionadas y la respuesta correcta, con indicadores visuales (verde para acierto, rojo para fallo).</li>
+        </ul>
+
+        <h2>¿Dónde ver mis resultados anteriores?</h2>
+        <p>Todos tus tests completados están disponibles en la sección <strong>Completados</strong> del menú principal. También puedes acceder a ellos desde tu <strong>Dashboard</strong>, donde se muestran estadísticas agregadas.</p>
+
+        <h2>¿Puedo ver solo mis respuestas incorrectas?</h2>
+        <p>Sí, desde el detalle de un resultado completado, el sistema te muestra exclusivamente las preguntas que fallaste, para que puedas repasar tus errores y aprender.</p>
+    </section>
+
+    <!-- PERFIL -->
+    <section id="perfil" class="pt-4">
+        <h1>👤 Gestión de perfil</h1>
+        <p>Accede a tu perfil desde el menú desplegable de tu avatar (arriba a la derecha) seleccionando <strong>Mi Perfil</strong>.</p>
+
+        <h2>Datos personales</h2>
+        <p>Puedes modificar los siguientes campos:</p>
+        <ul>
+            <li><strong>Nombre de usuario</strong> (debe ser único).</li>
+            <li><strong>Nombre y apellidos</strong>.</li>
+            <li><strong>Teléfono y dirección</strong> (opcionales).</li>
+            <li><strong>País</strong> y <strong>fecha de nacimiento</strong>.</li>
+        </ul>
+
+        <h2>Cambiar email y/o contraseña</h2>
+        <p>Desde la sección correspondiente, puedes actualizar tu email y tu contraseña. Para ello, deberás proporcionar tu <strong>contraseña actual</strong> y luego el nuevo email y/o la nueva contraseña (mínimo 6 caracteres).</p>
+
+        <h2>Actualizar perfil de invitado (guest → user)</h2>
+        <p>Si eres un usuario invitado (guest), verás un formulario especial que te permite completar todos los datos requeridos (nombre de usuario, email, nombre, apellidos, país, fecha de nacimiento y contraseña). Al enviarlo, tu rol cambia a <code>user</code> y desbloqueas todas las funcionalidades (Dashboard, Tests disponibles, etc.).</p>
+
+        <h2>Desactivar cuenta</h2>
+        <p>Si deseas dejar de usar AngoTest, puedes desactivar tu cuenta. <strong>Esta acción es irreversible</strong> y requiere:</p>
+        <ul>
+            <li>Introducir tu <strong>contraseña actual</strong>.</li>
+            <li>Escribir el texto de confirmación exacto: <code>CONFIRMAR ELIMINAR CUENTA</code>.</li>
+        </ul>
+        <p>Al confirmar, tu cuenta se desactiva, se anonimizan tus datos (username, email) y tus tests y resultados se transfieren a un usuario contenedor. No podrás reactivarla.</p>
+        <div class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 p-4 my-4">
+            <p class="font-medium">⚠️ Atención</p>
+            <p class="text-sm">No puedes desactivar tu cuenta si eres el único administrador del sistema. En caso de duda, contacta con el soporte.</p>
+        </div>
+    </section>
+
+    <!-- INVITACIONES -->
+    <section id="invitaciones" class="pt-4">
+        <h1>📨 Invitaciones</h1>
+        <p>La función de invitaciones te permite compartir un test que ya has completado con otras personas, para que ellas también puedan realizarlo.</p>
+
+        <h2>¿Cómo enviar una invitación?</h2>
+        <ol>
+            <li>Ve a la sección <strong>Completados</strong> (tus tests finalizados).</li>
+            <li>Busca el test que deseas compartir y haz clic en el botón <strong>Invitar</strong>.</li>
+            <li>Se generará un <strong>enlace único</strong> con un token. Copia ese enlace y compártelo con quien quieras (por email, mensajería, etc.).</li>
+            <li>El enlace tiene una validez de <strong>7 días</strong> a partir de su creación. Pasado ese tiempo, dejará de funcionar.</li>
+        </ol>
+        <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 p-4 my-4">
+            <p class="font-medium">💡 Consejo</p>
+            <p class="text-sm">Puedes enviar invitaciones de cualquier test que hayas completado, incluso si fue hace mucho tiempo. No hay límite de invitaciones por test.</p>
+        </div>
+
+        <h2>¿Cómo aceptar una invitación?</h2>
+        <p>Si recibes un enlace de invitación:</p>
+        <ol>
+            <li>Haz clic en el enlace. Serás redirigido a una página donde se mostrará la información del test y del remitente.</li>
+            <li>Si ya tienes una cuenta en AngoTest, <strong>inicia sesión</strong> con tus credenciales. El test se asignará a tu cuenta y aparecerá en tu lista de "En progreso".</li>
+            <li>Si no tienes cuenta, puedes optar por <strong>crear un usuario invitado (guest)</strong> marcando la opción "Como invitado" al aceptar. Se creará automáticamente una cuenta temporal y podrás realizar el test sin necesidad de registro completo.</li>
+            <li>Una vez aceptada, la invitación se marca como <strong>usada</strong> y no se puede reutilizar.</li>
+        </ol>
+
+        <h2>Gestión de invitaciones enviadas</h2>
+        <p>Actualmente no hay un panel para ver el estado de tus invitaciones enviadas. Si necesitas saber si alguien ha aceptado tu invitación, contacta con el soporte.</p>
+    </section>
+
+    <!-- GENERACIÓN DE TESTS CON IA -->
+    <section id="ai" class="pt-4">
+        <h1>🤖 Generación de tests con IA</h1>
+        <p>AngoTest integra inteligencia artificial para generar tests personalizados de forma automática. Esta funcionalidad está disponible para todos los usuarios autenticados, con algunas restricciones.</p>
+
+        <h2>Límite mensual</h2>
+        <p>Cada usuario tiene una <strong>cuota mensual</strong> de generaciones (por defecto 5 tests al mes). Puedes consultar tu cuota disponible en la página de generación. La cuota se reinicia al inicio de cada mes.</p>
+
+        <h2>Modo guiado (único para usuarios estándar y guest)</h2>
+        <p>Los usuarios comunes y guest solo pueden usar el <strong>modo guiado</strong>. Debes seleccionar:</p>
+        <ul>
+            <li><strong>Tema principal</strong> (ej. Ciencias de la Computación).</li>
+            <li><strong>Subtema</strong> (ej. Fundamentos de Programación).</li>
+            <li><strong>Tema específico</strong> (ej. Sintaxis y Variables).</li>
+            <li><strong>Nivel</strong> (Principiante, Intermedio, Avanzado).</li>
+            <li><strong>Número de preguntas</strong> (entre 5 y 50).</li>
+            <li><strong>Número de opciones por pregunta</strong> (3 o 4).</li>
+            <li><strong>Idioma</strong> (español, inglés, francés, alemán, italiano, portugués).</li>
+        </ul>
+        <p>Al hacer clic en <strong>Generar Test con IA</strong>, el sistema enviará la solicitud y, si todo es correcto, se creará un nuevo test que aparecerá en tu lista de "Tests disponibles".</p>
+
+        <h2>Modo libre (solo administradores)</h2>
+        <p>Los administradores también tienen acceso al <strong>modo libre</strong>, donde pueden escribir instrucciones en lenguaje natural para que la IA genere un test más personalizado. Este modo no está disponible para usuarios comunes.</p>
+
+        <h2>¿Qué pasa si agoto mi cuota?</h2>
+        <p>Si alcanzas el límite mensual, al intentar generar un test recibirás un mensaje de error indicando que has superado la cuota. Deberás esperar al mes siguiente para volver a generar tests.</p>
+        <div class="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 my-4">
+            <p class="font-medium">📌 Nota</p>
+            <p class="text-sm">Los tests generados con IA son editables por los administradores, pero tú como usuario solo puedes realizarlos, no modificarlos.</p>
+        </div>
+    </section>
+
+    <!-- PREGUNTAS FRECUENTES -->
+    <section id="faq" class="pt-4">
+        <h1>❓ Preguntas frecuentes</h1>
+        <div class="space-y-4">
+            <div>
+                <h3>¿Qué hago si olvido mi contraseña?</h3>
+                <p>Usa el enlace <strong>¿Olvidaste tu contraseña?</strong> en la página de login. Recibirás un correo con un enlace para restablecerla (válido por 24 horas). Si no recibes el correo, revisa tu carpeta de spam o contacta con el soporte.</p>
+            </div>
+            <div>
+                <h3>¿Puedo rehacer un test que ya completé?</h3>
+                <p>No, actualmente cada test solo puede realizarse una vez por usuario. Sin embargo, puedes ver tus resultados anteriores y, si lo deseas, invitar a otros a realizar el mismo test para comparar.</p>
+            </div>
+            <div>
+                <h3>¿Cómo sé mi progreso general?</h3>
+                <p>El <strong>Dashboard</strong> muestra estadísticas globales: tests completados, en progreso, puntuación media, tiempo invertido, y tu posición en los rankings.</p>
+            </div>
+            <div>
+                <h3>¿Qué significa "usuario invitado" (guest)?</h3>
+                <p>Los invitados pueden acceder a tests a través de invitaciones sin necesidad de registro completo, pero tienen funcionalidades limitadas (no pueden ver Tests disponibles, ni Dashboard, ni enviar invitaciones). Al completar su perfil se convierten en usuarios estándar.</p>
+            </div>
+            <div>
+                <h3>¿Los tests están disponibles en varios idiomas?</h3>
+                <p>Sí, los tests pueden generarse en español, inglés, francés, alemán, italiano y portugués, según la configuración del creador. El idioma se selecciona al generar el test con IA.</p>
+            </div>
+            <div>
+                <h3>¿Puedo invitar a alguien que no tiene cuenta?</h3>
+                <p>Sí, al enviar una invitación, el destinatario puede aceptarla creando un usuario invitado (guest) sin necesidad de registro completo. Eso le permitirá realizar el test.</p>
+            </div>
+            <div>
+                <h3>¿Cómo puedo saber mi cuota de generación con IA?</h3>
+                <p>En la página de generación de tests con IA, se muestra un indicador con el mes actual, las solicitudes usadas y las disponibles.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- AYUDA Y CONTACTO -->
+    <section id="ayuda" class="pt-4">
+        <h1>📞 Ayuda y contacto</h1>
+        <p>Si necesitas asistencia adicional, estos son los canales disponibles:</p>
+        <ul>
+            <li><strong>Documentación oficial</strong> – esta misma guía es tu primera fuente de información.</li>
+            <li><strong>Correo de soporte</strong>: <a href="mailto:soporte@angotest.com">soporte@angotest.com</a> – para consultas específicas.</li>
+            <li><strong>Contactar con un administrador</strong> – si conoces a algún administrador de la plataforma, puedes pedirle ayuda directamente.</li>
+        </ul>
+        <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg my-4">
+            <p class="font-medium">📌 Recomendación</p>
+            <p class="text-sm">Antes de contactar con soporte, revisa las secciones anteriores de esta guía; es probable que encuentres la respuesta a tu duda.</p>
+        </div>
+        <p><em>Para administradores: si necesitas soporte técnico sobre la administración de la plataforma, consulta la documentación específica para administradores.</em></p>
+    </section>
+
+</div>
+{% endblock %}

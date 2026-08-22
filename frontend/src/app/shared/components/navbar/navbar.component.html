@@ -86,13 +86,20 @@
                 <a routerLink="/admin/quotas" 
                   [class]="classes.link"
                   [routerLinkActive]="activeClasses.link">
-                  Quotas
+                  Cuotas
                 </a>                            
                 <a routerLink="/admin/system-config" 
                   [class]="classes.link"
                   [routerLinkActive]="activeClasses.link">
                   SystemConfig
                 </a>
+                <a href="http://localhost:8000/docs/admin/" target="_blank"
+                  [class]="getDocumentationLinkClass('admin')"
+                  title="Documentación"
+                  [routerLinkActive]="activeClasses.link">
+                  Docs
+                </a>
+
               </div>
               <!-- Menú de Usuario para Admin (segundo plano) -->
               <div class="flex justify-end space-x-4 opacity-75">
@@ -115,6 +122,13 @@
                     [class]="classes.link" class="text-xs"
                     [routerLinkActive]="activeClasses.link">
                   Completados
+                </a>
+                <!-- Documentación -->
+                <a href="http://localhost:8000/docs/" target="_blank"
+                  [class]="getDocumentationLinkClass('user')"
+                  title="Documentación"
+                  [routerLinkActive]="activeClasses.link">
+                  Docs
                 </a>
               </div>
             </div>
@@ -150,6 +164,14 @@
                  [routerLinkActive]="activeClasses.link">
                 Completados
               </a>
+
+              <!-- Documentación -->
+              <a href="http://localhost:8000/docs/" target="_blank"
+                [class]="getDocumentationLinkClass('user')"
+                title="Documentación"
+                [routerLinkActive]="activeClasses.link">
+                Docs
+              </a>
             </div>
           }
 
@@ -166,6 +188,13 @@
                  [routerLinkActive]="activeClasses.link">
                 Completados
               </a>
+              <a href="http://localhost:8000/docs/" target="_blank"
+                [class]="getDocumentationLinkClass('guest')"
+                title="Documentación"
+                [routerLinkActive]="activeClasses.link">
+                Docs
+              </a>
+
             </div>
           }
 
@@ -361,7 +390,7 @@
                       (click)="closeMobileMenu()"
                       [class]="classes.mobileLink"
                       [routerLinkActive]="activeClasses.mobile">
-                      Quotas
+                      Cuotas
                     </a>                 
                     <a routerLink="/admin/system-config" 
                       (click)="closeMobileMenu()"
