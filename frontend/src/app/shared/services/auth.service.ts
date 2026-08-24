@@ -155,20 +155,20 @@ export class AuthService {
   }
 
   logout(redirect = true): void {
-    
-    this.invalidateCache();
-    
-    // Opcional: notificar al backend
-    void firstValueFrom(
-      this.http.post(`${this.apiUrl}/logout`, {})
-    ).catch(err => console.error('Error cerrando sesión:', err));
-    
-    
-    if (redirect) {
-      this.router.navigate(['/login'], {
-        queryParams: { message: 'Sesión cerrada exitosamente' }
+    this.loadingSignal.set(true);
+
+    firstValueFrom(this.http.post(`${this.apiUrl}/logout`, {}))
+      .catch(err => console.error('Error cerrando sesión:', err))
+      .finally(() => {
+        this.invalidateCache();       // ahora sí, el servidor ya no tiene sesión
+        this.loadingSignal.set(false);
+
+        if (redirect) {
+          this.router.navigate(['/login'], {
+            queryParams: { message: 'Sesión cerrada exitosamente' }
+          });
+        }
       });
-    }
   }
 
   verifyAuth(): Observable<{ authenticated: boolean; user?: User }> {
