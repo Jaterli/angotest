@@ -288,7 +288,7 @@
                 >
                   <option value="" disabled>Selecciona tu país</option>
                   @for (country of countries; track country) {
-                    <option [value]="country" [selected]="country === guestCompleteForm.get('country')?.value">{{ country }}</option>
+                    <option [value]="country">{{ country }}</option>
                   }
                 </select>
                 @if (guestCountry?.invalid && guestCountry?.touched) {
@@ -470,7 +470,7 @@
           <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
             <button 
               type="submit" 
-              [disabled]="guestCompleteForm.invalid || loadingGuestUpdate || guestCompleteForm.pristine"
+              [disabled]="guestCompleteForm.invalid || loadingGuestUpdate() || guestCompleteForm.pristine"
               class="w-full py-4 bg-emerald-600 dark:bg-emerald-700 text-white font-semibold rounded-lg hover:bg-emerald-700 dark:hover:bg-emerald-600 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm xs:text-lg"
             >
               @if (loadingGuestUpdate()) {
@@ -644,7 +644,7 @@
               >
                 <option value="" disabled>Selecciona tu país</option>
                 @for (country of countries; track country) {
-                  <option [value]="country" [selected]="country === profileForm.get('country')?.value">{{ country }}</option>
+                  <option [value]="country">{{ country }}</option>
                 }
               </select>
               @if (country?.invalid && country?.touched) {
@@ -825,32 +825,32 @@
                 />
                 @if (currentPassword?.invalid && currentPassword?.touched) {
                   <div class="space-y-1">
-                    @if (guestNewPassword?.errors?.['required']) {
+                    @if (currentPassword?.errors?.['required']) {
                       <p class="text-sm text-red-600 dark:text-red-400">
-                        La nueva contraseña es requerida
+                        La contraseña actual es requerida
                       </p>
                     }
-                    @if (guestNewPassword?.errors?.['minlength']) {
+                    @if (currentPassword?.errors?.['minlength']) {
                       <p class="text-sm text-red-600 dark:text-red-400">
                         Mínimo 6 caracteres
                       </p>
                     }
-                    @if (guestNewPassword?.errors?.['missingUpperCase']) {
+                    @if (currentPassword?.errors?.['missingUpperCase']) {
                       <p class="text-sm text-red-600 dark:text-red-400">
                         Debe contener al menos una mayúscula
                       </p>
                     }
-                    @if (guestNewPassword?.errors?.['missingLowerCase']) {
+                    @if (currentPassword?.errors?.['missingLowerCase']) {
                       <p class="text-sm text-red-600 dark:text-red-400">
                         Debe contener al menos una minúscula
                       </p>
                     }
-                    @if (guestNewPassword?.errors?.['missingNumber']) {
+                    @if (currentPassword?.errors?.['missingNumber']) {
                       <p class="text-sm text-red-600 dark:text-red-400">
                         Debe contener al menos un número
                       </p>
                     }
-                    @if (guestNewPassword?.errors?.['missingSpecialChar']) {
+                    @if (currentPassword?.errors?.['missingSpecialChar']) {
                       <p class="text-sm text-red-600 dark:text-red-400">
                         Debe contener al menos un carácter especial
                       </p>

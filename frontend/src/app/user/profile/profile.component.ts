@@ -1,3 +1,4 @@
+// src/app/user/profile/profile.component.ts
 import { Component, OnInit, signal, inject, DestroyRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
@@ -90,7 +91,7 @@ export class ProfileComponent implements OnInit {
         Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$') // solo letras y espacios
       ]],
       phone: ['', [
-        Validators.pattern('^[0-9+\-\s()]{7,15}$')
+        Validators.pattern(/^[0-9+\-\s()]{7,15}$/)
       ]],
       address: ['', [
         Validators.maxLength(200)
@@ -147,7 +148,7 @@ export class ProfileComponent implements OnInit {
         Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$') // solo letras y espacios
       ]],
       phone: ['', [
-        Validators.pattern('^[0-9+\-\s()]{7,15}$')
+        Validators.pattern(/^[0-9+\-\s()]{7,15}$/)
       ]],
       address: ['', [
         Validators.maxLength(200)
