@@ -19,6 +19,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   
   // Señal para controlar si el menú está compactado
   isScrolled = signal(false);
+
+  // Señal para el modo de visualización (admin o usuario)
+  showAdminMode = signal(true);
   
   // Clases específicas para cada tipo de enlace
   classes = {
@@ -101,6 +104,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.showUserDropdown.set(false);    
   }
 
+  // Método para alternar el modo
+  toggleAdminMode() {
+    this.showAdminMode.update(v => !v);
+    // Cerrar menús al cambiar de modo
+    this.showMobileMenu.set(false);
+    this.showUserDropdown.set(false);
+  }
+
   closeMobileMenu(): void {
     this.showMobileMenu.set(false);      
   }
@@ -139,13 +150,6 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
   }
 
-  shouldShowAdminMenu(): boolean {
-    return this.isLoggedIn && this.currentUser?.role == 'admin';
-  }
-
-  shouldShowUserMenu(): boolean {
-    return this.isLoggedIn && this.currentUser?.role == 'user';
-  }
 
   logout() {
     this.authService.logout();
@@ -153,7 +157,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.showMobileMenu.set(false);    
   }
 
-  getDocumentationLinkClass(role: string): string {
+  getRoleLinkClass(role: string): string {
     // Obtener clases completas del badge y añadir hover
     return this.sharedUtils.getSharedRoleBadgeClass(role) + ' hover:opacity-80 transition-opacity';
   }

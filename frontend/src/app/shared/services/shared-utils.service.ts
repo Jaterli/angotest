@@ -148,9 +148,9 @@ export class SharedUtilsService {
 
   getSharedRoleBadgeClass(role: string): string {
     var commonClasses = 'inline-flex items-center justify-center px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap tracking-tighter ';
-    if (role == 'user') return commonClasses + 'bg-purple-100 text-purple-800 dark:bg-purple-800/30 dark:text-purple-300';
-    if (role == 'admin') return commonClasses + 'bg-orange-100 text-orange-800 dark:bg-orange-800/30 dark:text-orange-300';
-    if (role == 'guest') return commonClasses + 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-300';
+    if (role == 'user') return commonClasses + 'bg-purple-200 text-purple-800 dark:bg-purple-700/30 dark:text-purple-300';
+    if (role == 'admin') return commonClasses + 'bg-orange-200 text-orange-800 dark:bg-orange-700/30 dark:text-orange-300';
+    if (role == 'guest') return commonClasses + 'bg-green-200 text-green-800 dark:bg-green-700/30 dark:text-green-300';
     if (role == 'deleted') return commonClasses + 'bg-gray-300 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
     return commonClasses + 'bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-300';
   }
