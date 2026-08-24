@@ -1,11 +1,11 @@
 # apps/invitations/views.py
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, DestroyAPIView # type: ignore
-from rest_framework.permissions import IsAuthenticated # type: ignore
-from rest_framework.response import Response # type: ignore
-from rest_framework import status # type: ignore
-from rest_framework.views import APIView # type: ignore
-from django_filters.rest_framework import DjangoFilterBackend # type: ignore
-from rest_framework.filters import OrderingFilter # type: ignore
+from rest_framework.generics import CreateAPIView, ListAPIView, DestroyAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import OrderingFilter
 from django.db import transaction
 from django.utils import timezone
 from django.db.models import Count, Q
@@ -16,7 +16,8 @@ import logging
 
 from .models import TestInvitation
 from .serializers import (
-    InvitationListSerializer, InvitationCreateSerializer,
+    InvitationListSerializer,
+    InvitationCreateSerializer,
     InvitationAcceptSerializer,
 )
 from .filters import InvitationFilter
@@ -99,7 +100,6 @@ class CheckInvitationView(APIView):
 
 
 class AcceptInvitationView(APIView):
-
     """Aceptar una invitación"""
     permission_classes = []  # Público, pero maneja autenticación
 
@@ -223,25 +223,21 @@ class AcceptInvitationView(APIView):
         response = Response(response_data)
 
         if authenticated_user:
-
             from apps.accounts.views import set_auth_cookie, generate_jwt_token
-            from apps.accounts.serializers import UserResponseSerializer
+            from apps.accounts.serializers import UserSerializer
 
-            # Establecer la cookie HttpOnly
             set_auth_cookie(
                 response,
                 authenticated_user,
                 is_guest=(authenticated_user.role == 'guest')
             )
-            # Generar token para la respuesta (opcional, pero el frontend lo espera)
             jwt_token = generate_jwt_token(
                 authenticated_user,
                 is_guest=(authenticated_user.role == 'guest'),
             )
             response_data['access_token'] = jwt_token
             response_data['token_type'] = 'Bearer'
-            response_data['user'] = UserResponseSerializer(authenticated_user).data
-            # Actualizar el response data con los nuevos campos
+            response_data['user'] = UserSerializer(authenticated_user).data
             response.data = response_data
 
         return response
@@ -252,7 +248,6 @@ class AcceptInvitationView(APIView):
             test_id=test_id,
         ).update(user_id=new_user_id)
 
-        # Delete guest if they have no remaining results
         if not Result.objects.filter(user_id=guest_user_id).exists():
             User.objects.filter(id=guest_user_id).delete()
 
@@ -332,7 +327,6 @@ class AdminInvitationListView(ListAPIView):
 
     def list(self, request, *args, **kwargs):
         response = super().list(request, *args, **kwargs)
-
         return response
 
 
@@ -345,8 +339,8 @@ class AdminDeleteInvitationView(DestroyAPIView):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        if instance.is_used:
-            return Response({'error': 'no se puede eliminar una invitación usada'}, status=status.HTTP_400_BAD_REQUEST)
+        if instance.is_used and not instance.is_expired:
+            return Response({'error': 'No se puede eliminar una invitación usada hasta que no expire'}, status=status.HTTP_400_BAD_REQUEST)
         instance.delete()
         return Response({'message': 'Invitación eliminada exitosamente', 'id': instance.pk})
 
@@ -393,7 +387,6 @@ class AdminInvitationStatsView(APIView):
         thirty_days_ago = now - timedelta(days=30)
         seven_days_ago = now - timedelta(days=7)
 
-        # Agregar estadísticas
         agg = TestInvitation.objects.aggregate(
             total=Count('id'),
             active=Count('id', filter=Q(is_used=False, expires_at__gt=now)),
@@ -410,21 +403,18 @@ class AdminInvitationStatsView(APIView):
             'with_guest': agg['with_guest'],
         }
 
-        # Por test
         test_stats = list(
             TestInvitation.objects.values('test__id', 'test__title')
             .annotate(count=Count('id'))
             .order_by('-count')[:10]
         )
 
-        # Por usuario
         user_stats = list(
             TestInvitation.objects.values('invited_by__id', 'invited_by__username', 'invited_by__email')
             .annotate(count=Count('id'))
             .order_by('-count')[:10]
         )
 
-        # Evolución diaria (últimos 30 días)
         daily_stats = list(
             TestInvitation.objects.filter(created_at__gte=thirty_days_ago)
             .annotate(day=TruncDate('created_at'))

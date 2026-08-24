@@ -314,7 +314,7 @@ export class InvitationsManagementComponent implements OnInit {
         console.error('Error al eliminar invitación:', err);
         this.deleting.set(false);
         this.showDeleteModal.set(false);
-        this.errorMessage.set('Error al eliminar la invitación. Por favor, inténtalo de nuevo.');
+        this.errorMessage.set('Error al eliminar la invitación. '+ err.error?.error || 'Por favor, inténtalo de nuevo.');
         this.showErrorModal.set(true);
       }
     });
