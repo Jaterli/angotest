@@ -503,7 +503,7 @@
 <app-modal 
   [isOpen]="showDeleteModal()"
   title="¿Eliminar Usuario?"
-  [message]="`¿Estás seguro de que quieres eliminar al usuario '${userToDelete.username || ''}'? Esta acción eliminará permanentemente el usuario y todos sus datos asociados, incluyendo resultados de tests y estadísticas. Esta acción no se puede deshacer.`"
+  [message]="`¿Estás seguro de que quieres eliminar el usuario '${userToDelete.username || ''}'? Esta acción eliminará permanentemente el usuario y sus resultados serán tranferidos al usuario contenedor.`"
   icon="warning"
   [confirmText]="deleting() ? 'Eliminando...' : 'Eliminar'"
   cancelText="Cancelar"
@@ -518,7 +518,7 @@
       </svg>
       <div class="text-sm text-yellow-700 dark:text-yellow-300">
         <p class="font-medium">¡Atención!</p>
-        <p class="mt-1">Esta acción eliminará también todos los resultados y estadísticas asociados a este usuario.</p>
+        <p class="mt-1">Esta acción no se puede deshacer.</p>
       </div>
     </div>
   </div>

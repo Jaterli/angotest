@@ -108,8 +108,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
   toggleAdminMode() {
     this.showAdminMode.update(v => !v);
     // Cerrar menús al cambiar de modo
-    this.showMobileMenu.set(false);
-    this.showUserDropdown.set(false);
+    // this.showMobileMenu.set(false);
+    // this.showUserDropdown.set(false);
   }
 
   closeMobileMenu(): void {
