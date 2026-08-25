@@ -118,6 +118,7 @@ export interface TestDetail {
   specific_topic: string;
   level: string;
   created_at: string;
+  total_questions: number; 
 }
 
 export interface AnswerDetail {
@@ -130,6 +131,8 @@ export interface QuestionDetail {
   id: number;
   question_text: string;
   answers: AnswerDetail[];
+  is_correct_answered: boolean;
+  user_answer_id: number | null;
 }
 
 export interface ScoreDetails {
@@ -144,5 +147,4 @@ export interface ResultUserDetailsResponse {
   test: TestDetail;
   questions: QuestionDetail[];
   score_details: ScoreDetails;
-  total_questions: number;
 }

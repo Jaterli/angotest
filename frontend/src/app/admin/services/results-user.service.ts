@@ -26,7 +26,7 @@ export class ResultsUserService {
   // Método para obtener detalles de resultados
   getResultDetails(userId: number, resultId: number): Observable<ResultUserDetailsResponse> {
     return this.http.get<ResultUserDetailsResponse>(
-      `${this.apiUrl}/${resultId}/user/${userId}/`
+      `${this.apiUrl}/${resultId}/`
     );
   }
 

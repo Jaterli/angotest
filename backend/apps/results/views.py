@@ -9,7 +9,7 @@ from rest_framework.views import APIView # type: ignore
 from django_filters.rest_framework import DjangoFilterBackend # type: ignore
 from rest_framework.filters import OrderingFilter # type: ignore
 from django.db.models import Q, Count, Avg, Sum, F, Case, When, Value, FloatField
-from django.db.models.functions import Coalesce, Round
+from django.db.models.functions import Coalesce, Round, TruncDate
 from django.utils import timezone
 from django.core.cache import cache
 from django.http import HttpResponse
@@ -19,19 +19,39 @@ from datetime import timedelta
 
 from .models import Result
 from apps.test.models import Test, Question, Answer
+from apps.accounts.permissions import IsAdminUser
 from apps.accounts.models import User
 from apps.shared.models import get_main_topics
 from .serializers import (
-    ResultDetailSerializer,
     ResultListSerializer,
     UserResultListSerializer,
+    IncorrectAnswersResponseSerializer 
 )
 from .filters import ResultsListFilter, UserResultsFilter
 from apps.shared.pagination import CustomPagination  # reutilizar paginador personalizado
-from django.core.paginator import Paginator
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def _score_annotation():
+    return Case(
+        When(
+            status='completed',
+            correct_answers=0,
+            wrong_answers=0,
+            then=Value(0.0),
+        ),
+        When(
+            status='completed',
+            then=Round(
+                F('correct_answers') * 100.0 / (F('correct_answers') + F('wrong_answers')),
+                2
+            )
+        ),
+        default=Value(0.0),
+        output_field=FloatField()
+    )
 
 
 # ===========================================================================
@@ -43,6 +63,7 @@ class IncorrectAnswersView(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
     lookup_field = 'id'
     lookup_url_kwarg = 'result_id'
+    serializer_class = IncorrectAnswersResponseSerializer   
 
     def get_queryset(self):
         # Solo el usuario puede ver sus propios resultados
@@ -50,37 +71,30 @@ class IncorrectAnswersView(RetrieveAPIView):
 
     def retrieve(self, request, *args, **kwargs):
         result = self.get_object()
-
-        # Obtener respuestas correctas del test (usando caché)
         correct_answers_map = self._get_correct_answers(result.test_id)
-
-        # Obtener preguntas con respuestas
         questions = Question.objects.filter(test_id=result.test_id).prefetch_related('answers')
 
-        # Parsear respuestas del usuario
         user_answers = {}
         if result.answers:
             try:
                 user_answers = json.loads(result.answers) if isinstance(result.answers, str) else result.answers
-            except json.JSONDecodeError:
-                pass
+            except (json.JSONDecodeError, TypeError):
+                logger.warning("No se pudo parsear result.answers para result_id=%s", result.pk)
+
+        # Precargar en un solo query los textos de todas las respuestas dadas por el usuario
+        given_answer_ids = [v for v in user_answers.values() if v]
+        user_answer_texts = dict(
+            Answer.objects.filter(id__in=given_answer_ids).values_list('id', 'answer_text')
+        )
 
         incorrect_questions = []
         for idx, question in enumerate(questions, 1):
             user_answer_id = user_answers.get(str(question.pk))
             correct_answer = correct_answers_map.get(question.pk)
+            is_correct = correct_answer is not None and user_answer_id == correct_answer['id']
 
-            if user_answer_id != correct_answer['id'] if correct_answer else True:
-                # Obtener texto de respuesta del usuario
-                user_answer_text = 'No respondida'
-                if user_answer_id:
-                    try:
-                        user_answer = Answer.objects.filter(id=user_answer_id).values_list('answer_text', flat=True).first()
-                        if user_answer:
-                            user_answer_text = user_answer
-                    except:
-                        pass
-
+            if not is_correct:
+                user_answer_text = user_answer_texts.get(user_answer_id, 'No respondida')
                 incorrect_questions.append({
                     'question_id': question.pk,
                     'question_number': idx,
@@ -103,7 +117,10 @@ class IncorrectAnswersView(RetrieveAPIView):
                 'score_percentage': round(score_percentage, 2)
             }
         }
-        return Response(data)
+        # Serializar y validar la forma de salida antes de devolverla
+        serializer = IncorrectAnswersResponseSerializer(instance=data)
+        return Response(serializer.data)
+
 
     def _get_correct_answers(self, test_id):
         """Cache de respuestas correctas para un test"""
@@ -129,41 +146,8 @@ class IncorrectAnswersView(RetrieveAPIView):
 # Endpoints de administración
 # ===========================================================================
 
-class ResultDetailView(RetrieveAPIView):
-    permission_classes = [IsAuthenticated]
-    queryset = Result.objects.select_related('user', 'test')
-    serializer_class = ResultDetailSerializer
-    lookup_field = 'id'
-    lookup_url_kwarg = 'result_id'
-
-    def retrieve(self, request, *args, **kwargs):
-        response = super().retrieve(request, *args, **kwargs)
-        # Añadir información del test y user
-        data = response.data
-        result = self.get_object()
-        data['test'] = {
-            'id': result.test.id,
-            'title': result.test.title,
-            'description': result.test.description,
-            'main_topic': result.test.main_topic,
-            'sub_topic': result.test.sub_topic,
-            'specific_topic': result.test.specific_topic,
-            'level': result.test.level,
-            'total_questions': result.test.questions.count(),
-        }
-        data['user'] = {
-            'id': result.user.id,
-            'username': result.user.username,
-            'email': result.user.email,
-            'first_name': result.user.first_name,
-            'last_name': result.user.last_name,
-            'role': result.user.role,
-        }
-        return Response(data)
-
-
 class ResultsListView(ListAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     serializer_class = ResultListSerializer
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -175,17 +159,7 @@ class ResultsListView(ListAPIView):
         queryset = Result.objects.select_related('user', 'test')
         # Anotar score para ordenar
         queryset = queryset.annotate(
-            score=Case(
-                When(
-                    status='completed',
-                    then=Coalesce(
-                        Round(F('correct_answers') * 100.0 / (F('correct_answers') + F('wrong_answers')), 2),
-                        Value(0.0)
-                    )
-                ),
-                default=Value(0.0),
-                output_field=FloatField()
-            ),
+            score=_score_annotation(),
             total_questions=F('correct_answers') + F('wrong_answers')
         )
         return queryset
@@ -200,16 +174,15 @@ class ResultsListView(ListAPIView):
             'roles': User.ROLE_CHOICES, # Todos los roles, sin filtrar
         }
         # Estadísticas adicionales
-        queryset = self.filter_queryset(self.get_queryset())
         response.data['stats'] = {
             'total_unfiltered': Result.objects.count(),
-            'total_filtered': queryset.count(),
+            'total_filtered': self.filter_queryset(self.get_queryset()).count(),
         }
         return response
 
 
 class ResultsUserView(ListAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     serializer_class = UserResultListSerializer
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -222,17 +195,7 @@ class ResultsUserView(ListAPIView):
         queryset = Result.objects.filter(user_id=user_id).select_related('test')
         # Anotar score
         queryset = queryset.annotate(
-            score=Case(
-                When(
-                    status='completed',
-                    then=Coalesce(
-                        Round(F('correct_answers') * 100.0 / (F('correct_answers') + F('wrong_answers')), 2),
-                        Value(0.0)
-                    )
-                ),
-                default=Value(0.0),
-                output_field=FloatField()
-            )
+            score=_score_annotation(),
         )
         return queryset
 
@@ -276,14 +239,14 @@ class ResultsUserView(ListAPIView):
         return response
 
 
-class ResultUserDetailView(RetrieveAPIView):
-    permission_classes = [IsAuthenticated]
+class ResultDetailView(RetrieveAPIView):
+    permission_classes = [IsAdminUser]
     lookup_field = 'id'
     lookup_url_kwarg = 'result_id'
 
     def get_queryset(self):
-        user_id = self.kwargs.get('user_id')
-        return Result.objects.filter(user_id=user_id).select_related('user', 'test')
+        result_id = self.kwargs.get('result_id')
+        return Result.objects.filter(id=result_id).select_related('user', 'test')
 
     def retrieve(self, request, *args, **kwargs):
         result = self.get_object()
@@ -294,8 +257,8 @@ class ResultUserDetailView(RetrieveAPIView):
         if result.answers:
             try:
                 user_answers = json.loads(result.answers) if isinstance(result.answers, str) else result.answers
-            except json.JSONDecodeError:
-                pass
+            except (json.JSONDecodeError, TypeError):
+                logger.warning("No se pudo parsear result.answers para result_id=%s", result.pk)
 
         question_details = []
         for idx, question in enumerate(questions, 1):
@@ -336,7 +299,6 @@ class ResultUserDetailView(RetrieveAPIView):
             'wrong_answers': result.wrong_answers,
             'time_taken': result.time_taken,
             'status': result.status,
-            'answered_questions': result.answers,
             'started_at': result.started_at,
             'updated_at': result.updated_at,
         }
@@ -366,7 +328,7 @@ class ResultUserDetailView(RetrieveAPIView):
             'score_percentage': round((result.correct_answers / len(question_details) * 100), 1) if len(question_details) > 0 and result.status == 'completed' else 0
         }
         # Formato de tiempo
-        seconds = result.time_taken
+        seconds = result.time_taken or 0
         if seconds > 0:
             hours = seconds // 3600
             minutes = (seconds % 3600) // 60
@@ -387,7 +349,7 @@ class ResultUserDetailView(RetrieveAPIView):
 
 
 class DeleteResultView(DestroyAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     lookup_field = 'id'
     lookup_url_kwarg = 'result_id'
 
@@ -402,7 +364,7 @@ class DeleteResultView(DestroyAPIView):
 
 
 class DeleteResultsBulkView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def delete(self, request):
         try:
@@ -428,7 +390,7 @@ class DeleteResultsBulkView(APIView):
 
 
 class ResultStatsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         cache_key = 'result_stats'
@@ -451,23 +413,17 @@ class ResultStatsView(APIView):
             thirty_days_ago = timezone.now() - timedelta(days=30)
             daily_stats = Result.objects.filter(
                 started_at__gte=thirty_days_ago
-            ).extra(
-                {'day': "DATE(started_at)"}
+            ).annotate(
+                day=TruncDate('started_at')
             ).values('day').annotate(
                 count=Count('id'),
-                avg_score=Avg(
-                    Case(
-                        When(status='completed', then=F('correct_answers') * 100.0 / (F('correct_answers') + F('wrong_answers'))),
-                        default=Value(0.0),
-                        output_field=FloatField()
-                    )
-                )
+                avg_score=Avg(_score_annotation())  
             ).order_by('day')
 
             # Resultados por nivel de test
             level_stats = list(Result.objects.filter(status='completed').select_related('test').values('test__level').annotate(
                 count=Count('id'),
-                avg_score=Avg(F('correct_answers') * 100.0 / (F('correct_answers') + F('wrong_answers')))
+                avg_score=Avg(_score_annotation())
             ))
 
             # Top 10 tests más realizados
@@ -482,13 +438,7 @@ class ResultStatsView(APIView):
                 'user__id', 'user__username', 'user__email'
             ).annotate(
                 count=Count('id'),
-                avg_score=Avg(
-                    Case(
-                        When(status='completed', then=F('correct_answers') * 100.0 / (F('correct_answers') + F('wrong_answers'))),
-                        default=Value(0.0),
-                        output_field=FloatField()
-                    )
-                )
+                avg_score=Avg(_score_annotation())
             ).order_by('-count')[:10])
 
             stats_data = {
@@ -529,11 +479,11 @@ class ResultStatsView(APIView):
 
             cache.set(cache_key, stats_data, timeout=300)
 
-        return Response(stats_data)
+        return Response(stats_data)       
 
 
 class ExportResultsCSVView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         # Construir query con filtros (usando el mismo filtro que ResultsListView)

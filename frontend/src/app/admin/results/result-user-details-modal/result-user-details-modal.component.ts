@@ -121,57 +121,12 @@ export class ResultUserDetailsModalComponent implements OnInit, OnDestroy {
     return this.sharedUtilsService.getSharedLevelBadgeClass(level);
   }
 
-  // Nuevos métodos para manejar la nueva estructura de datos
-  getUserAnswerId(questionId: number): number | null {
-    const result = this.resultDetails()?.result;
-    if (!result || !result.answered_questions) return null;
-    
-    // answered_questions es un mapa {question_id: answer_id}
-    const answeredQuestions = result.answered_questions as Record<number, number>;
-    return answeredQuestions[questionId] || null;
+  getAnswerTextClasses(isCorrect: boolean): string {
+    return isCorrect
+      ? 'text-emerald-700 dark:text-emerald-300 font-medium'
+      : 'text-red-700 dark:text-red-300 font-medium';
   }
-
-  getCorrectAnswerId(question: any): number | null {
-    if (!question || !question.answers) return null;
-    const correctAnswer = question.answers.find((a: any) => a.is_correct);
-    return correctAnswer ? correctAnswer.id : null;
-  }
-
-  isQuestionCorrect(question: any): boolean {
-    const userAnswerId = this.getUserAnswerId(question.id);
-    const correctAnswerId = this.getCorrectAnswerId(question);
-    return userAnswerId !== null && correctAnswerId !== null && userAnswerId === correctAnswerId;
-  }
-
-  getAnswerClasses(answer: any, question: any): string {
-    const userAnswerId = this.getUserAnswerId(question.id);
-    const correctAnswerId = this.getCorrectAnswerId(question);
-    
-    if (answer.id === correctAnswerId) {
-      return 'answer-correct';
-    }
-    if (answer.id === userAnswerId && answer.id !== correctAnswerId) {
-      return 'answer-incorrect';
-    }
-    if (answer.id === userAnswerId) {
-      return 'answer-selected';
-    }
-    return 'answer-normal';
-  }
-
-  getAnswerTextClasses(answer: any, question: any): string {
-    const userAnswerId = this.getUserAnswerId(question.id);
-    const correctAnswerId = this.getCorrectAnswerId(question);
-    
-    if (answer.id === correctAnswerId) {
-      return 'text-emerald-700 dark:text-emerald-300 font-medium';
-    }
-    if (answer.id === userAnswerId && answer.id !== correctAnswerId) {
-      return 'text-red-700 dark:text-red-300 font-medium';
-    }
-    return 'text-gray-700 dark:text-gray-300';
-  }
-
+  
   getCorrectAnswerText(question: any): string {
     if (!question || !question.answers) return '';
     const correctAnswer = question.answers.find((a: any) => a.is_correct);

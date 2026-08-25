@@ -10,41 +10,18 @@ class IncorrectAnswerSerializer(serializers.Serializer):
     correct_answer_text = serializers.CharField()
     user_answer_text = serializers.CharField()
 
-class ResultDetailSerializer(serializers.ModelSerializer):
-    user_username = serializers.CharField(source='user.username')
-    user_email = serializers.CharField(source='user.email')
-    user_first_name = serializers.CharField(source='user.first_name')
-    user_last_name = serializers.CharField(source='user.last_name')
-    user_role = serializers.CharField(source='user.role')
-    test_title = serializers.CharField(source='test.title')
-    test_description = serializers.CharField(source='test.description')
-    test_main_topic = serializers.CharField(source='test.main_topic')
-    test_sub_topic = serializers.CharField(source='test.sub_topic')
-    test_specific_topic = serializers.CharField(source='test.specific_topic')
-    test_level = serializers.CharField(source='test.level')
-    total_questions = serializers.SerializerMethodField()
-    score = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Result
-        fields = [
-            'id', 'user_id', 'test_id', 'correct_answers', 'wrong_answers',
-            'time_taken', 'status', 'answers', 'started_at', 'updated_at',
-            'user_username', 'user_email', 'user_first_name', 'user_last_name', 'user_role',
-            'test_title', 'test_description', 'test_main_topic', 'test_sub_topic',
-            'test_specific_topic', 'test_level',
-            'total_questions', 'score'
-        ]
+class IncorrectAnswersSummarySerializer(serializers.Serializer):
+    total_questions = serializers.IntegerField()
+    total_correct = serializers.IntegerField()
+    total_incorrect = serializers.IntegerField()
+    questions_with_errors = serializers.IntegerField()
+    score_percentage = serializers.FloatField()
 
-    def get_total_questions(self, obj):
-        return obj.test.questions.count()
 
-    def get_score(self, obj):
-        if obj.status == 'completed':
-            total = obj.correct_answers + obj.wrong_answers
-            if total > 0:
-                return round((obj.correct_answers / total) * 100, 2)
-        return 0.0
+class IncorrectAnswersResponseSerializer(serializers.Serializer):
+    incorrect_questions = IncorrectAnswerSerializer(many=True)
+    summary = IncorrectAnswersSummarySerializer()
 
 
 class ResultListSerializer(serializers.ModelSerializer):
@@ -60,7 +37,7 @@ class ResultListSerializer(serializers.ModelSerializer):
     test__specific_topic = serializers.CharField(source='test.specific_topic')
     test__level = serializers.CharField(source='test.level')
     total_questions = serializers.SerializerMethodField()
-    score = serializers.SerializerMethodField()
+    score = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Result
@@ -76,13 +53,6 @@ class ResultListSerializer(serializers.ModelSerializer):
     def get_total_questions(self, obj):
         return obj.test.questions.count()
 
-    def get_score(self, obj):
-        if obj.status == 'completed':
-            total = obj.correct_answers + obj.wrong_answers
-            if total > 0:
-                return round((obj.correct_answers / total) * 100, 2)
-        return 0.0
-
 
 class UserResultListSerializer(serializers.ModelSerializer):
     test__title = serializers.CharField(source='test.title')
@@ -93,7 +63,7 @@ class UserResultListSerializer(serializers.ModelSerializer):
     test__level = serializers.CharField(source='test.level')
     test__created_at = serializers.DateTimeField(source='test.created_at')
     total_questions = serializers.IntegerField(source='test.questions.count', read_only=True)
-    score = serializers.SerializerMethodField()
+    score = serializers.FloatField(read_only=True)
     answered_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -106,18 +76,11 @@ class UserResultListSerializer(serializers.ModelSerializer):
             'score', 'answered_count'
         ]
 
-    def get_score(self, obj):
-        if obj.status == 'completed':
-            total = obj.correct_answers + obj.wrong_answers
-            if total > 0:
-                return round((obj.correct_answers / total) * 100, 2)
-        return 0.0
-
     def get_answered_count(self, obj):
-        if obj.answers:
-            try:
-                answers = json.loads(obj.answers) if isinstance(obj.answers, str) else obj.answers
-                return len(answers) if answers else 0
-            except:
-                return 0
-        return 0
+        if not obj.answers:
+            return 0
+        try:
+            answers = json.loads(obj.answers) if isinstance(obj.answers, str) else obj.answers
+        except (json.JSONDecodeError, TypeError):
+            return 0
+        return len(answers) if answers else 0
