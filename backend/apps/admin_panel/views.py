@@ -2,7 +2,7 @@ from rest_framework.generics import (
     ListAPIView, RetrieveAPIView, CreateAPIView,
     UpdateAPIView, DestroyAPIView
 )
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -23,7 +23,6 @@ from .filters import UserQuotaFilter, SystemConfigFilter
 from .serializers import (
     UserQuotaSerializer, UserQuotaCreateSerializer,
     UserQuotaUpdateSerializer, SystemConfigSerializer,
-    # nuevos serializers de respuesta
     UserQuotaCreateResponseSerializer,
     UserQuotaUpdateResponseSerializer,
     UserQuotaDeleteResponseSerializer,
@@ -51,7 +50,7 @@ logger = logging.getLogger(__name__)
 # ===========================================================================
 
 class AdminUserQuotaListView(ListAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     serializer_class = UserQuotaSerializer
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -76,7 +75,7 @@ class AdminUserQuotaListView(ListAPIView):
 
 
 class AdminUserQuotaDetailView(RetrieveAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     serializer_class = UserQuotaSerializer
     lookup_field = 'id'
     lookup_url_kwarg = 'quota_id'
@@ -94,7 +93,7 @@ class AdminUserQuotaDetailView(RetrieveAPIView):
     }
 )
 class AdminUserQuotaByUserView(ListAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     serializer_class = UserQuotaSerializer
 
     def get_queryset(self):
@@ -117,7 +116,7 @@ class AdminUserQuotaByUserView(ListAPIView):
 
 
 class AdminUserQuotaMonthsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, user_id):
         months = list(
@@ -140,7 +139,7 @@ class AdminUserQuotaMonthsView(APIView):
     }
 )
 class AdminCreateUserQuotaView(CreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     serializer_class = UserQuotaCreateSerializer
     # No usamos el CreateAPIView por defecto porque personalizamos la respuesta
 
@@ -183,7 +182,7 @@ class AdminCreateUserQuotaView(CreateAPIView):
     }
 )
 class AdminUpdateUserQuotaView(UpdateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     serializer_class = UserQuotaUpdateSerializer
     lookup_field = 'id'
     lookup_url_kwarg = 'quota_id'
@@ -217,7 +216,7 @@ class AdminUpdateUserQuotaView(UpdateAPIView):
     }
 )
 class AdminDeleteUserQuotaView(DestroyAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     queryset = UserQuota.objects.all()
     lookup_field = 'id'
     lookup_url_kwarg = 'quota_id'
@@ -244,7 +243,7 @@ class AdminDeleteUserQuotaView(DestroyAPIView):
     }
 )
 class AdminDeleteQuotasBulkView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def delete(self, request):
         try:
@@ -282,7 +281,7 @@ class AdminDeleteQuotasBulkView(APIView):
     responses={200: OpenApiResponse(description="Estadísticas", response=QuotaStatsResponseSerializer)}
 )
 class AdminQuotaStatsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         annotated = UserQuota.objects.filter(max_requests__gt=0).annotate(
@@ -373,7 +372,7 @@ class AdminQuotaStatsView(APIView):
     }
 )
 class AdminExportQuotasCSVView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         search = request.GET.get('search', '')
@@ -410,7 +409,7 @@ class AdminExportQuotasCSVView(APIView):
 # ===========================================================================
 
 class AdminSystemConfigListView(ListAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = SystemConfigFilter
     ordering_fields = ['key', 'value', 'description', 'created_at', 'updated_at']
@@ -429,7 +428,7 @@ class AdminSystemConfigListView(ListAPIView):
     }
 )
 class AdminSystemConfigByKeyView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, key):
         try:
@@ -449,7 +448,7 @@ class AdminSystemConfigByKeyView(APIView):
     responses={200: OpenApiResponse(description="Lista de configuraciones", response=DefaultSystemConfigsResponseSerializer)}
 )
 class AdminDefaultSystemConfigsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         from django.conf import settings
@@ -465,7 +464,7 @@ class AdminDefaultSystemConfigsView(APIView):
 
 
 class AdminCreateSystemConfigView(CreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     queryset = SystemConfig.objects.all()
     serializer_class = SystemConfigSerializer
 
@@ -493,7 +492,7 @@ class AdminCreateSystemConfigView(CreateAPIView):
 
 
 class AdminUpdateSystemConfigView(UpdateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     queryset = SystemConfig.objects.all()
     serializer_class = SystemConfigSerializer
     lookup_field = 'id'
@@ -528,7 +527,7 @@ class AdminUpdateSystemConfigView(UpdateAPIView):
 
 
 class AdminDeleteSystemConfigView(DestroyAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     queryset = SystemConfig.objects.all()
     serializer_class = SystemConfigSerializer
     lookup_field = 'id'
@@ -545,7 +544,7 @@ class AdminDeleteSystemConfigView(DestroyAPIView):
     responses={200: OpenApiResponse(description="Datos del dashboard", response=DashboardResponseSerializer)}
 )
 class AdminDashboardView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         start_date = request.GET.get('start_date')
@@ -784,7 +783,7 @@ class AdminDashboardView(APIView):
     responses={200: OpenApiResponse(description="Actividad diaria", response=ActivitySummaryResponseSerializer)}
 )
 class AdminDashboardActivitySummaryView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         end = timezone.now().date()
@@ -853,7 +852,7 @@ class AdminDashboardActivitySummaryView(APIView):
     responses={200: OpenApiResponse(description="Métricas de rendimiento", response=PerformanceMetricsResponseSerializer)}
 )
 class AdminDashboardPerformanceMetricsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         agg = Result.objects.aggregate(
@@ -896,7 +895,7 @@ class AdminDashboardPerformanceMetricsView(APIView):
     }
 )
 class AdminTestDetailedStatsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, test_id):
         try:
@@ -950,7 +949,7 @@ class AdminTestDetailedStatsView(APIView):
     }
 )
 class AdminUserDetailedStatsView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request, user_id):
         try:

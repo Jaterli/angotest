@@ -1,7 +1,7 @@
 from rest_framework.filters import OrderingFilter # type: ignore
 from rest_framework.generics import RetrieveAPIView, ListAPIView, CreateAPIView, DestroyAPIView, GenericAPIView, UpdateAPIView # type: ignore
 from rest_framework.response import Response # type: ignore
-from rest_framework.permissions import IsAuthenticated # type: ignore
+from rest_framework.permissions import IsAuthenticated, IsAdminUser # type: ignore
 from rest_framework import status # type: ignore
 from django.db.models import Count, Sum, Avg, F, Value, FloatField, Window
 from django.db.models.functions import Rank, Coalesce
@@ -13,7 +13,6 @@ from .filters import TestFilter, CompletedTestsFilter, InProgressTestsFilter
 from .serializers import TestDetailSerializer, SaveResultInputSerializer, TestListSerializer, CompletedTestSerializer, InProgressTestSerializer, QuestionWithAnswersSerializer, TestCreateUpdateSerializer, TestListSerializer
 from ..shared.pagination import CustomPagination
 from .models import Test, Question, Answer
-from apps.accounts.permissions import IsAdminUser
 from apps.shared.models import get_main_topics
 from apps.shared.models import insert_or_update_topic, invalidate_topics_cache, delete_orphaned_topics, get_sub_topics
 from apps.results.models import Result
@@ -25,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 class NotStartedTestListView(ListAPIView):
     serializer_class = TestListSerializer
+    permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = TestFilter
@@ -78,6 +78,7 @@ class NotStartedTestListView(ListAPIView):
 
 class InProgressTestListView(ListAPIView):
     serializer_class = InProgressTestSerializer
+    permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = InProgressTestsFilter
@@ -133,6 +134,7 @@ class InProgressTestListView(ListAPIView):
 
 class CompletedTestListView(ListAPIView):
     serializer_class = CompletedTestSerializer
+    permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = CompletedTestsFilter
@@ -199,6 +201,7 @@ class CompletedTestListView(ListAPIView):
     
 
 class TestDetailView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
     queryset = Test.objects.prefetch_related('questions__answers')
     serializer_class = TestDetailSerializer
     lookup_field = 'id'
@@ -211,6 +214,7 @@ class TestDetailView(RetrieveAPIView):
 
 
 class TestProgressView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
     lookup_field = 'id'
     lookup_url_kwarg = 'test_id'
 
@@ -343,6 +347,7 @@ class SaveResultView(CreateAPIView):
 
 
 class DeleteTestProgressView(DestroyAPIView):
+    permission_classes = [IsAuthenticated]
     lookup_field = 'id'
     lookup_url_kwarg = 'test_id'
 
@@ -452,7 +457,7 @@ def calculate_score(answers, test_id):
 # Vistas para Administración
 
 class AdminTestListView(ListAPIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAdminUser]
     queryset = Test.objects.annotate(
         question_count=Count('questions')
     ).select_related('created_by')
@@ -488,7 +493,7 @@ class AdminTestListView(ListAPIView):
 
 
 class AdminTestCreateView(CreateAPIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAdminUser]
     serializer_class = TestCreateUpdateSerializer
 
     def perform_create(self, serializer):
@@ -503,7 +508,7 @@ class AdminTestCreateView(CreateAPIView):
 
 
 class AdminTestUpdateView(UpdateAPIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAdminUser]
     queryset = Test.objects.all()
     serializer_class = TestCreateUpdateSerializer
     lookup_field = 'id'
@@ -522,7 +527,7 @@ class AdminTestUpdateView(UpdateAPIView):
 
 
 class AdminTestDeleteView(DestroyAPIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAdminUser]
     queryset = Test.objects.all()
     lookup_field = 'id'
     lookup_url_kwarg = 'test_id'

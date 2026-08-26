@@ -1,6 +1,6 @@
 # apps/invitations/views.py
 from rest_framework.generics import CreateAPIView, ListAPIView, DestroyAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -312,7 +312,7 @@ class CreateInvitationView(CreateAPIView):
 
 class AdminInvitationListView(ListAPIView):
     """Obtener todas las invitaciones con filtros y paginación"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     serializer_class = InvitationListSerializer
     pagination_class = InvitationPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -332,7 +332,7 @@ class AdminInvitationListView(ListAPIView):
 
 class AdminDeleteInvitationView(DestroyAPIView):
     """Eliminar una invitación específica"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     queryset = TestInvitation.objects.all()
     lookup_field = 'id'
     lookup_url_kwarg = 'invitation_id'
@@ -347,7 +347,7 @@ class AdminDeleteInvitationView(DestroyAPIView):
 
 class AdminDeleteInvitationsBulkView(APIView):
     """Eliminar múltiples invitaciones"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def delete(self, request):
         try:
@@ -380,7 +380,7 @@ class AdminDeleteInvitationsBulkView(APIView):
 
 class AdminInvitationStatsView(APIView):
     """Obtener estadísticas de invitaciones"""
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get(self, request):
         now = timezone.now()

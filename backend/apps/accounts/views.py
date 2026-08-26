@@ -15,16 +15,16 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView, ListAPIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
+
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 
 # drf-spectacular imports
-from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from .models import User, PasswordResetToken
-from .permissions import IsAdminUser
 from .serializers import (
     UserSerializer, UserProfileSerializer, UserUpdateSerializer,
     UserWithStatsSerializer, RegisterSerializer, LoginSerializer,

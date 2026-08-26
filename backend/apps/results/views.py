@@ -2,7 +2,7 @@
 from rest_framework.generics import ( # type: ignore
     RetrieveAPIView, ListAPIView, DestroyAPIView, GenericAPIView
 )
-from rest_framework.permissions import IsAuthenticated # type: ignore
+from rest_framework.permissions import IsAuthenticated, IsAdminUser # type: ignore
 from rest_framework.response import Response # type: ignore
 from rest_framework import status # type: ignore
 from rest_framework.views import APIView # type: ignore
@@ -19,7 +19,6 @@ from datetime import timedelta
 
 from .models import Result
 from apps.test.models import Test, Question, Answer
-from apps.accounts.permissions import IsAdminUser
 from apps.accounts.models import User
 from apps.shared.models import get_main_topics
 from .serializers import (
