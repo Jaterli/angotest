@@ -168,3 +168,5 @@ testem.log
 Thumbs.db
 ehthumbs.db
 Desktop.ini
+.vscode/*
+.continue/agents/new-config.yaml
