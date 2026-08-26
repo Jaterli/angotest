@@ -28,52 +28,6 @@
       </div>
     }
 
-    <!-- Mensajes Toast de éxito/error general -->
-    @if (successMessage()) {
-        <div id="toast-success" class="fixed bottom-4 right-4 flex items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow-lg dark:text-gray-400 dark:bg-gray-800 z-50" role="alert">
-            <div class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-green-500 bg-green-100 rounded-lg dark:bg-green-800 dark:text-green-200">
-                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z"/>
-                </svg>
-                <span class="sr-only">Check icon</span>
-            </div>
-            <div class="ms-3 text-sm font-normal">{{ successMessage() }}</div>
-            <button 
-                type="button" 
-                (click)="closeToast()"
-                class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" 
-                aria-label="Close"
-            >
-                <span class="sr-only">Close</span>
-                <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                </svg>
-            </button>
-        </div>
-    }
-    @if (errorMessage()) {
-    <div id="toast-danger" class="fixed bottom-4 right-4 flex items-center w-full max-w-xs p-4 text-gray-500 bg-white rounded-lg shadow-lg dark:text-gray-400 dark:bg-gray-800 z-50" role="alert">
-        <div class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg dark:bg-red-800 dark:text-red-200">
-            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 11.793a1 1 0 1 1-1.414 1.414L10 11.414l-2.293 2.293a1 1 0 0 1-1.414-1.414L8.586 10 6.293 7.707a1 1 0 0 1 1.414-1.414L10 8.586l2.293-2.293a1 1 0 0 1 1.414 1.414L11.414 10l2.293 2.293Z"/>
-            </svg>
-            <span class="sr-only">Error icon</span>
-        </div>
-        <div class="ms-3 text-sm font-normal">{{ errorMessage() }}</div>
-        <button 
-            type="button" 
-            (click)="closeToast()"
-            class="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8 dark:text-gray-500 dark:hover:text-white dark:bg-gray-800 dark:hover:bg-gray-700" 
-            aria-label="Close"
-        >
-            <span class="sr-only">Close</span>
-            <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-            </svg>
-        </button>
-    </div>
-    }
-    
     <!-- Información de la cuenta (solo lectura) -->
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-3 xs:p-6 mb-8 border border-gray-200 dark:border-gray-700">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Información de la Cuenta</h2>
@@ -99,7 +53,6 @@
           </div>
 
           @if (user()?.role === 'user') {
-            <!-- Botón para darse de baja -->
             <div class="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
@@ -130,7 +83,6 @@
 
     <!-- Formulario de perfil o completar perfil para guest -->
     @if (user()?.role === 'guest') {
-      <!-- Formulario completo para usuarios guest -->
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-3 xs:p-6 mb-8 border border-gray-200 dark:border-gray-700">
         <div class="mb-6">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Completar Perfil para Usuario Permanente</h2>
@@ -141,11 +93,9 @@
         
         <form [formGroup]="guestCompleteForm" (ngSubmit)="completeGuestProfile()" class="space-y-6">
           
-          <!-- Datos personales -->
           <div class="space-y-6">
             <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Datos Personales</h3>
             
-            <!-- Username -->
             <div class="space-y-2">
               <label for="guestUsername" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Nombre de usuario *
@@ -162,25 +112,18 @@
               @if (guestUsername?.invalid && guestUsername?.touched) {
                 <div class="space-y-1">
                   @if (guestUsername?.errors?.['required']) {
-                    <p class="text-sm text-red-600 dark:text-red-400">
-                      El nombre de usuario es requerido
-                    </p>
+                    <p class="text-sm text-red-600 dark:text-red-400">El nombre de usuario es requerido</p>
                   }
                   @if (guestUsername?.errors?.['minlength']) {
-                    <p class="text-sm text-red-600 dark:text-red-400">
-                      Mínimo 3 caracteres
-                    </p>
+                    <p class="text-sm text-red-600 dark:text-red-400">Mínimo 3 caracteres</p>
                   }
                   @if (guestUsername?.errors?.['pattern']) {
-                    <p class="text-sm text-red-600 dark:text-red-400">
-                      Solo letras, números, puntos, guiones y guiones bajos
-                    </p>
+                    <p class="text-sm text-red-600 dark:text-red-400">Solo letras, números, puntos, guiones y guiones bajos</p>
                   }
                 </div>
               }
             </div>
 
-            <!-- Nombre y Apellido -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-2">
                 <label for="guestFirstName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -200,7 +143,7 @@
                     @if (guestFirstName?.errors?.['required']) {
                       <p>El nombre es requerido</p>
                     }
-                    @if (guestFirstName?.errors?.['minlength'] || guestFirstName?.errors?.['minlength']) {
+                    @if (guestFirstName?.errors?.['minlength'] || guestFirstName?.errors?.['maxlength']) {
                       <p>Rango de caracteres, entre 3 y 50</p>
                     }
                     @if (guestFirstName?.errors?.['pattern']) {
@@ -226,9 +169,9 @@
                 @if (guestLastName?.invalid && guestLastName?.touched) {
                   <div class="space-y-1 text-sm text-red-600 dark:text-red-400">
                     @if (guestLastName?.errors?.['required']) {
-                      <p>El nombre es requerido</p>
+                      <p>El apellido es requerido</p>
                     }
-                    @if (guestLastName?.errors?.['minlength'] || guestLastName?.errors?.['minlength']) {
+                    @if (guestLastName?.errors?.['minlength'] || guestLastName?.errors?.['maxlength']) {
                       <p>Rango de caracteres, entre 3 y 50</p>
                     }
                     @if (guestLastName?.errors?.['pattern']) {
@@ -239,7 +182,6 @@
               </div>
             </div>
 
-            <!-- Teléfono y Dirección -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-2">
                 <label for="guestPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -253,9 +195,7 @@
                   class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
                 />
                 @if (guestPhone?.invalid && guestPhone?.touched) {
-                  <p class="text-sm text-red-600 dark:text-red-400">
-                    Formato de teléfono inválido
-                  </p>
+                  <p class="text-sm text-red-600 dark:text-red-400">Formato de teléfono inválido</p>
                 }
               </div>
 
@@ -273,7 +213,6 @@
               </div>
             </div>
 
-            <!-- País y Fecha de nacimiento -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-2">
                 <label for="guestCountry" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -292,9 +231,7 @@
                   }
                 </select>
                 @if (guestCountry?.invalid && guestCountry?.touched) {
-                  <p class="text-sm text-red-600 dark:text-red-400">
-                    El país es requerido
-                  </p>
+                  <p class="text-sm text-red-600 dark:text-red-400">El país es requerido</p>
                 }
               </div>
 
@@ -313,22 +250,18 @@
                     : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
                 />
                 @if (guestBirthDate?.invalid && guestBirthDate?.touched) {
-                  <p class="text-sm text-red-600 dark:text-red-400">
-                    Debes ser mayor de 18 años
-                  </p>
+                  <p class="text-sm text-red-600 dark:text-red-400">Debes ser mayor de 18 años</p>
                 }
               </div>
             </div>
           </div>
 
-          <!-- Credenciales de acceso -->
           <div class="space-y-6 pt-6 border-t border-gray-200 dark:border-gray-700">
             <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Credenciales de Acceso</h3>
             <p class="text-sm text-gray-600 dark:text-gray-400">
               Tu email y contraseña temporales serán reemplazados por estos nuevos datos.
             </p>
 
-            <!-- Nueva email -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-2">
                 <label for="guestNewEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -344,9 +277,7 @@
                     : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
                 />
                 @if (guestNewEmail?.invalid && guestNewEmail?.touched) {
-                  <p class="text-sm text-red-600 dark:text-red-400">
-                    Email inválido
-                  </p>
+                  <p class="text-sm text-red-600 dark:text-red-400">Email inválido</p>
                 }
               </div>
 
@@ -366,25 +297,18 @@
                 @if (guestConfirmEmail?.invalid && guestConfirmEmail?.touched) {
                   <div class="space-y-1">
                     @if (guestConfirmEmail?.errors?.['required']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Confirma tu nuevo email
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Confirma tu nuevo email</p>
                     }
                     @if (guestConfirmEmail?.errors?.['email']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Email inválido
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Email inválido</p>
                     }
                     @if (guestConfirmEmail?.errors?.['emailMismatch']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Los emails no coinciden
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Los emails no coinciden</p>
                     }
                   </div>
                 }
               </div>
 
-              <!-- Nueva contraseña -->
               <div class="space-y-2">
                 <label for="guestNewPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Nueva Contraseña *
@@ -401,40 +325,27 @@
                 @if (guestNewPassword?.invalid && guestNewPassword?.touched) {
                   <div class="space-y-1">
                     @if (guestNewPassword?.errors?.['required']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        La nueva contraseña es requerida
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">La nueva contraseña es requerida</p>
                     }
                     @if (guestNewPassword?.errors?.['minlength']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Mínimo 6 caracteres
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Mínimo 6 caracteres</p>
                     }
                     @if (guestNewPassword?.errors?.['missingUpperCase']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Debe contener al menos una mayúscula
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Debe contener al menos una mayúscula</p>
                     }
                     @if (guestNewPassword?.errors?.['missingLowerCase']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Debe contener al menos una minúscula
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Debe contener al menos una minúscula</p>
                     }
                     @if (guestNewPassword?.errors?.['missingNumber']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Debe contener al menos un número
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Debe contener al menos un número</p>
                     }
                     @if (guestNewPassword?.errors?.['missingSpecialChar']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Debe contener al menos un carácter especial
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Debe contener al menos un carácter especial</p>
                     }
                   </div>
                 }
               </div>
 
-              <!-- Confirmar nueva contraseña -->
               <div class="space-y-2">
                 <label for="guestConfirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Confirmar Nueva Contraseña *
@@ -451,14 +362,10 @@
                 @if (guestConfirmPassword?.invalid && guestConfirmPassword?.touched) {
                   <div class="space-y-1">
                     @if (guestConfirmPassword?.errors?.['required']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Confirma tu nueva contraseña
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Confirma tu nueva contraseña</p>
                     }
                     @if (guestConfirmPassword?.errors?.['passwordMismatch']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Las contraseñas no coinciden
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Las contraseñas no coinciden</p>
                     }
                   </div>
                 }
@@ -466,7 +373,6 @@
             </div>              
           </div>
 
-          <!-- Botón de guardar -->
           <div class="pt-6 border-t border-gray-200 dark:border-gray-700">
             <button 
               type="submit" 
@@ -493,7 +399,6 @@
         </form>
       </div>
     } @else {
-      <!-- Formulario de perfil normal (para usuarios no guest) -->
       <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-3 xs:p-6 mb-8 border border-gray-200 dark:border-gray-700">
         <div class="mb-6">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Información Personal</h2>        
@@ -501,7 +406,6 @@
         
         <form [formGroup]="profileForm" (ngSubmit)="updateProfile()" class="space-y-6">
           
-          <!-- Username y Email -->
           <div class="space-y-2">
             <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Nombre de usuario *
@@ -518,25 +422,18 @@
             @if (username?.invalid && username?.touched) {
               <div class="space-y-1">
                 @if (username?.errors?.['required']) {
-                  <p class="text-sm text-red-600 dark:text-red-400">
-                    El nombre de usuario es requerido
-                  </p>
+                  <p class="text-sm text-red-600 dark:text-red-400">El nombre de usuario es requerido</p>
                 }
                 @if (username?.errors?.['minlength']) {
-                  <p class="text-sm text-red-600 dark:text-red-400">
-                    Mínimo 3 caracteres
-                  </p>
+                  <p class="text-sm text-red-600 dark:text-red-400">Mínimo 3 caracteres</p>
                 }
                 @if (username?.errors?.['pattern']) {
-                  <p class="text-sm text-red-600 dark:text-red-400">
-                    Solo letras, números, puntos, guiones y guiones bajos
-                  </p>
+                  <p class="text-sm text-red-600 dark:text-red-400">Solo letras, números, puntos, guiones y guiones bajos</p>
                 }
               </div>
             }
           </div>          
               
-          <!-- Nombre y Apellido -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <label for="firstName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -556,7 +453,7 @@
                   @if (firstName?.errors?.['required']) {
                     <p>El nombre es requerido</p>
                   }
-                  @if (firstName?.errors?.['minlength'] || firstName?.errors?.['minlength']) {
+                  @if (firstName?.errors?.['minlength'] || firstName?.errors?.['maxlength']) {
                     <p>Rango de caracteres, entre 3 y 50</p>
                   }
                   @if (firstName?.errors?.['pattern']) {
@@ -584,7 +481,7 @@
                   @if (lastName?.errors?.['required']) {
                     <p>El apellido es requerido</p>
                   }
-                  @if (lastName?.errors?.['minlength'] || lastName?.errors?.['minlength']) {
+                  @if (lastName?.errors?.['minlength'] || lastName?.errors?.['maxlength']) {
                     <p>Rango de caracteres, entre 3 y 50</p>
                   }
                   @if (lastName?.errors?.['pattern']) {
@@ -595,7 +492,6 @@
             </div>
           </div>
 
-          <!-- Teléfono y Dirección -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -609,9 +505,7 @@
                 class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all"
               />
               @if (phone?.invalid && phone?.touched) {
-                <p class="text-sm text-red-600 dark:text-red-400">
-                  Formato de teléfono inválido
-                </p>
+                <p class="text-sm text-red-600 dark:text-red-400">Formato de teléfono inválido</p>
               }
             </div>
 
@@ -629,7 +523,6 @@
             </div>
           </div>
 
-          <!-- País y Fecha de nacimiento -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="space-y-2">
               <label for="country" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -648,9 +541,7 @@
                 }
               </select>
               @if (country?.invalid && country?.touched) {
-                <p class="text-sm text-red-600 dark:text-red-400">
-                  El país es requerido
-                </p>
+                <p class="text-sm text-red-600 dark:text-red-400">El país es requerido</p>
               }
             </div>         
 
@@ -669,14 +560,11 @@
                   : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
               />
               @if (birthDate?.invalid && birthDate?.touched) {
-                <p class="text-sm text-red-600 dark:text-red-400">
-                  Debes ser mayor de 18 años
-                </p>
+                <p class="text-sm text-red-600 dark:text-red-400">Debes ser mayor de 18 años</p>
               }
             </div>
           </div>
 
-          <!-- Botón de guardar -->
           <div class="sm:flex sm:justify-between sm:items-center pt-6 border-t border-gray-200 dark:border-gray-700">
             <button 
               type="submit" 
@@ -697,7 +585,6 @@
               }
             </button>
 
-            <!-- Enlace para cambiar email y contraseña -->
             <button
               type="button"
               (click)="toggleEmailPasswordForm()"
@@ -719,12 +606,10 @@
         </form>
       </div>
 
-      <!-- Formulario de cambio de email y contraseña (solo visible cuando se activa) -->
       @if (showEmailPasswordForm()) {
         <div id="change_email_password" class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg dark:shadow-gray-900/30 p-3 xs:p-6 mb-8 border border-gray-200 dark:border-gray-700">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Cambiar Email y/o Contraseña</h2>
           
-          <!-- Mensajes de éxito/error -->
           @if (emailPasswordSuccess()) {
             <div class="mb-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/30 rounded-lg">
               <div class="flex items-start">
@@ -752,7 +637,6 @@
           }
 
           <form [formGroup]="emailPasswordForm" (ngSubmit)="updateEmailPassword()" class="space-y-6">
-            <!-- Nueva email (repetir para confirmación) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-2">
                 <label for="newEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -768,9 +652,7 @@
                     : 'w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all'"
                 />
                 @if (newEmail?.invalid && newEmail?.touched) {
-                  <p class="text-sm text-red-600 dark:text-red-400">
-                    Email inválido
-                  </p>
+                  <p class="text-sm text-red-600 dark:text-red-400">Email inválido</p>
                 }
               </div>
 
@@ -790,25 +672,18 @@
                 @if (confirmEmail?.invalid && confirmEmail?.touched) {
                   <div class="space-y-1">
                     @if (confirmEmail?.errors?.['required']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Confirma tu nuevo email
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Confirma tu nuevo email</p>
                     }
                     @if (confirmEmail?.errors?.['email']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Email inválido
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Email inválido</p>
                     }
                     @if (confirmEmail?.errors?.['emailMismatch']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Los emails no coinciden
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Los emails no coinciden</p>
                     }
                   </div>
                 }
               </div>
 
-              <!-- Contraseña actual (requerida para cualquier cambio) -->
               <div class="space-y-2">
                 <label for="currentPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Contraseña Actual *
@@ -826,41 +701,29 @@
                 @if (currentPassword?.invalid && currentPassword?.touched) {
                   <div class="space-y-1">
                     @if (currentPassword?.errors?.['required']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        La contraseña actual es requerida
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">La contraseña actual es requerida</p>
                     }
                     @if (currentPassword?.errors?.['minlength']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Mínimo 6 caracteres
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Mínimo 6 caracteres</p>
                     }
                     @if (currentPassword?.errors?.['missingUpperCase']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Debe contener al menos una mayúscula
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Debe contener al menos una mayúscula</p>
                     }
                     @if (currentPassword?.errors?.['missingLowerCase']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Debe contener al menos una minúscula
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Debe contener al menos una minúscula</p>
                     }
                     @if (currentPassword?.errors?.['missingNumber']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Debe contener al menos un número
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Debe contener al menos un número</p>
                     }
                     @if (currentPassword?.errors?.['missingSpecialChar']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Debe contener al menos un carácter especial
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Debe contener al menos un carácter especial</p>
                     }
                   </div>
                 }
               </div>
               
               <div>&nbsp;</div>
-              <!-- Nueva contraseña (opcional) -->
+
               <div class="space-y-2">
                 <label for="newPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Nueva Contraseña <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">(opcional)</span>
@@ -877,29 +740,19 @@
                 @if (newPassword?.invalid && newPassword?.touched) {
                   <div class="space-y-1">
                     @if (newPassword?.errors?.['minlength']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Mínimo 6 caracteres
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Mínimo 6 caracteres</p>
                     }
                     @if (newPassword?.errors?.['missingUpperCase']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Debe contener al menos una mayúscula
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Debe contener al menos una mayúscula</p>
                     }
                     @if (newPassword?.errors?.['missingLowerCase']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Debe contener al menos una minúscula
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Debe contener al menos una minúscula</p>
                     }
                     @if (newPassword?.errors?.['missingNumber']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Debe contener al menos un número
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Debe contener al menos un número</p>
                     }
                     @if (newPassword?.errors?.['missingSpecialChar']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Debe contener al menos un carácter especial
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Debe contener al menos un carácter especial</p>
                     }
                   </div>
                 }
@@ -908,7 +761,6 @@
                 </p>
               </div>
 
-              <!-- Confirmar nueva contraseña (opcional) -->
               <div class="space-y-2">
                 <label for="confirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Confirmar Nueva Contraseña <span class="text-xs text-gray-500 dark:text-gray-400 font-normal">(solo si cambias la contraseña)</span>
@@ -925,21 +777,16 @@
                 @if (confirmPassword?.invalid && confirmPassword?.touched) {
                   <div class="space-y-1">
                     @if (confirmPassword?.errors?.['required']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Confirma tu nueva contraseña
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Confirma tu nueva contraseña</p>
                     }
                     @if (confirmPassword?.errors?.['passwordMismatch']) {
-                      <p class="text-sm text-red-600 dark:text-red-400">
-                        Las contraseñas no coinciden
-                      </p>
+                      <p class="text-sm text-red-600 dark:text-red-400">Las contraseñas no coinciden</p>
                     }
                   </div>
                 }
               </div>
-
             </div>
-            <!-- Botones -->
+
             <div class="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
               <button 
                 type="submit" 
@@ -976,7 +823,6 @@
   </div>
 </div>
 
-
 <!-- Modal de eliminación de cuenta -->
 <app-deactivate-account-modal
   [isOpen]="showDeactivateModal()"
@@ -986,13 +832,26 @@
   (cancel)="onCancelDeactivate()"
 ></app-deactivate-account-modal>
 
-<!-- Modal de éxito después de eliminar -->
+<!-- Modal de éxito -->
 <app-modal
   [isOpen]="showSuccessModal()"
-  title="Cuenta desactivada"
-  message="Tu cuenta ha sido cerrada correctamente. Serás redirigido a la página de login."
+  title="Operación exitosa"
+  [message]="successMessage() || 'Tu perfil ha sido actualizado correctamente.'"
   icon="success"
-  confirmText="Entendido"
+  confirmText="Aceptar"
   [showCancelButton]="false"
-  (confirm)="onAccountDeactivatedSuccess()"
+  (closed)="onSuccessModalClosed()"
+  (confirm)="onSuccessModalConfirm()"
+></app-modal>
+
+<!-- Modal de error -->
+<app-modal
+  [isOpen]="showErrorModal()"
+  title="Error"
+  [message]="errorMessage() || 'Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo más tarde.'"
+  icon="error"
+  confirmText="Aceptar"
+  [showCancelButton]="false"
+  (closed)="closeErrorModal()"
+  (confirm)="closeErrorModal()"
 ></app-modal>

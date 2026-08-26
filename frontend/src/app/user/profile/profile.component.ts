@@ -28,15 +28,12 @@ export class ProfileComponent implements OnInit {
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
 
-  // Referencia al modal de eliminación
   @ViewChild(DeactivateAccountModalComponent) deactivateModal!: DeactivateAccountModalComponent;
 
-  // Formularios (existentes)
   profileForm: FormGroup;
   emailPasswordForm: FormGroup;
   guestCompleteForm: FormGroup;
 
-  // Estados (existentes)
   loading = signal(false);
   loadingEmailPassword = signal(false);
   loadingGuestUpdate = signal(false);
@@ -45,21 +42,16 @@ export class ProfileComponent implements OnInit {
   emailPasswordError = signal<string | null>(null);
   emailPasswordSuccess = signal<string | null>(null);
 
-  // Nuevos estados para eliminación
   deactivatingAccount = signal(false);
   deactivateError = signal<string | null>(null);
   showDeactivateModal = signal(false);
 
-  // Modal de confirmación exitosa
   showSuccessModal = signal(false);
-  
-  // Datos del usuario
-  user = signal<any>(null);
+  showErrorModal = signal(false);  // <-- NUEVO: control del modal de error
 
-  // Control de visibilidad del formulario de email/password
+  user = signal<any>(null);
   showEmailPasswordForm = signal(false);
 
-  // Lista de países
   countries = [
     'España', 'México', 'Argentina', 'Colombia', 'Chile', 'Perú', 'Venezuela',
     'Estados Unidos', 'Canadá', 'Reino Unido', 'Francia', 'Alemania', 'Italia',
@@ -69,8 +61,7 @@ export class ProfileComponent implements OnInit {
   ];
 
   constructor() {
-    // Formularios existentes (mantener igual)
-    this.profileForm = this.fb.group({
+    this.profileForm = this.fb.group({      
       username: ['', [
         Validators.required,
         Validators.minLength(3),
@@ -81,14 +72,13 @@ export class ProfileComponent implements OnInit {
         Validators.required,
         Validators.minLength(3),
         Validators.maxLength(50),
-        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$') // solo letras y espacios
-
+        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$')
       ]],
       lastName: ['', [
         Validators.required,
         Validators.minLength(3),
         Validators.maxLength(50),
-        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$') // solo letras y espacios
+        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$')
       ]],
       phone: ['', [
         Validators.pattern(/^[0-9+\-\s()]{7,15}$/)
@@ -139,13 +129,13 @@ export class ProfileComponent implements OnInit {
         Validators.required,
         Validators.minLength(3),
         Validators.maxLength(50),
-        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$') // solo letras y espacios
+        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$')
       ]],
       lastName: ['', [
         Validators.required,
         Validators.minLength(3),
         Validators.maxLength(50),
-        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$') // solo letras y espacios
+        Validators.pattern('^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$')
       ]],
       phone: ['', [
         Validators.pattern(/^[0-9+\-\s()]{7,15}$/)
@@ -187,18 +177,15 @@ export class ProfileComponent implements OnInit {
     this.loadUserData();
   }
 
-  // ========== FUNCIONES PARA ELIMINACIÓN DE CUENTA ==========
-
-  // Abrir modal de eliminación
+  // ========== ELIMINACIÓN DE CUENTA ==========
   openDeactivateAccountModal(): void {   
     this.showDeactivateModal.set(true);
     this.deactivateError.set(null);
   }
 
-  // Procesar eliminación de cuenta
   onDeactivateAccount(data: { current_password: string; confirm_text: string }): void {
     this.deactivatingAccount.set(true);
-    this.deactivateError.set(null); // Limpiar error anterior
+    this.deactivateError.set(null);
 
     this.userService.deactivateAccount(data)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -207,13 +194,13 @@ export class ProfileComponent implements OnInit {
           this.deactivatingAccount.set(false);
           this.showDeactivateModal.set(false);
           
-          // Mostrar modal de éxito
+          this.successMessage.set(response.message || 'Tu cuenta ha sido cerrada correctamente. Serás redirigido a la página de login.');
           this.showSuccessModal.set(true);
+          this.onAccountDeactivatedSuccess();
         },
         error: (err: any) => {
           this.deactivatingAccount.set(false);
           
-          // Mostrar error del backend
           if (err.error?.error) {
             this.deactivateError.set(err.error.error);
           } else if (err.status === 401) {
@@ -227,33 +214,24 @@ export class ProfileComponent implements OnInit {
           } else {
             this.deactivateError.set('Error al eliminar la cuenta');
           }
-          
-          // No cerrar el modal automáticamente cuando hay error
-          // El error se mostrará en el modal y el usuario podrá intentar de nuevo
         }
       });
   }
 
-  // Limpiar el error cuando el usuario cierre el modal
   onCancelDeactivate(): void {
     this.showDeactivateModal.set(false);
-    this.deactivateError.set(null); // Limpiar error al cancelar
+    this.deactivateError.set(null);
   }
 
-
-  // Después de éxito, cerrar sesión y redirigir
   onAccountDeactivatedSuccess(): void {
     this.showSuccessModal.set(false);
-    
-    // Limpiar datos de usuario localmente
     this.user.set(null);
-    
-    // Redirigir a la página de inicio o login
     setTimeout(() => {
       this.router.navigate(['/login']);
     }, 1000);
   }
 
+  // ========== VALIDADORES ==========
   passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
     const value = control.value;
     if (!value) {
@@ -342,6 +320,7 @@ export class ProfileComponent implements OnInit {
     return null;
   }
 
+  // ========== CARGAR DATOS ==========
   loadUserData() {
     this.loading.set(true);
     this.userService.getCurrentUser()
@@ -385,6 +364,7 @@ export class ProfileComponent implements OnInit {
         },
         error: (err: any) => {
           this.errorMessage.set('Error al cargar los datos del usuario');
+          this.showErrorModal.set(true);  // <-- mostrar modal de error
           this.loading.set(false);
           if (err.status === 401) {
             this.router.navigate(['/login']);
@@ -393,7 +373,7 @@ export class ProfileComponent implements OnInit {
       });
   }
 
-  // Getters
+  // ========== GETTERS ==========
   get username() { return this.profileForm.get('username'); }
   get firstName() { return this.profileForm.get('firstName'); }
   get lastName() { return this.profileForm.get('lastName'); }
@@ -432,6 +412,7 @@ export class ProfileComponent implements OnInit {
     return maxDate.toISOString().split('T')[0];
   }
 
+  // ========== FORMULARIOS ==========
   toggleEmailPasswordForm() {
     this.showEmailPasswordForm.set(!this.showEmailPasswordForm());
     if (!this.showEmailPasswordForm()) {
@@ -482,14 +463,16 @@ export class ProfileComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response: any) => {
-          this.loading.set(false);
+          this.loading.set(false);          
           this.successMessage.set(response.message || 'Datos actualizados correctamente');
+          this.showSuccessModal.set(true);          
           this.user.set(response.user); 
           this.profileForm.markAsPristine(); 
         },
         error: (err: any) => {
           this.loading.set(false);
           this.errorMessage.set(err.error?.error || 'Error al actualizar los datos');
+          this.showErrorModal.set(true);  // <-- mostrar modal de error
         }
       });
   }
@@ -606,6 +589,7 @@ export class ProfileComponent implements OnInit {
         next: (response: any) => {
           this.loadingGuestUpdate.set(false);
           this.successMessage.set(response.message || 'Perfil completado correctamente.');
+          this.showSuccessModal.set(true);
           this.user.set(response.user);
           this.guestCompleteForm.markAsPristine();          
           
@@ -615,13 +599,25 @@ export class ProfileComponent implements OnInit {
         },
         error: (err: any) => {
           this.loadingGuestUpdate.set(false);
-          this.errorMessage.set(err.error?.error || 'Error al completar el perfil');
+          this.errorMessage.set(err.error?.error || 'Ha ocurrido un error inesperado. Por favor, inténtalo de nuevo más tarde.');
+          this.showErrorModal.set(true);  
         }
       });
   }
 
-  closeToast() {
-      this.errorMessage.set(null);
-      this.successMessage.set(null);
+  // ========== CIERRE DE MODALES ==========
+  closeErrorModal() {
+    this.errorMessage.set(null);
+    this.showErrorModal.set(false);
+  }
+
+  onSuccessModalConfirm() {
+    this.showSuccessModal.set(false);
+    this.successMessage.set(null);
+  }
+
+  onSuccessModalClosed() {
+    this.showSuccessModal.set(false);
+    this.successMessage.set(null);
   }
 }
