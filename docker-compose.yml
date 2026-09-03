@@ -33,9 +33,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy      
     environment:
       ENV: production
       DB_HOST: angotest_postgres # Sobreescribe a .env
+      REDIS_HOST: angotest_redis
+      REDIS_PORT: 6379      
 
     networks:
       - web_network
@@ -71,6 +75,7 @@ volumes:
   static_volume:
   media_volume:
   postgres_data:
+  redis_data:    
 
 # Usa la red externa compartida
 networks:
