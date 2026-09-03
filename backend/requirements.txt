@@ -2,6 +2,7 @@ annotated-types==0.7.0
 anyio==4.13.0
 asgiref==3.11.1
 asttokens==3.0.1
+async-timeout==5.0.1
 attrs==26.1.0
 backcall==0.2.0
 bleach==6.4.0
@@ -10,10 +11,11 @@ charset-normalizer==3.4.7
 decorator==5.3.1
 defusedxml==0.7.1
 distro==1.9.0
-Django==5.0.3
+Django==5.2.17
 django-cors-headers==4.3.1
 django-erd-generator==0.1.7
 django-filter==24.2
+django-redis==7.0.0
 django-stubs==6.0.6
 django-stubs-ext==6.0.6
 djangorestframework==3.14.0
@@ -67,6 +69,7 @@ python-dotenv==1.0.1
 pytz==2026.2
 PyYAML==6.0.3
 pyzmq==27.1.0
+redis==8.1.0
 referencing==0.37.0
 requests==2.34.2
 rpds-py==0.30.0
