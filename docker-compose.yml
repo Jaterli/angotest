@@ -23,7 +23,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: angotest_redis
+    container_name: ${REDIS_HOST}
     restart: always
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
@@ -31,7 +31,7 @@ services:
     networks:
       - web_network
     expose:
-      - "6379"
+      - "${REDIS_PORT}"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -55,8 +55,9 @@ services:
     environment:
       ENV: production
       DB_HOST: angotest_postgres # Sobreescribe a .env
-      REDIS_HOST: angotest_redis
-      REDIS_PORT: 6379      
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB: ${REDIS_DB}
 
     networks:
       - web_network
