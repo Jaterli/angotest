@@ -19,7 +19,7 @@ from dotenv import load_dotenv # type: ignore
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SITE_URL = os.getenv('SITE_URL', 'http://localhost:7200')  # Ajusta según tu entorno
+SITE_URL = os.getenv('SITE_URL', 'localhost:7200')  # Ajusta según tu entorno
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
@@ -36,7 +36,9 @@ EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@tudominio.com')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@angotest.com')
+EMAIL_FROM_NAME = os.getenv('EMAIL_FROM_NAME', 'AngoTest')
+EMAIL_TIMEOUT = 10  # Timeout en segundos para conexiones SMTP
 
 # Apps
 INSTALLED_APPS = [
@@ -47,6 +49,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_erd_generator',
+    # Redis
+    'django_redis',    
     # Third party
     'rest_framework',
     'rest_framework_simplejwt',
@@ -124,6 +128,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_THROTTLE_RATES': {
+        'forgot_password': '3/hour', # Limita a 3 solicitudes por hora para la vista de restablecimiento de contraseña
+    },    
 }
 
 # JWT Settings
@@ -212,25 +219,26 @@ LOGGING = {
     },
 }
 
-# Configuración de caché (usando Redis o memoria)
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',  # Para desarrollo
-        'LOCATION': 'unique-snowflake',
-        'TIMEOUT': 3600,  # 1 hora por defecto
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000
+# Configuración de caché (usando Redis o memoria LocMemCache)
+if os.getenv('ENV') == 'production':
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': 'redis://127.0.0.1:6379/1',
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
         }
     }
-}
+else :
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',  # Para desarrollo
+            'LOCATION': 'unique-snowflake',
+            'TIMEOUT': 3600,  # 1 hora por defecto
+            'OPTIONS': {
+                'MAX_ENTRIES': 1000
+            }
+        }
+    }
 
-# Si usas Redis en producción, descomenta esta sección y ajusta la configuración:
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-#         'LOCATION': 'redis://127.0.0.1:6379/1',
-#         'OPTIONS': {
-#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-#         }
-#     }
-# }

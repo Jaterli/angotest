@@ -2,6 +2,7 @@
 import secrets
 import logging
 from datetime import timedelta
+import threading
 
 import jwt
 from django.conf import settings
@@ -16,15 +17,15 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
-
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
-
-# drf-spectacular imports
 from drf_spectacular.utils import extend_schema, OpenApiResponse
+from rest_framework.exceptions import Throttled
+from .throttling import ForgotPasswordRateThrottle
 
 from .models import User, PasswordResetToken
+
 from .serializers import (
     UserSerializer, UserProfileSerializer, UserUpdateSerializer,
     UserWithStatsSerializer, RegisterSerializer, LoginSerializer,
@@ -189,6 +190,16 @@ class LogoutView(APIView):
 )
 class ForgotPasswordView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [ForgotPasswordRateThrottle]
+
+    def throttled(self, request, wait):
+        raise Throttled(
+            detail={
+                'message': 'Has superado el número máximo de solicitudes. '
+                            'Por favor, inténtalo de nuevo más tarde.',
+                'retry_after_seconds': int(wait) if wait is not None else None,
+            }
+        )
 
     def post(self, request):
         serializer = ForgotPasswordSerializer(data=request.data)
@@ -215,7 +226,15 @@ class ForgotPasswordView(APIView):
         # una vía para resetear la contraseña de cualquier usuario.
         logger.info(f"Password reset requested for user_id={user.id}")
 
-        send_password_reset_email(user.email, reset_link)
+        # El envío de email se hace en un hilo aparte para no bloquear
+        # el worker de Django/gunicorn mientras espera al servidor SMTP.
+        # Si el SMTP tarda o se cuelga, nginx cortará igualmente por su
+        # propio timeout, pero el request ya habrá respondido al cliente.
+        threading.Thread(
+            target=send_password_reset_email,
+            args=(user.email, reset_link),
+            daemon=True
+        ).start()
 
         response_data = {'message': 'Si el email existe, se ha enviado un enlace de recuperación'}
         if getattr(settings, 'ENV', 'development') == 'development':
@@ -717,8 +736,8 @@ def send_password_reset_email(to_email, reset_link):
     send_mail(
         subject,
         plain_message,
-        settings.DEFAULT_FROM_EMAIL,
-        [to_email],
+        from_email=f'{settings.EMAIL_FROM_NAME} <{settings.DEFAULT_FROM_EMAIL}>',
+        recipient_list=[to_email],
         html_message=html_message,
         fail_silently=False
     )
