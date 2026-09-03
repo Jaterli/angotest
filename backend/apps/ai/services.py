@@ -291,6 +291,11 @@ def parse_ai_response(result: Dict[str, Any], input_data: Dict[str, Any]) -> Dic
     content = ''
     if 'choices' in result and result['choices']:
         choice = result['choices'][0]
+
+        finish_reason = choice.get('finish_reason')
+        if finish_reason == 'length':
+            logger.warning("AI response truncated by token limit (finish_reason=length)")
+               
         if 'message' in choice and 'content' in choice['message']:
             content = choice['message']['content']
     
@@ -306,12 +311,15 @@ def parse_ai_response(result: Dict[str, Any], input_data: Dict[str, Any]) -> Dic
         try:
             ai_response = json.loads(repaired)
         except json.JSONDecodeError:
-            logger.error("Failed to parse AI response JSON, returning mock test")
-            raise ValueError("La respuesta de la IA no es un JSON válido\n Estructura devuelta: " + content)
-    
+            if finish_reason == 'length':
+                logger.error("AI response truncated by token limit and JSON parse failed")
+                raise ValueError("La respuesta de la IA se cortó por límite de tokens. Reduce el número de preguntas/opciones.")
+            logger.error("Failed to parse AI response JSON")
+            raise ValueError("La respuesta de la IA no es un JSON válido. Prueba de nuevo o reduce el número de preguntas/opciones.")
+            
     # Validar estructura
     if 'questions' not in ai_response or not ai_response['questions']:
-        logger.error("AI response JSON missing 'questions' or empty, returning mock test")
+        logger.error("AI response JSON missing 'questions' or empty")
         raise ValueError("La respuesta de la IA no contiene preguntas")
     
     is_free_mode = input_data.get('generation_mode') == 'prompt' and input_data.get('ai_prompt')

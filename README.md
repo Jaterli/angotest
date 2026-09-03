@@ -143,20 +143,46 @@ pip install -r requirements.txt
 #### 2.3. Configurar variables de entorno
 Crea un archivo `.env` en la raíz del backend con el siguiente contenido (ajusta los valores):
 ```env
-DJANGO_SECRET_KEY=tu-clave-secreta
+# Django settings for AngoTest project
 DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-DB_NAME=angotest_db
-DB_USER=postgres
-DB_PASSWORD=tu-contraseña
-DB_HOST=localhost
+ENV=development
+SITE_URL=localhost:4200  # Cambiar por el dominio en producción (ej: angotest.com)
+DJANGO_SECRET_KEY='tu-clave-secreta-django'  # Generar una clave segura
+
+ALLOWED_HOSTS=localhost,127.0.0.1,tu-dominio.com,www.tu-dominio.com,angotest_backend,angotest_backend:8000
+CORS_ALLOWED_ORIGINS=https://tu-dominio.com,http://tu-dominio.com,http://localhost:4200,http://localhost:8000,http://127.0.0.1:8000
+CSRF_TRUSTED_ORIGINS=https://tu-dominio.com,http://tu-dominio.com,http://localhost:4200,http://localhost:8000
+
+# Database configuration
+DB_HOST=localhost  # Cambiar por angotest_db en producción con Docker
 DB_PORT=5432
-JWT_SECRET=tu-jwt-secret
-SITE_URL=http://localhost:4200
-CORS_ALLOWED_ORIGINS=http://localhost:4200
-GROQ_API_KEY=tu-api-key-de-groq
-GROQ_BASE_URL=https://api.groq.com/openai/v1/chat/completions
-MIN_TESTS_FOR_RANKING=5
+DB_USER=postgres
+DB_PASSWORD=tu-contraseña-postgres
+DB_NAME=angotest_db
+
+# JWT configuration
+JWT_SECRET='tu-jwt-secret'  # Generar un secreto seguro para JWT
+
+# Redis (opcional, para caché y sesiones)
+REDIS_HOST=localhost  # Cambiar por angotest_redis en producción con Docker
+REDIS_PORT=6379
+REDIS_DB=1
+
+# AI configuration
+GROQ_BASE_URL='https://api.groq.com/openai/v1/chat/completions'
+GROQ_API_KEY='tu-api-key-de-groq'  # Obtener de https://console.groq.com
+GROQ_MODEL='openai/gpt-oss-120b'  # Modelo a utilizar
+AI_MAX_TOKENS=8000
+AI_TEMPERATURE=0.5
+AI_TIMEOUT=60
+
+# Email configuration
+EMAIL_HOST=smtp.gmail.com  # Cambiar por tu proveedor de email
+EMAIL_PORT=587
+EMAIL_HOST_USER=tu-email@gmail.com
+EMAIL_HOST_PASSWORD=tu-contraseña-app  # Usar contraseña de aplicación para Gmail
+DEFAULT_FROM_EMAIL='soporte@tu-dominio.com'
+EMAIL_FROM_NAME=AngoTest
 ```
 
 #### 2.4. Ejecutar migraciones y crear superusuario

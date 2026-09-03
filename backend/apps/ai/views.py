@@ -101,7 +101,9 @@ class GenerateAITestView(APIView):
                 'model': provider.model,
                 'messages': messages,
                 'temperature': provider.temperature,
-                #'max_completion_tokens': provider.max_tokens,
+                'max_completion_tokens': provider.max_tokens,
+                'reasoning_effort': 'low',   # reduce tokens de "pensamiento"
+                'response_format': {'type': 'json_object'},   # fuerza salida JSON limpia                
                 'stream': False
             }
 
