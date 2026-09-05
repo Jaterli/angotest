@@ -39,8 +39,6 @@ export class ProfileComponent implements OnInit {
   loadingGuestUpdate = signal(false);
   errorMessage = signal<string | null>(null);
   successMessage = signal<string | null>(null);
-  emailPasswordError = signal<string | null>(null);
-  emailPasswordSuccess = signal<string | null>(null);
 
   deactivatingAccount = signal(false);
   deactivateError = signal<string | null>(null);
@@ -421,8 +419,6 @@ export class ProfileComponent implements OnInit {
         newPassword: '',
         confirmPassword: ''
       });
-      this.emailPasswordError.set(null);
-      this.emailPasswordSuccess.set(null);
     }
   }
 
@@ -493,7 +489,7 @@ export class ProfileComponent implements OnInit {
     const isPasswordChanged = !!formValues.newPassword;
     
     if (!isEmailChanged && !isPasswordChanged) {
-      this.emailPasswordError.set('No se han realizado cambios en el email ni contraseña');
+      this.successMessage.set('Sin cambios, todo sigue igual');
       return;
     }
 
@@ -504,8 +500,6 @@ export class ProfileComponent implements OnInit {
     }
 
     this.loadingEmailPassword.set(true);
-    this.emailPasswordError.set(null);
-    this.emailPasswordSuccess.set(null);
 
     const emailPasswordData = {
       current_password: formValues.currentPassword,
@@ -527,30 +521,31 @@ export class ProfileComponent implements OnInit {
           } else {
             message = 'Contraseña actualizada correctamente.';
           }
-          
-          this.emailPasswordForm.markAsPristine();           
-          this.emailPasswordSuccess.set(response.message || message);
-          
-          if (isEmailChanged && response.user) {
+
+          this.emailPasswordForm.markAsPristine();
+          const finalMessage = response.message || message;
+          this.successMessage.set(finalMessage);
+          this.showSuccessModal.set(true);
+
+          if (response.user) {
             this.user.set(response.user);
           }
-          
           this.emailPasswordForm.patchValue({
             currentPassword: '',
             newPassword: '',
             confirmPassword: ''
           });
-          
+
+          // Opcional: cierra el formulario automáticamente tras 5 segundos
           setTimeout(() => {
-            this.emailPasswordSuccess.set(null);
-            if (response.user) {
-              this.showEmailPasswordForm.set(false);
-            }
-          }, 5000);
+            this.showEmailPasswordForm.set(false);
+          }, 5000);                
+
         },
         error: (err: any) => {
           this.loadingEmailPassword.set(false);
-          this.emailPasswordError.set(err.error?.error || 'Error al actualizar el email o contraseña');
+          this.errorMessage.set(err.error?.error || 'Error al actualizar el email o contraseña');
+          this.showErrorModal.set(true);
         }
       });
   }

@@ -458,7 +458,7 @@ export class QuotaManagementComponent implements OnInit {
   confirmDeleteQuota(quota: UserQuota): void {
     this.quotaToDelete.set(quota);
     this.modalTitle.set('Confirmar eliminación');
-    this.modalMessage.set(`¿Estás seguro de que deseas eliminar la cuota de ${quota.user__username || quota.user_id} para ${quota.month_year}? Esta acción no se puede deshacer.`);
+    this.modalMessage.set(`¿Estás seguro de que deseas eliminar la cuota de ${quota.user__username || quota.user_id} para ${quota.month_year}?`);
     this.showDeleteModal.set(true);
   }
 
@@ -466,7 +466,7 @@ export class QuotaManagementComponent implements OnInit {
     if (this.selectedCount() === 0) return;
 
     this.modalTitle.set('Confirmar eliminación masiva');
-    this.modalMessage.set(`¿Estás seguro de que deseas eliminar ${this.selectedCount()} cuota(s) seleccionada(s)? Esta acción no se puede deshacer.`);
+    this.modalMessage.set(`¿Estás seguro de que deseas eliminar ${this.selectedCount()} cuota(s) seleccionada(s)?`);
     this.showBulkDeleteModal.set(true);
   }
 

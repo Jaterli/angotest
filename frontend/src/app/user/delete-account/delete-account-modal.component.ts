@@ -114,10 +114,9 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
                             <div class="mt-2 text-sm text-orange-700 dark:text-orange-400">
                                 <ul class="list-disc pl-5 space-y-1">
                                 <li>No podrás recuperar tu cuenta una vez eliminada</li>
-                                <li>Todos tus tests serán transferidos al administrador del sistema</li>
-                                <li>Tus resultados y estadísticas serán transferidos</li>
+                                <li>Todos tus tests y resultados serán transferidos a un usuario contenedor</li>
+                                <li>Tus datos personales serán anonimizados</li>
                                 <li>Perderás acceso permanente a todos tus datos</li>
-                                <li>Esta acción es irreversible y no se puede deshacer</li>
                                 </ul>
                             </div>
                             </div>
