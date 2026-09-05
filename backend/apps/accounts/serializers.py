@@ -80,6 +80,30 @@ class ResetPasswordSerializer(serializers.Serializer):
         return data
 
 
+class ContactSerializer(serializers.Serializer):
+    consent = serializers.BooleanField(required=True)
+    email = serializers.EmailField(required=True)
+    message = serializers.CharField(required=True, allow_blank=False)
+    name = serializers.CharField(required=True, allow_blank=False)
+    subject = serializers.CharField(required=False, allow_blank=True)
+
+    def validate_consent(self, value):
+        if not value:
+            raise serializers.ValidationError("Debes aceptar la política de privacidad.")
+        return value
+
+    def validate_message(self, value):
+        # Contar palabras separadas por espacios
+        words = value.strip().split()
+        if len(words) < 5:
+            raise serializers.ValidationError("El mensaje debe tener al menos 5 palabras.")
+        return value
+
+    def validate_name(self, value):
+        if not value.strip():
+            raise serializers.ValidationError("El nombre no puede estar vacío.")
+        return value
+
 # ------------------------------------------------------------------
 # Serializers para vistas que antes validaban manualmente en la vista
 # ------------------------------------------------------------------

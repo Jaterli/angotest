@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
     ProfileView, UpdateEmailPasswordView, UpdateGuestProfileView,
     DeactivateAccountView, DashboardView, RankingsView,
-    AdminUserListView, AdminUserDetailView, AdminUserProfileView, AdminDeleteUserView
+    AdminUserListView, AdminUserDetailView, AdminUserProfileView, AdminDeleteUserView, ContactView
 )
 
 urlpatterns = [
@@ -13,6 +13,7 @@ urlpatterns = [
     path('deactivate-account/', DeactivateAccountView.as_view(), name='deactivate_account'),
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
     path('rankings/', RankingsView.as_view(), name='rankings'),
+    path('contact/', ContactView.as_view(), name='contact'),
 
     # Administración de usuarios (admin)
     path('stats/', AdminUserListView.as_view(), name='admin_users'),

@@ -12,8 +12,9 @@ from django.db import transaction
 from django.db.models import Count, Avg, Q, F, FloatField, Case, When, Value
 from django.db.models.functions import Coalesce, Cast
 from django.utils import timezone
-
 from django_filters.rest_framework import DjangoFilterBackend
+from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
@@ -38,7 +39,7 @@ from .serializers import (
     UpdateEmailPasswordResponseSerializer, UpdateGuestProfileResponseSerializer,
     DeactivateAccountResponseSerializer, ForgotPasswordResponseSerializer,
     ValidateResetTokenResponseSerializer, ResetPasswordResponseSerializer,
-    LogoutResponseSerializer, DashboardResponseSerializer, RankingsResponseSerializer
+    LogoutResponseSerializer, DashboardResponseSerializer, RankingsResponseSerializer, ContactSerializer
 )
 from .filters import UserFilter
 from .user_management_service import UserManagementService, ContainerUserError
@@ -304,6 +305,94 @@ class ResetPasswordWithTokenView(APIView):
 
         return Response({'message': 'Contraseña actualizada exitosamente'})
 
+
+
+
+
+
+@extend_schema(
+    summary="Enviar mensaje de contacto",
+    description="Envía un mensaje de contacto al administrador y una confirmación al usuario.",
+    request=ContactSerializer,
+    responses={
+        201: OpenApiResponse(description="Mensaje enviado correctamente"),
+        400: OpenApiResponse(description="Datos inválidos o validación fallida"),
+        500: OpenApiResponse(description="Error al enviar el correo"),
+    }
+)
+class ContactView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = ContactSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        data = serializer.validated_data
+        name = data['name']
+        email = data['email']
+        subject = data.get('subject', 'Mensaje de contacto desde la web')
+        message = data['message']
+
+        # Construir el correo para el administrador
+        admin_subject = f"Nuevo mensaje de contacto: {subject}"
+        admin_message = (
+            f"Nombre: {name}\n"
+            f"Email: {email}\n"
+            f"Asunto: {subject}\n\n"
+            f"Mensaje:\n{message}"
+        )
+        admin_html = render_to_string('admin_notification.html', {
+            'name': name,
+            'email': email,
+            'subject': subject,
+            'message': message,
+        })
+
+        # Confirmación para el usuario
+        user_subject = "Hemos recibido tu mensaje"
+        user_message = (
+            f"Hola {name},\n\n"
+            "Hemos recibido tu mensaje y te responderemos lo antes posible.\n\n"
+            "Gracias por contactarnos.\n\n"
+            "El equipo de AngoTest"
+        )
+        user_html = render_to_string('user_confirmation.html', {
+            'name': name,
+            'message': message,
+        })
+
+        try:
+            # Enviar correo al administrador (DEFAULT_FROM_EMAIL es el destinatario)
+            send_mail(
+                subject=admin_subject,
+                message=admin_message,
+                from_email=f"{settings.EMAIL_FROM_NAME} <{settings.DEFAULT_FROM_EMAIL}>",
+                recipient_list=[settings.DEFAULT_FROM_EMAIL],
+                html_message=admin_html,
+                fail_silently=False,
+            )
+
+            # Enviar confirmación al usuario
+            send_mail(
+                subject=user_subject,
+                message=user_message,
+                from_email=f"{settings.EMAIL_FROM_NAME} <{settings.DEFAULT_FROM_EMAIL}>",
+                recipient_list=[email],
+                html_message=user_html,
+                fail_silently=False,
+            )
+        except Exception as e:
+            logger.error(f"Error al enviar correos de contacto: {str(e)}")
+            return Response(
+                {"error": "No se pudo enviar el mensaje. Inténtalo de nuevo más tarde."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        return Response(
+            {"message": "Tu mensaje ha sido enviado correctamente. Te responderemos pronto."},
+            status=status.HTTP_201_CREATED
+        )
 
 # ===========================================================================
 # Perfil de usuario (autenticado)
@@ -716,8 +805,6 @@ def get_token_from_request(request):
 
 def send_password_reset_email(to_email, reset_link):
     """Envía email de recuperación de contraseña"""
-    from django.template.loader import render_to_string
-    from django.core.mail import send_mail
 
     subject = 'Recuperación de contraseña'
     html_message = render_to_string('reset-password.html', {

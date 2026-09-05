@@ -9,7 +9,7 @@ import { environment } from '../../../environments/environment';
   providedIn: 'root'
 })
 export class ContactService {
-  private apiUrl = `${environment.apiUrl}/contact`; // Ajusta la URL según tu backend
+  private apiUrl = `${environment.apiUrl}/user/contact/`; 
 
   constructor(private http: HttpClient) {}
 
